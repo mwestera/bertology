@@ -18,7 +18,8 @@ bert_version = 'bert-base-cased'    # TODO Why no case?
 
 tokenizer = BertTokenizer.from_pretrained(bert_version)
 
-NORMALIZE = True
+NORMALIZE = True     # TODO What about normalizing per layer, instead of per head? Does that make any sense? Yes, a bit.
+
 # LAYERS = [[0,1,2], [3,4,5], [6,7,8], [9,10,11]]
 # LAYERS = [[0,1,2,3,4,5,6,7,8,9,10,11]]
 LAYERS = [0,1,2,3,4,5,6,7,8,9,10,11]
