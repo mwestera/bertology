@@ -53,6 +53,7 @@ def new_way():
             sum_activations += activations_per_head
         if METHOD == "percolate":
             activations = sum_activations
+            # I checked: normalizing the activations (as a whole or per col) makes no difference.
             sum_activations = np.zeros_like(activations)
         elif METHOD == "sum":
             activations = np.diag(np.ones(num_tokens))
@@ -60,6 +61,7 @@ def new_way():
     if METHOD == "sum":
         activations = sum_activations
 
+    # TODO Can I remove this transpose() by doing things more consistently early on?
     activations = pd.DataFrame(activations.transpose(), index=all_tokens, columns=all_tokens)
     return activations
 
@@ -87,7 +89,6 @@ LAYERS = [layer_inds[:i] for i in range(1,13)]
 # sentence_b = "He is wearing a gray raincoat."
 
 # I want the ability to (i) compare minimal pairs, (ii) sets of them -- only pairs though? For visualisation perhaps, but there can be more factors if just for the stats...
-# TODO allow masking (tricky: retrieving location of token in bert-tokenized version) of interesting items
 DATA = [
         # "The boy has a cat while the girl has a pigeon.",
         # "The boy has a cat while the girl has a pigeon."
@@ -134,6 +135,7 @@ def parse_data(data):
 
 
 print(parse_data(DATA))
+# TODO Further implement using this; basically matters only in final plot, right?
 
 
 # IDEA: Compare quantifiers, restrictor vs scope, to see how the info flows to the quantifier... advantage: very uniform sentences...
@@ -152,13 +154,15 @@ for sequence in DATA:
     num_tokens = len(all_tokens)
     attn = attn.squeeze()
 
+    # TODO Handle the cumulative case smarter (lot of redundancy: 1... 1,2... 1,2,3... 1,2,3,4...)
+    # TODO Include cumulativity automatically on each run? Both methods (sum/percolate)?
     for layers_idx, layers in enumerate(LAYERS):
         if isinstance(layers, int):
             layers = [layers]
 
         attn_for_layers = attn[layers]
 
-        AAT = new_way()
+        AAT = new_way() # TODO Rename this function and remove the old way.
         AATs_per_layer[layers_idx].append(AAT)
 
 for AATs, layers in zip(AATs_per_layer, LAYERS):
