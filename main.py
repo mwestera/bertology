@@ -42,23 +42,28 @@ def new_way():
     # for token_idx, token in enumerate(all_tokens):
     # token_onehot = np.zeros(num_tokens)
     # token_onehot[token_idx] = 1
-    # TODO alternative would be to simply add up all weights... More ad hoc, but could be interesting.
     activations = np.diag(np.ones(num_tokens))
-    AAT = np.zeros_like(activations)
+    if METHOD == "sum":
+        next_activations = np.zeros_like(activations)
     for layer in attn_for_layers:
+        if METHOD == "percolate":
+            next_activations = np.zeros_like(activations)
         for head in layer:
-            activations = np.matmul(head, activations)
-            if NORMALIZE:
-                for i in range(0, len(activations)):
-                    activations[:,i] = normalize(activations[:,i])
-            if METHOD == "sum":
-                AAT += activations
-                activations = np.diag(np.ones(num_tokens))  # for next iteration
-            if METHOD == 'percolate':
-                AAT = activations
+            activations_per_head = np.matmul(head, activations)
+            if NORMALIZE:       # Normalize per token; yes makes sense.
+                for i in range(0, len(activations_per_head)):
+                    activations_per_head[:,i] = normalize(activations_per_head[:,i])
+            next_activations += activations_per_head
+        if METHOD == "percolate":
+            activations = next_activations
+        elif METHOD == "sum":
+            activations = np.diag(np.ones(num_tokens))
 
-    AAT = pd.DataFrame(AAT.transpose(), index=all_tokens, columns=all_tokens)
-    return AAT
+    if METHOD == "sum":
+        activations = next_activations
+
+    activations = pd.DataFrame(activations.transpose(), index=all_tokens, columns=all_tokens)
+    return activations
 
 
 
@@ -66,7 +71,7 @@ bert_version = 'bert-base-cased'    # TODO Why no case?
 
 tokenizer = BertTokenizer.from_pretrained(bert_version)
 
-METHOD = "sum"  # "percolate"
+METHOD = "percolate"  # "sum"
 NORMALIZE = True
     # What about normalizing per layer, instead of per head? Does that make any sense? Yes, a bit.
     # However, since BERT has LAYER NORM in each attention head, outputs of all heads will have same mean/variance.
@@ -77,7 +82,7 @@ LAYERS = [0]
 # LAYERS = [[0,1,2], [3,4,5], [6,7,8], [9,10,11]]
 # LAYERS = [[0,1,2,3,4,5,6,7,8,9,10,11]]
 layer_inds = [0,1,2,3,4,5,6,7,8,9,10,11]
-# LAYERS = [layer_inds[:i] for i in range(1,13)]
+LAYERS = [layer_inds[:i] for i in range(1,13)]
 # LAYERS = [10,11]
 
 # sentence_a = "Every farmer who owns a donkey beats it."
