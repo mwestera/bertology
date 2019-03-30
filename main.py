@@ -43,24 +43,22 @@ def new_way():
     # token_onehot = np.zeros(num_tokens)
     # token_onehot[token_idx] = 1
     activations = np.diag(np.ones(num_tokens))
-    if METHOD == "sum":
-        next_activations = np.zeros_like(activations)
+    sum_activations = np.zeros_like(activations)
     for layer in attn_for_layers:
-        if METHOD == "percolate":
-            next_activations = np.zeros_like(activations)
         for head in layer:
             activations_per_head = np.matmul(head, activations)
             if NORMALIZE:       # Normalize per token; yes makes sense.
                 for i in range(0, len(activations_per_head)):
                     activations_per_head[:,i] = normalize(activations_per_head[:,i])
-            next_activations += activations_per_head
+            sum_activations += activations_per_head
         if METHOD == "percolate":
-            activations = next_activations
+            activations = sum_activations
+            sum_activations = np.zeros_like(activations)
         elif METHOD == "sum":
             activations = np.diag(np.ones(num_tokens))
 
     if METHOD == "sum":
-        activations = next_activations
+        activations = sum_activations
 
     activations = pd.DataFrame(activations.transpose(), index=all_tokens, columns=all_tokens)
     return activations
