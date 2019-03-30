@@ -18,29 +18,72 @@ bert_version = 'bert-base-cased'    # TODO Why no case?
 
 tokenizer = BertTokenizer.from_pretrained(bert_version)
 
-NORMALIZE = True     # TODO What about normalizing per layer, instead of per head? Does that make any sense? Yes, a bit.
+NORMALIZE = True
+    # What about normalizing per layer, instead of per head? Does that make any sense? Yes, a bit.
+    # However, since BERT has LAYER NORM in each attention head, outputs of all heads will have same mean/variance.
+    # Does this mean that all heads will contribute same amount of information? Yes, roughly.
+
 
 # LAYERS = [[0,1,2], [3,4,5], [6,7,8], [9,10,11]]
 # LAYERS = [[0,1,2,3,4,5,6,7,8,9,10,11]]
-LAYERS = [0,1,2,3,4,5,6,7,8,9,10,11]
-LAYERS = [LAYERS[:i] for i in range(1,13)]
+layer_inds = [0,1,2,3,4,5,6,7,8,9,10,11]
+LAYERS = [layer_inds[:i] for i in range(1,13)]
 # LAYERS = [10,11]
 
 # sentence_a = "Every farmer who owns a donkey beats it."
 # sentence_b = "He is wearing a gray raincoat."
+
+# I want the ability to (i) compare minimal pairs, (ii) sets of them -- only pairs though? For visualisation perhaps, but there can be more factors if just for the stats...
+# TODO allow masking (tricky: retrieving location of token in bert-tokenized version) of interesting items
 DATA = [
         # "The boy has a cat while the girl has a pigeon.",
         # "The boy has a cat while the girl has a pigeon."
         # "The boy has a cat. He likes to stroke it.",
         # "The boy has no cat. He likes to stroke it.",
-        "The teacher wants every boy to like himself.",
-        "The teacher wants every boy to like him.",
-        #("I've found nine out of ten marbles.", "It's probably under the couch."),
-        #("I've found all marbles except for one.", "It's probably under the couch."),
-        # ("Few of the children ate their ice-cream.", "They ate the apple flavor first."),
-        # ("Few of the children ate their ice-cream.", "They threw it around the room instead."),
-        # ("Few of the children ate their ice-cream.", "The others threw it around the room instead."),
+        'The teacher wants every boy to like himself.',
+        'The teacher wants every boy to like him.',
+        # "I cannot find one of my ten marbles. It's probably under the couch.",
+        # "I only found nine of my ten marbles. It's probably under the couch.",
+        # '|0 Every farmer | who |1 owns a donkey |2 beats it.',
+        # '|0 No farmer | who |1 owns a donkey |2 beats it.',
+        # "Few of the children ate their ice-cream. They ate the apple flavor first.",
+        # "Few of the children ate their ice-cream. They threw it around the room instead.",
+        # "Few of the children ate their ice-cream. The others threw it around the room instead.",
     ]
+
+
+def parse_data(data):
+
+    sentences = []
+    group_ids_per_sentence = []
+
+    for s in data:
+        group_to_token_ids = {}
+        sentence = ""
+        total_len = 1   # Take mandatory CLS symbol into account
+        for each_part in s.strip('|').split('|'):
+            first_char = each_part[0]
+            if first_char.isdigit():
+                group_id = int(first_char)
+                each_part = each_part[1:].strip()
+            tokens = tokenizer.tokenize(each_part)
+            if first_char.isdigit():
+                if group_id in group_to_token_ids:
+                    group_to_token_ids[group_id].append(list(range(total_len, total_len + len(tokens))))
+                else:
+                    group_to_token_ids[group_id] = list(range(total_len, total_len + len(tokens)))
+            total_len += len(tokens)
+            sentence += each_part.strip() + ' '
+        sentences.append(sentence.strip())
+        group_ids_per_sentence.append(group_to_token_ids)
+
+    return sentences, group_ids_per_sentence
+
+
+print(parse_data(DATA))
+
+
+# IDEA: Compare quantifiers, restrictor vs scope, to see how the info flows to the quantifier... advantage: very uniform sentences...
 
 model = BertModel.from_pretrained(bert_version)
 attention_visualizer = visualization.AttentionVisualizer(model, tokenizer)
@@ -70,7 +113,7 @@ for sequence in DATA:
             AA = None
             for layer in attn_for_layers:
                 for head in layer:
-                        attention = np.matmul(head, token_onehot)
+                        attention = np.matmul(head, token_onehot).transpose()
                         if NORMALIZE:
                             attention = normalize(attention)
                         if AA is None:
@@ -97,17 +140,18 @@ for AATs, layers in zip(AATs_per_layer, LAYERS):
     vmax = max([AAT.max().max() for AAT in AATs])
 
     for i, AAT in enumerate(AATs):
-        ax = sns.heatmap(AAT, vmin=vmin, vmax=vmax, linewidth=0.5, ax=axs[i], cbar=False, cmap="Blues", square=True, cbar_kws={'shrink':.5})
+        ax = sns.heatmap(AAT, xticklabels=True, yticklabels=True, vmin=vmin, vmax=vmax, linewidth=0.5, ax=axs[i], cbar=False, cmap="Blues", square=True, cbar_kws={'shrink':.5}, label='small')
         ax.xaxis.tick_top()
         plt.setp(ax.get_xticklabels(), rotation=90)
 
     ## Difference plot
     diff = AATs[0] - AATs[1].values
+    # TODO change values to be only shared tokens
     vmin, vmax = diff.min().min(), diff.max().max()
     vmin = -(max(0-vmin, vmax))
     vmax = (max(0-vmin, vmax))
 
-    ax = sns.heatmap(diff, vmin=vmin, vmax=vmax, cbar=False, linewidth=0.5, ax=axs[i+1], cmap="coolwarm_r", square=True, cbar_kws={'shrink':.5})
+    ax = sns.heatmap(diff, xticklabels=True, yticklabels=True, vmin=vmin, vmax=vmax, cbar=False, linewidth=0.5, ax=axs[i+1], cmap="coolwarm_r", square=True, cbar_kws={'shrink':.5}, label='small')
     ax.xaxis.tick_top()
     plt.setp(ax.get_xticklabels(), rotation=90)
 
