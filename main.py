@@ -14,20 +14,70 @@ def normalize(v):
     return v / norm
 
 
+def old_way():
+    AAT = []
+    for token_idx, token in enumerate(
+            all_tokens):  # TODO alternative would be to simply add up all weights... More ad hoc, but could be interesting.
+        token_onehot = np.zeros(num_tokens)
+        token_onehot[token_idx] = 1
+        AA = None
+        for layer in attn_for_layers:
+            for head in layer:
+                attention = np.matmul(head, token_onehot).transpose()
+                if NORMALIZE:
+                    attention = normalize(attention)
+                if AA is None:
+                    AA = attention
+                else:
+                    AA += attention
+        AAT.append(AA)
+
+    AAT = np.stack(AAT)
+    AAT = pd.DataFrame(AAT, index=all_tokens, columns=all_tokens)
+
+    return AAT
+
+
+def new_way():
+    # for token_idx, token in enumerate(all_tokens):
+    # token_onehot = np.zeros(num_tokens)
+    # token_onehot[token_idx] = 1
+    # TODO alternative would be to simply add up all weights... More ad hoc, but could be interesting.
+    activations = np.diag(np.ones(num_tokens))
+    AAT = np.zeros_like(activations)
+    for layer in attn_for_layers:
+        for head in layer:
+            activations = np.matmul(head, activations)
+            if NORMALIZE:
+                for i in range(0, len(activations)):
+                    activations[:,i] = normalize(activations[:,i])
+            if METHOD == "sum":
+                AAT += activations
+                activations = np.diag(np.ones(num_tokens))  # for next iteration
+            if METHOD == 'percolate':
+                AAT = activations
+
+    AAT = pd.DataFrame(AAT.transpose(), index=all_tokens, columns=all_tokens)
+    return AAT
+
+
+
 bert_version = 'bert-base-cased'    # TODO Why no case?
 
 tokenizer = BertTokenizer.from_pretrained(bert_version)
 
+METHOD = "sum"  # "percolate"
 NORMALIZE = True
     # What about normalizing per layer, instead of per head? Does that make any sense? Yes, a bit.
     # However, since BERT has LAYER NORM in each attention head, outputs of all heads will have same mean/variance.
     # Does this mean that all heads will contribute same amount of information? Yes, roughly.
 
 
+LAYERS = [0]
 # LAYERS = [[0,1,2], [3,4,5], [6,7,8], [9,10,11]]
 # LAYERS = [[0,1,2,3,4,5,6,7,8,9,10,11]]
 layer_inds = [0,1,2,3,4,5,6,7,8,9,10,11]
-LAYERS = [layer_inds[:i] for i in range(1,13)]
+# LAYERS = [layer_inds[:i] for i in range(1,13)]
 # LAYERS = [10,11]
 
 # sentence_a = "Every farmer who owns a donkey beats it."
@@ -100,31 +150,12 @@ for sequence in DATA:
     attn = attn.squeeze()
 
     for layers_idx, layers in enumerate(LAYERS):
-
         if isinstance(layers, int):
             layers = [layers]
 
         attn_for_layers = attn[layers]
 
-        AAT = []
-        for token_idx, token in enumerate(all_tokens):      # TODO alternative would be to simply add up all weights... More ad hoc, but could be interesting.
-            token_onehot = np.zeros(num_tokens)
-            token_onehot[token_idx] = 1
-            AA = None
-            for layer in attn_for_layers:
-                for head in layer:
-                        attention = np.matmul(head, token_onehot).transpose()
-                        if NORMALIZE:
-                            attention = normalize(attention)
-                        if AA is None:
-                            AA = attention
-                        else:
-                            AA += attention
-            AAT.append(AA)
-
-        AAT = np.stack(AAT)
-        AAT = pd.DataFrame(AAT, index=all_tokens, columns=all_tokens)
-
+        AAT = new_way()
         AATs_per_layer[layers_idx].append(AAT)
 
 for AATs, layers in zip(AATs_per_layer, LAYERS):
@@ -157,3 +188,4 @@ for AATs, layers in zip(AATs_per_layer, LAYERS):
 
     pylab.savefig("output/temp{}.png".format('-'.join([str(i) for i in layers])))
     # pylab.show()
+
