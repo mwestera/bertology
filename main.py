@@ -7,6 +7,8 @@ import matplotlib.pylab as pylab
 
 import pandas as pd
 
+import csv
+
 def normalize(v):
     norm = np.linalg.norm(v)
     if norm == 0:
@@ -93,8 +95,8 @@ DATA = [
         # "The boy has a cat while the girl has a pigeon."
         # "The boy has a cat. He likes to stroke it.",
         # "The boy has no cat. He likes to stroke it.",
-        'The teacher wants every boy to like himself.',
-        'The teacher wants every boy to like him.',
+        'reflexive, |0 The teacher | wants |1 every boy | to like |2 himself.',
+        'plain, |0 The teacher | wants |1 every boy | to like |2 him.',
         # "I cannot find one of my ten marbles. It's probably under the couch.",
         # "I only found nine of my ten marbles. It's probably under the couch.",
         # '|0 Every farmer | who |1 owns a donkey |2 beats it.',
@@ -104,17 +106,18 @@ DATA = [
         # "Few of the children ate their ice-cream. The others threw it around the room instead.",
     ]
 
-
 def parse_data(data):
 
-    sentences = []
-    group_ids_per_sentence = []
+    parsed_data = []
+    num_factors = None
+    max_num_groups = 0
 
-    for s in data:
+    for row in csv.reader(data):
+        num_factors = len(row)-1    # Num rows minus the sentence itself
         group_to_token_ids = {}
         sentence = ""
         total_len = 1   # Take mandatory CLS symbol into account
-        for each_part in s.strip('|').split('|'):
+        for each_part in row[-1].strip('|').split('|'):
             first_char = each_part[0]
             if first_char.isdigit():
                 group_id = int(first_char)
@@ -127,15 +130,22 @@ def parse_data(data):
                     group_to_token_ids[group_id] = list(range(total_len, total_len + len(tokens)))
             total_len += len(tokens)
             sentence += each_part.strip() + ' '
-        sentences.append(sentence.strip())
-        group_ids_per_sentence.append(group_to_token_ids)
+            max_num_groups = max(max_num_groups, len(group_to_token_ids))
 
-    return sentences, group_ids_per_sentence
+        # collect token group ids in a list instead of dict
+        token_ids_list = [[] for _ in range(max(group_to_token_ids)+1)]
+        for key in group_to_token_ids:
+            token_ids_list[key] = group_to_token_ids[key]
+
+        parsed_data.append(row[:-1] + [sentence.strip()] + token_ids_list)
+
+    columns = ['f{}'.format(i) for i in range(num_factors)] + ['sentence'] + ['g{}'.format(i) for i in range(max_num_groups)]
+
+    return pd.DataFrame(parsed_data, columns=columns)
 
 
-print(parse_data(DATA))
-# TODO Further implement using this; basically matters only in final plot, right?
-
+data = parse_data(DATA)
+print(data)
 
 # IDEA: Compare quantifiers, restrictor vs scope, to see how the info flows to the quantifier... advantage: very uniform sentences...
 
@@ -146,7 +156,7 @@ attention_visualizer = visualization.AttentionVisualizer(model, tokenizer)
 
 measures_per_layer = []
 
-for sequence in DATA:
+for sequence in data['sentence']:
 
     tokens_a, tokens_b, attn = attention_visualizer.get_viz_data(sequence)
     all_tokens = tokens_a + tokens_b
