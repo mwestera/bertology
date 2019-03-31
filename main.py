@@ -17,10 +17,11 @@ def normalize(v):
 def compute_PAT(heads_per_layer, layer_norm=True):  # Another measure: MEOW -- mean energy of words?? DOG -- ?
 
     # Method 1: Percolating activations: Starting activations are one hot vector for each token
+    percolated_activations_per_layer = []
     percolated_activations = np.diag(np.ones(heads_per_layer.shape[-1]))      # n_tokens × n_tokens
-    for heads_of_layer in heads_per_layer:
+    for layer in heads_per_layer:
         summed_activations = np.zeros_like(percolated_activations)
-        for head in heads_of_layer:      # n_tokens × n_tokens
+        for head in layer:      # n_tokens × n_tokens
             activations_per_head = np.matmul(head, percolated_activations)
             # (i,j) = how much (activations coming ultimately from) token i influences token j
             if layer_norm:       # Normalize influence (across all tokens i) on each token j
@@ -32,13 +33,17 @@ def compute_PAT(heads_per_layer, layer_norm=True):  # Another measure: MEOW -- m
         percolated_activations = summed_activations
         # I checked: normalizing the activations (as a whole or per col) makes no difference.
 
-    return percolated_activations
+        percolated_activations_per_layer.append(percolated_activations)
+
+    return percolated_activations_per_layer[-1], percolated_activations_per_layer
 
 
 def compute_MAT(heads_per_layer, layer_norm=True):
     # Method 2: summing activations
-    summed_activations = np.zeros_like(heads_per_layer[0][1])
+    mean_activations_per_layer = []
+    summed_mean_activations = np.zeros_like(heads_per_layer[0][1])
     for heads_of_layer in heads_per_layer:
+        summed_activations = np.zeros_like(heads_per_layer[0][1])
         for head in heads_of_layer:      # n_tokens × n_tokens
             activations_per_head = head.copy()
             # (i,j) = how much (activations coming ultimately from) token i influences token j
@@ -47,7 +52,9 @@ def compute_MAT(heads_per_layer, layer_norm=True):
                     activations_per_head[:,j] = normalize(activations_per_head[:, j])
             summed_activations += activations_per_head
 
-    return summed_activations/(heads_per_layer.shape[0]*heads_per_layer.shape[1])
+        mean_activations_per_layer.append(summed_activations/heads_per_layer.shape[1])
+
+    return sum(mean_activations_per_layer)/float(len(mean_activations_per_layer)), mean_activations_per_layer
 
 bert_version = 'bert-base-cased'    # TODO Why no case?
 
@@ -59,11 +66,10 @@ NORMALIZE = True
     # Does this mean that all heads will contribute same amount of information? Yes, roughly.
 
 
-LAYERS = [0]
 # LAYERS = [[0,1,2], [3,4,5], [6,7,8], [9,10,11]]
 # LAYERS = [[0,1,2,3,4,5,6,7,8,9,10,11]]
-layer_inds = [0,1,2,3,4,5,6,7,8,9,10,11]
-LAYERS = [layer_inds[:i] for i in range(1,13)]
+LAYERS = [0,1,2,3,4,5,6,7,8,9,10,11]
+# LAYERS = [layer_inds[:i] for i in range(1,13)]
 # LAYERS = [10,11]
 
 # sentence_a = "Every farmer who owns a donkey beats it."
@@ -126,37 +132,26 @@ attention_visualizer = visualization.AttentionVisualizer(model, tokenizer)
 
 # First, I want to compare pairs of sentences across layers. Only afterwards think about accumulating stats of multiple sentences.
 
-AATs_per_layer = [[] for _ in LAYERS]
+AATs_per_layer = []
 
 for sequence in DATA:
 
     tokens_a, tokens_b, attn = attention_visualizer.get_viz_data(sequence)
     all_tokens = tokens_a + tokens_b
-    num_tokens = len(all_tokens)
     attn = attn.squeeze()
 
-    # TODO Handle the cumulative case smarter (lot of redundancy: 1... 1,2... 1,2,3... 1,2,3,4...)
-    # TODO Include cumulativity automatically on each run? Both methods (sum/percolate)?
-    for layers_idx, layers in enumerate(LAYERS):
-        if isinstance(layers, int):
-            layers = [layers]
+    PAT, PATs = compute_PAT(attn, layer_norm=NORMALIZE)
+    # MAT, MATs = compute_MAT(attn, layer_norm=NORMALIZE)   # TODO: possibility of cumulative MAT?
 
-        attn_for_layers = attn[layers]
+    # TODO Move this to plotting part.
+    AAT = pd.DataFrame(PAT, index=all_tokens, columns=all_tokens)
+    AATs_per_layer.append([pd.DataFrame(p, index=all_tokens, columns=all_tokens) for p in PATs])
 
-        PAT = compute_PAT(attn_for_layers, layer_norm=NORMALIZE)
-        # MAT = compute_MAT(attn_for_layers, layer_norm=NORMALIZE)
-
-        # TODO Move this to plotting part.
-        AAT = pd.DataFrame(PAT, index=all_tokens, columns=all_tokens)
-        AATs_per_layer[layers_idx].append(AAT)
-
-for AATs, layers in zip(AATs_per_layer, LAYERS):
-    if isinstance(layers, int):
-        layers = [layers]
+for AATs, layer in zip(zip(AATs_per_layer[0], AATs_per_layer[1]), LAYERS):
 
     fig, axs = plt.subplots(ncols=len(AATs) + 1, figsize=(12,4))
     plt.subplots_adjust(wspace = .6, top = .9)
-    fig.suptitle("Layer "+','.join([str(i) for i in layers]))
+    fig.suptitle("Layer {}".format(layer))
 
     # Individual sequence plots
     vmin = min([AAT.min().min() for AAT in AATs])
@@ -179,7 +174,7 @@ for AATs, layers in zip(AATs_per_layer, LAYERS):
     ax.xaxis.tick_top()
     plt.setp(ax.get_xticklabels(), rotation=90)
 
-    pylab.savefig("output/temp{}.png".format('-'.join([str(i) for i in layers])))
+    pylab.savefig("output/temp{}.png".format(layer))
     # pylab.show()
 
 
