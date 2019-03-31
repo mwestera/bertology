@@ -14,39 +14,45 @@ def normalize(v):
     return v / norm
 
 
-def compute_CAT():  # Another measure: MEOW -- mean energy of words?? DOG -- ?
+def compute_PAT(heads_per_layer, layer_norm=True):  # Another measure: MEOW -- mean energy of words?? DOG -- ?
 
-    # Starting activations are one hot vector for each token
-    activations = np.diag(np.ones(num_tokens))      # n_tokens × n_tokens
-    # This will contain the sum of all activations, either across layers or only per layer
-    sum_activations = np.zeros_like(activations)
-    for layer in attn_for_layers:
-        for head in layer:      # n_tokens × n_tokens
-            activations_per_head = np.matmul(head, activations)
+    # Method 1: Percolating activations: Starting activations are one hot vector for each token
+    percolated_activations = np.diag(np.ones(heads_per_layer.shape[-1]))      # n_tokens × n_tokens
+    for heads_of_layer in heads_per_layer:
+        summed_activations = np.zeros_like(percolated_activations)
+        for head in heads_of_layer:      # n_tokens × n_tokens
+            activations_per_head = np.matmul(head, percolated_activations)
             # (i,j) = how much (activations coming ultimately from) token i influences token j
-            if NORMALIZE:       # Normalize influence (across all tokens i) on each token j
+            if layer_norm:       # Normalize influence (across all tokens i) on each token j
                 for j in range(0, len(activations_per_head)):
-                    activations_per_head[:,j] = normalize(activations_per_head[:,j])
-            sum_activations += activations_per_head
-        if METHOD == "percolate":
-            # for the next layer, use sum_activations as the next input activations, and reset the sum.
-            activations = sum_activations
-            # I checked: normalizing the activations (as a whole or per col) makes no difference.
-            sum_activations = np.zeros_like(activations)
-        elif METHOD == "sum":
-            # for the next layer, keep the sum_activations, and reset the activations.
-            activations = np.diag(np.ones(num_tokens))
+                    activations_per_head[:,j] = normalize(activations_per_head[:, j])
+            summed_activations += activations_per_head
+        # TODO store sum_activations
+        # for the next layer, use sum_activations as the next input activations, and reset the sum.
+        percolated_activations = summed_activations
+        # I checked: normalizing the activations (as a whole or per col) makes no difference.
 
-    if METHOD == "sum":
-        activations = sum_activations
+    return percolated_activations
 
-    return activations
+
+def compute_MAT(heads_per_layer, layer_norm=True):
+    # Method 2: summing activations
+    summed_activations = np.zeros_like(heads_per_layer[0][1])
+    for heads_of_layer in heads_per_layer:
+        for head in heads_of_layer:      # n_tokens × n_tokens
+            activations_per_head = head.copy()
+            # (i,j) = how much (activations coming ultimately from) token i influences token j
+            if layer_norm:       # Normalize influence (across all tokens i) on each token j
+                for j in range(0, len(activations_per_head)):
+                    activations_per_head[:,j] = normalize(activations_per_head[:, j])
+            summed_activations += activations_per_head
+
+    return summed_activations/(heads_per_layer.shape[0]*heads_per_layer.shape[1])
 
 bert_version = 'bert-base-cased'    # TODO Why no case?
 
 tokenizer = BertTokenizer.from_pretrained(bert_version)
 
-METHOD = "percolate"  # "sum"
 NORMALIZE = True
     # What about normalizing per layer, instead of per head? Does that make any sense? Yes, a bit.
     # However, since BERT has LAYER NORM in each attention head, outputs of all heads will have same mean/variance.
@@ -137,9 +143,11 @@ for sequence in DATA:
 
         attn_for_layers = attn[layers]
 
-        AAT = compute_CAT() # TODO Rename this function and remove the old way.
-        AAT = AAT.transpose()       # (i,j) --> (j,i): how much j is unfluenced by i
-        AAT = pd.DataFrame(AAT, index=all_tokens, columns=all_tokens)
+        PAT = compute_PAT(attn_for_layers, layer_norm=NORMALIZE)
+        # MAT = compute_MAT(attn_for_layers, layer_norm=NORMALIZE)
+
+        # TODO Move this to plotting part.
+        AAT = pd.DataFrame(PAT, index=all_tokens, columns=all_tokens)
         AATs_per_layer[layers_idx].append(AAT)
 
 for AATs, layers in zip(AATs_per_layer, LAYERS):
@@ -155,7 +163,8 @@ for AATs, layers in zip(AATs_per_layer, LAYERS):
     vmax = max([AAT.max().max() for AAT in AATs])
 
     for i, AAT in enumerate(AATs):
-        ax = sns.heatmap(AAT, xticklabels=True, yticklabels=True, vmin=vmin, vmax=vmax, linewidth=0.5, ax=axs[i], cbar=False, cmap="Blues", square=True, cbar_kws={'shrink':.5}, label='small')
+        # (i,j) --> (j,i): how much j is unfluenced by i
+        ax = sns.heatmap(AAT.transpose(), xticklabels=True, yticklabels=True, vmin=vmin, vmax=vmax, linewidth=0.5, ax=axs[i], cbar=False, cmap="Blues", square=True, cbar_kws={'shrink':.5}, label='small')
         ax.xaxis.tick_top()
         plt.setp(ax.get_xticklabels(), rotation=90)
 
@@ -166,7 +175,7 @@ for AATs, layers in zip(AATs_per_layer, LAYERS):
     vmin = -(max(0-vmin, vmax))
     vmax = (max(0-vmin, vmax))
 
-    ax = sns.heatmap(diff, xticklabels=True, yticklabels=True, vmin=vmin, vmax=vmax, cbar=False, linewidth=0.5, ax=axs[i+1], cmap="coolwarm_r", square=True, cbar_kws={'shrink':.5}, label='small')
+    ax = sns.heatmap(diff.transpose(), xticklabels=True, yticklabels=True, vmin=vmin, vmax=vmax, cbar=False, linewidth=0.5, ax=axs[i+1], cmap="coolwarm_r", square=True, cbar_kws={'shrink':.5}, label='small')
     ax.xaxis.tick_top()
     plt.setp(ax.get_xticklabels(), rotation=90)
 
