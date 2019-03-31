@@ -14,8 +14,13 @@ def normalize(v):
     return v / norm
 
 
-def compute_PAT(heads_per_layer, layer_norm=True):  # Another measure: MEOW -- mean energy of words?? DOG -- ?
-
+def compute_PAT(heads_per_layer, layer_norm=True):
+    """
+    Computes Percolated Attention per Token (PAT), through all layers.
+    :param heads_per_layer:
+    :param layer_norm:
+    :return: percolated activations up to every layer
+    """
     # Method 1: Percolating activations: Starting activations are one hot vector for each token
     percolated_activations_per_layer = []
     percolated_activations = np.diag(np.ones(heads_per_layer.shape[-1]))      # n_tokens × n_tokens
@@ -35,10 +40,16 @@ def compute_PAT(heads_per_layer, layer_norm=True):  # Another measure: MEOW -- m
 
         percolated_activations_per_layer.append(percolated_activations)
 
-    return percolated_activations_per_layer[-1], percolated_activations_per_layer
+    return percolated_activations_per_layer
 
 
 def compute_MAT(heads_per_layer, layer_norm=True):
+    """
+    Computes Mean Attention per Token (MAT), i.e,, mean across all layers and heads.
+    :param heads_per_layer:
+    :param layer_norm:
+    :return: Averages (across heads) per layer
+    """
     # Method 2: summing activations
     mean_activations_per_layer = []
     summed_mean_activations = np.zeros_like(heads_per_layer[0][1])
@@ -54,13 +65,14 @@ def compute_MAT(heads_per_layer, layer_norm=True):
 
         mean_activations_per_layer.append(summed_activations/heads_per_layer.shape[1])
 
-    return sum(mean_activations_per_layer)/float(len(mean_activations_per_layer)), mean_activations_per_layer
+    return mean_activations_per_layer
 
 bert_version = 'bert-base-cased'    # TODO Why no case?
 
 tokenizer = BertTokenizer.from_pretrained(bert_version)
 
-NORMALIZE = True
+METHOD = "cat" # or "mat"
+LAYER_NORM = True
     # What about normalizing per layer, instead of per head? Does that make any sense? Yes, a bit.
     # However, since BERT has LAYER NORM in each attention head, outputs of all heads will have same mean/variance.
     # Does this mean that all heads will contribute same amount of information? Yes, roughly.
@@ -132,7 +144,7 @@ attention_visualizer = visualization.AttentionVisualizer(model, tokenizer)
 
 # First, I want to compare pairs of sentences across layers. Only afterwards think about accumulating stats of multiple sentences.
 
-AATs_per_layer = []
+measures_per_layer = []
 
 for sequence in DATA:
 
@@ -140,31 +152,30 @@ for sequence in DATA:
     all_tokens = tokens_a + tokens_b
     attn = attn.squeeze()
 
-    PAT, PATs = compute_PAT(attn, layer_norm=NORMALIZE)
-    # MAT, MATs = compute_MAT(attn, layer_norm=NORMALIZE)   # TODO: possibility of cumulative MAT?
+    measure_per_layer = (compute_PAT if METHOD == "pat" else compute_MAT)(attn, layer_norm=LAYER_NORM)
+    measures_per_layer.append([pd.DataFrame(measure, index=all_tokens, columns=all_tokens) for measure in measure_per_layer])
+    # TODO: possibility of cumulative MAT? No; if need be I can allow plotting averages over multiple layers.
 
-    # TODO Move this to plotting part.
-    AAT = pd.DataFrame(PAT, index=all_tokens, columns=all_tokens)
-    AATs_per_layer.append([pd.DataFrame(p, index=all_tokens, columns=all_tokens) for p in PATs])
+# TODO Now sum over sequences of the same type.
 
-for AATs, layer in zip(zip(AATs_per_layer[0], AATs_per_layer[1]), LAYERS):
+for dfs, layer in zip(zip(measures_per_layer[0], measures_per_layer[1]), LAYERS):
 
-    fig, axs = plt.subplots(ncols=len(AATs) + 1, figsize=(12,4))
+    fig, axs = plt.subplots(ncols=len(dfs) + 1, figsize=(12, 4))
     plt.subplots_adjust(wspace = .6, top = .9)
     fig.suptitle("Layer {}".format(layer))
 
     # Individual sequence plots
-    vmin = min([AAT.min().min() for AAT in AATs])
-    vmax = max([AAT.max().max() for AAT in AATs])
+    vmin = min([df.min().min() for df in dfs])
+    vmax = max([df.max().max() for df in dfs])
 
-    for i, AAT in enumerate(AATs):
+    for i, df in enumerate(dfs):
         # (i,j) --> (j,i): how much j is unfluenced by i
-        ax = sns.heatmap(AAT.transpose(), xticklabels=True, yticklabels=True, vmin=vmin, vmax=vmax, linewidth=0.5, ax=axs[i], cbar=False, cmap="Blues", square=True, cbar_kws={'shrink':.5}, label='small')
+        ax = sns.heatmap(df.transpose(), xticklabels=True, yticklabels=True, vmin=vmin, vmax=vmax, linewidth=0.5, ax=axs[i], cbar=False, cmap="Blues", square=True, cbar_kws={'shrink':.5}, label='small')
         ax.xaxis.tick_top()
         plt.setp(ax.get_xticklabels(), rotation=90)
 
     ## Difference plot
-    diff = AATs[0] - AATs[1].values
+    diff = dfs[0] - dfs[1].values
     # TODO change values to be only shared tokens
     vmin, vmax = diff.min().min(), diff.max().max()
     vmin = -(max(0-vmin, vmax))
