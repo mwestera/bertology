@@ -14,58 +14,33 @@ def normalize(v):
     return v / norm
 
 
-def old_way():
-    AAT = []
-    for token_idx, token in enumerate(
-            all_tokens):  # TODO alternative would be to simply add up all weights... More ad hoc, but could be interesting.
-        token_onehot = np.zeros(num_tokens)
-        token_onehot[token_idx] = 1
-        AA = None
-        for layer in attn_for_layers:
-            for head in layer:
-                attention = np.matmul(head, token_onehot).transpose()
-                if NORMALIZE:
-                    attention = normalize(attention)
-                if AA is None:
-                    AA = attention
-                else:
-                    AA += attention
-        AAT.append(AA)
+def compute_CAT():  # Another measure: MEOW -- mean energy of words?? DOG -- ?
 
-    AAT = np.stack(AAT)
-    AAT = pd.DataFrame(AAT, index=all_tokens, columns=all_tokens)
-
-    return AAT
-
-
-def new_way():
-    # for token_idx, token in enumerate(all_tokens):
-    # token_onehot = np.zeros(num_tokens)
-    # token_onehot[token_idx] = 1
-    activations = np.diag(np.ones(num_tokens))
+    # Starting activations are one hot vector for each token
+    activations = np.diag(np.ones(num_tokens))      # n_tokens × n_tokens
+    # This will contain the sum of all activations, either across layers or only per layer
     sum_activations = np.zeros_like(activations)
     for layer in attn_for_layers:
-        for head in layer:
+        for head in layer:      # n_tokens × n_tokens
             activations_per_head = np.matmul(head, activations)
-            if NORMALIZE:       # Normalize per token; yes makes sense.
-                for i in range(0, len(activations_per_head)):
-                    activations_per_head[:,i] = normalize(activations_per_head[:,i])
+            # (i,j) = how much (activations coming ultimately from) token i influences token j
+            if NORMALIZE:       # Normalize influence (across all tokens i) on each token j
+                for j in range(0, len(activations_per_head)):
+                    activations_per_head[:,j] = normalize(activations_per_head[:,j])
             sum_activations += activations_per_head
         if METHOD == "percolate":
+            # for the next layer, use sum_activations as the next input activations, and reset the sum.
             activations = sum_activations
             # I checked: normalizing the activations (as a whole or per col) makes no difference.
             sum_activations = np.zeros_like(activations)
         elif METHOD == "sum":
+            # for the next layer, keep the sum_activations, and reset the activations.
             activations = np.diag(np.ones(num_tokens))
 
     if METHOD == "sum":
         activations = sum_activations
 
-    # TODO Can I remove this transpose() by doing things more consistently early on?
-    activations = pd.DataFrame(activations.transpose(), index=all_tokens, columns=all_tokens)
     return activations
-
-
 
 bert_version = 'bert-base-cased'    # TODO Why no case?
 
@@ -162,7 +137,9 @@ for sequence in DATA:
 
         attn_for_layers = attn[layers]
 
-        AAT = new_way() # TODO Rename this function and remove the old way.
+        AAT = compute_CAT() # TODO Rename this function and remove the old way.
+        AAT = AAT.transpose()       # (i,j) --> (j,i): how much j is unfluenced by i
+        AAT = pd.DataFrame(AAT, index=all_tokens, columns=all_tokens)
         AATs_per_layer[layers_idx].append(AAT)
 
 for AATs, layers in zip(AATs_per_layer, LAYERS):
@@ -196,3 +173,9 @@ for AATs, layers in zip(AATs_per_layer, LAYERS):
     pylab.savefig("output/temp{}.png".format('-'.join([str(i) for i in layers])))
     # pylab.show()
 
+
+# import imageio
+# images = []
+# for filename in filenames:
+#     images.append(imageio.imread(filename))
+# imageio.mimsave('/path/to/movie.gif', images, format='GIF', duration=5)
