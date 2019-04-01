@@ -110,7 +110,7 @@ def parse_data(data):
 
     parsed_data = []
     num_factors = None
-    max_num_groups = 0
+    max_group_id = 0
 
     for row in csv.reader(data):
         num_factors = len(row)-1    # Num rows minus the sentence itself
@@ -122,6 +122,7 @@ def parse_data(data):
             if first_char.isdigit():
                 group_id = int(first_char)
                 each_part = each_part[1:].strip()
+                max_group_id = max(max_group_id, group_id)
             tokens = tokenizer.tokenize(each_part)
             if first_char.isdigit():
                 if group_id in group_to_token_ids:
@@ -130,18 +131,24 @@ def parse_data(data):
                     group_to_token_ids[group_id] = list(range(total_len, total_len + len(tokens)))
             total_len += len(tokens)
             sentence += each_part.strip() + ' '
-            max_num_groups = max(max_num_groups, len(group_to_token_ids))
+
 
         # collect token group ids in a list instead of dict
         token_ids_list = [[] for _ in range(max(group_to_token_ids)+1)]
         for key in group_to_token_ids:
             token_ids_list[key] = group_to_token_ids[key]
 
-        parsed_data.append(row[:-1] + [sentence.strip()] + token_ids_list)
+        parsed_data.append(row[:-1] + [sentence.strip()] + [' '.join(['CLS'] + tokenizer.tokenize(sentence) + ['SEP'])] + token_ids_list)
 
-    columns = ['f{}'.format(i) for i in range(num_factors)] + ['sentence'] + ['g{}'.format(i) for i in range(max_num_groups)]
+    columns = ['f{}'.format(i) for i in range(num_factors)] + ['sentence'] + ['tokenized'] + ['g{}'.format(i) for i in range(max_group_id + 1)]
 
-    return pd.DataFrame(parsed_data, columns=columns)
+    parsed_data = pd.DataFrame(parsed_data, columns=columns)
+    parsed_data.num_factors = num_factors
+    parsed_data.factors = ['f{}'.format(i) for i in range(num_factors)]
+    parsed_data.num_groups = max_group_id + 1
+    parsed_data.groups = ['g{}'.format(i) for i in range(max_group_id + 1)]
+
+    return parsed_data
 
 
 data = parse_data(DATA)
@@ -156,17 +163,44 @@ attention_visualizer = visualization.AttentionVisualizer(model, tokenizer)
 
 measures_per_layer = []
 
-for sequence in data['sentence']:
+for i, row in data.iterrows():
 
-    tokens_a, tokens_b, attn = attention_visualizer.get_viz_data(sequence)
+    tokens_a, tokens_b, attn = attention_visualizer.get_viz_data(row['sentence'])
     all_tokens = tokens_a + tokens_b
     attn = attn.squeeze()
 
     measure_per_layer = (compute_PAT if METHOD == "pat" else compute_MAT)(attn, layer_norm=LAYER_NORM)
-    measures_per_layer.append([pd.DataFrame(measure, index=all_tokens, columns=all_tokens) for measure in measure_per_layer])
+
+    grouped_measure_per_layer = []
+
+    for m in measure_per_layer:
+
+        grouped_measure = []
+
+        for group in data.groups:
+            # TODO check if not None?
+            grouped_measure.append(m[row[group]].mean(axis=0))
+
+        grouped_measure = np.stack(grouped_measure)
+        grouped_measure2 = []
+
+        for group in data.groups:
+            grouped_measure2.append(grouped_measure[:,row[group]].mean(axis=1))
+
+        grouped_measure = np.stack(grouped_measure2).transpose()
+
+        grouped_measure_per_layer.append(pd.DataFrame(grouped_measure, index=data.groups, columns=data.groups))
+
+    measures_per_layer.append(grouped_measure_per_layer)
+
     # TODO: possibility of cumulative MAT? No; if need be I can allow plotting averages over multiple layers.
 
-# TODO Now sum over sequences of the same type.
+# measures_per_layer now contains num_seq * dataframe [num_groups * num_groups]
+
+
+# TODO Now sum over sequences of the same type.   data.factors
+
+
 
 for dfs, layer in zip(zip(measures_per_layer[0], measures_per_layer[1]), LAYERS):
 
