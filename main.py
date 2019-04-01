@@ -7,6 +7,8 @@ import matplotlib.pylab as pylab
 
 import pandas as pd
 
+import os
+
 import csv
 
 def normalize(v):
@@ -73,7 +75,8 @@ bert_version = 'bert-base-cased'    # TODO Why no case?
 
 tokenizer = BertTokenizer.from_pretrained(bert_version)
 
-METHOD = "cat" # or "mat"
+METHOD = "cat" # "cat" or "mat"
+GROUPED = True
 LAYER_NORM = True
     # What about normalizing per layer, instead of per head? Does that make any sense? Yes, a bit.
     # However, since BERT has LAYER NORM in each attention head, outputs of all heads will have same mean/variance.
@@ -181,26 +184,30 @@ for i, row in data.iterrows():
 
     measure_per_layer = (compute_PAT if METHOD == "pat" else compute_MAT)(attn, layer_norm=LAYER_NORM)
 
-    # Take averages over grops of tokens
+    # Take averages over groups of tokens
     grouped_measure_per_layer = []
     for m in measure_per_layer:
         # TODO Streamline this code; more transparent variable names
 
-        grouped_measure = []
+        if GROUPED:
+            grouped_measure = []
 
-        for group in data.groups:
-            # TODO check if not None?
-            grouped_measure.append(m[row[group]].mean(axis=0))
+            for group in data.groups:
+                # TODO check if not None?
+                grouped_measure.append(m[row[group]].mean(axis=0))
 
-        grouped_measure = np.stack(grouped_measure)
-        grouped_measure2 = []
+            grouped_measure = np.stack(grouped_measure)
+            grouped_measure2 = []
 
-        for group in data.groups:
-            grouped_measure2.append(grouped_measure[:,row[group]].mean(axis=1))
+            for group in data.groups:
+                grouped_measure2.append(grouped_measure[:,row[group]].mean(axis=1))
 
-        grouped_measure = np.stack(grouped_measure2).transpose()
+            grouped_measure = np.stack(grouped_measure2).transpose()
 
-        df = pd.DataFrame(grouped_measure, index=data.groups, columns=data.groups)
+            df = pd.DataFrame(grouped_measure, index=data.groups, columns=data.groups)
+        else:
+            df = pd.DataFrame(m, index=all_tokens, columns=all_tokens)
+
         grouped_measure_per_layer.append(df)
 
     measures_per_layer.append(grouped_measure_per_layer)
@@ -209,8 +216,14 @@ for i, row in data.iterrows():
 
 # measures_per_layer now contains num_seq * dataframe [num_groups * num_groups]
 
-
 # TODO Now sum over sequences of the same type.   data.factors
+
+out_path = 'output/temp'
+out_path_idx = 0
+while os.path.exists(out_path):
+    out_path_idx += 1
+    out_path = 'output/temp_{}'.format(out_path_idx)
+os.mkdir(out_path)
 
 for l, dfs in enumerate(zip(measures_per_layer[0], measures_per_layer[1])):
 
@@ -239,8 +252,8 @@ for l, dfs in enumerate(zip(measures_per_layer[0], measures_per_layer[1])):
     ax.xaxis.tick_top()
     plt.setp(ax.get_xticklabels(), rotation=90)
 
-    print("Saving figure: output/temp{}.png".format(l))
-    pylab.savefig("output/temp{}.png".format(l))
+    print("Saving figure: {}/temp{}.png".format(out_path,l))
+    pylab.savefig("{}/temp{}.png".format(out_path,l))
     # pylab.show()
 
 
