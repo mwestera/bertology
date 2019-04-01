@@ -106,7 +106,7 @@ DATA = [
         # "Few of the children ate their ice-cream. The others threw it around the room instead.",
     ]
 
-def parse_data(data):
+def parse_data(data, factor_legend=None, group_legend=None):
 
     parsed_data = []
     num_factors = None
@@ -140,18 +140,28 @@ def parse_data(data):
 
         parsed_data.append(row[:-1] + [sentence.strip()] + [' '.join(['CLS'] + tokenizer.tokenize(sentence) + ['SEP'])] + token_ids_list)
 
-    columns = ['f{}'.format(i) for i in range(num_factors)] + ['sentence'] + ['tokenized'] + ['g{}'.format(i) for i in range(max_group_id + 1)]
+    if group_legend is None:
+        group_names = ['g{}'.format(i) for i in range(max_group_id + 1)]
+    else:
+        group_names = [group_legend[key] for key in group_legend]
+
+    if factor_legend is None:
+        factor_names = ['f{}'.format(i) for i in range(num_factors)]
+    else:
+        factor_names = [factor_legend[key] for key in factor_legend]
+
+    columns = factor_names + ['sentence'] + ['tokenized'] + group_names
 
     parsed_data = pd.DataFrame(parsed_data, columns=columns)
     parsed_data.num_factors = num_factors
-    parsed_data.factors = ['f{}'.format(i) for i in range(num_factors)]
+    parsed_data.factors = factor_names
     parsed_data.num_groups = max_group_id + 1
-    parsed_data.groups = ['g{}'.format(i) for i in range(max_group_id + 1)]
+    parsed_data.groups = group_names
 
     return parsed_data
 
 
-data = parse_data(DATA)
+data = parse_data(DATA, {0: 'anaphor_type'}, {0: 'subject', 1: 'object', 2: 'anaphor'})
 print(data)
 
 # IDEA: Compare quantifiers, restrictor vs scope, to see how the info flows to the quantifier... advantage: very uniform sentences...
@@ -174,6 +184,7 @@ for i, row in data.iterrows():
     grouped_measure_per_layer = []
 
     for m in measure_per_layer:
+        # TODO Streamline this code; more transparent variable names
 
         grouped_measure = []
 
