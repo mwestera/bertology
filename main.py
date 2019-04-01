@@ -181,8 +181,8 @@ for i, row in data.iterrows():
 
     measure_per_layer = (compute_PAT if METHOD == "pat" else compute_MAT)(attn, layer_norm=LAYER_NORM)
 
+    # Take averages over grops of tokens
     grouped_measure_per_layer = []
-
     for m in measure_per_layer:
         # TODO Streamline this code; more transparent variable names
 
@@ -200,7 +200,8 @@ for i, row in data.iterrows():
 
         grouped_measure = np.stack(grouped_measure2).transpose()
 
-        grouped_measure_per_layer.append(pd.DataFrame(grouped_measure, index=data.groups, columns=data.groups))
+        df = pd.DataFrame(grouped_measure, index=data.groups, columns=data.groups)
+        grouped_measure_per_layer.append(df)
 
     measures_per_layer.append(grouped_measure_per_layer)
 
@@ -211,13 +212,11 @@ for i, row in data.iterrows():
 
 # TODO Now sum over sequences of the same type.   data.factors
 
-
-
-for dfs, layer in zip(zip(measures_per_layer[0], measures_per_layer[1]), LAYERS):
+for l, dfs in enumerate(zip(measures_per_layer[0], measures_per_layer[1])):
 
     fig, axs = plt.subplots(ncols=len(dfs) + 1, figsize=(12, 4))
     plt.subplots_adjust(wspace = .6, top = .9)
-    fig.suptitle("Layer {}".format(layer))
+    fig.suptitle("Layer {}".format(l))
 
     # Individual sequence plots
     vmin = min([df.min().min() for df in dfs])
@@ -240,7 +239,8 @@ for dfs, layer in zip(zip(measures_per_layer[0], measures_per_layer[1]), LAYERS)
     ax.xaxis.tick_top()
     plt.setp(ax.get_xticklabels(), rotation=90)
 
-    pylab.savefig("output/temp{}.png".format(layer))
+    print("Saving figure: output/temp{}.png".format(l))
+    pylab.savefig("output/temp{}.png".format(l))
     # pylab.show()
 
 
