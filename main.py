@@ -11,6 +11,8 @@ import os
 
 import csv
 
+import imageio
+
 def normalize(v):
     norm = np.linalg.norm(v)
     if norm == 0:
@@ -233,6 +235,7 @@ while os.path.exists(out_path):
     out_path_idx += 1
     out_path = 'output/temp_{}'.format(out_path_idx)
 os.mkdir(out_path)
+out_filenames = [] # for keeping track to create gif
 
 # TODO Make this a global param; for plotting allow at most two factors? Compute diff only for 2 levels?
 factors_to_plot = ['anaphor_type']
@@ -273,13 +276,15 @@ for l in range(12):
     plt.setp(ax.get_xticklabels(), rotation=90)
 
     # TODO More meaningful output names
-    print("Saving figure: {}/temp{}.png".format(out_path,l))
-    pylab.savefig("{}/temp{}.png".format(out_path,l))
+    out_filename = "{}/temp{}.png".format(out_path,l)
+    print("Saving figure:", out_filename)
+    pylab.savefig(out_filename)
     # pylab.show()
 
-# TODO auto-export .gif  :)
-# import imageio
-# images = []
-# for filename in filenames:
-#     images.append(imageio.imread(filename))
-# imageio.mimsave('/path/to/movie.gif', images, format='GIF', duration=5)
+    out_filenames.append(out_filename)
+
+# TODO more meaningful output name; tweak timing
+images = []
+for filename in out_filenames:
+    images.append(imageio.imread(filename))
+imageio.mimsave('{}/temp.gif'.format(out_path), images, format='GIF', duration=.5)
