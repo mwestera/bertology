@@ -75,7 +75,7 @@ bert_version = 'bert-base-cased'    # TODO Why no case?
 
 tokenizer = BertTokenizer.from_pretrained(bert_version)
 
-METHOD = "cat" # "cat" or "mat"
+METHOD = "pat" # "cat" or "mat"
 GROUPED = True
 LAYER_NORM = True
     # What about normalizing per layer, instead of per head? Does that make any sense? Yes, a bit.
@@ -100,6 +100,8 @@ DATA = [
         # "The boy has no cat. He likes to stroke it.",
         'reflexive, |0 The teacher | wants |1 every boy | to like |2 himself.',
         'plain, |0 The teacher | wants |1 every boy | to like |2 him.',
+        'reflexive, |0 The officers | want |1 all drivers | to like |2 themselves.',
+        'plain, |0 The officers | want |1 all drivers | to like |2 them.',
         # "I cannot find one of my ten marbles. It's probably under the couch.",
         # "I only found nine of my ten marbles. It's probably under the couch.",
         # '|0 Every farmer | who |1 owns a donkey |2 beats it.',
@@ -174,7 +176,8 @@ attention_visualizer = visualization.AttentionVisualizer(model, tokenizer)
 
 # First, I want to compare pairs of sentences across layers. Only afterwards think about accumulating stats of multiple sentences.
 
-measures_per_layer = []
+# measure_series = pd.Series(index=data.index, dtype=object, name="attention")
+measure_series = []
 
 for i, row in data.iterrows():
 
@@ -184,12 +187,13 @@ for i, row in data.iterrows():
 
     measure_per_layer = (compute_PAT if METHOD == "pat" else compute_MAT)(attn, layer_norm=LAYER_NORM)
 
-    # Take averages over groups of tokens
-    grouped_measure_per_layer = []
-    for m in measure_per_layer:
-        # TODO Streamline this code; more transparent variable names
 
-        if GROUPED:
+    # Take averages over groups of tokens
+    if GROUPED:
+        grouped_measure_per_layer = []
+        for m in measure_per_layer:
+            # TODO Streamline this code; more transparent variable names
+
             grouped_measure = []
 
             for group in data.groups:
@@ -204,20 +208,25 @@ for i, row in data.iterrows():
 
             grouped_measure = np.stack(grouped_measure2).transpose()
 
-            df = pd.DataFrame(grouped_measure, index=data.groups, columns=data.groups)
-        else:
-            df = pd.DataFrame(m, index=all_tokens, columns=all_tokens)
+            grouped_measure_per_layer.append(grouped_measure)
 
-        grouped_measure_per_layer.append(df)
+        measure_per_layer = np.stack(grouped_measure_per_layer).reshape(-1)     # flatten for easier handling with pandas, compute means etc.
 
-    measures_per_layer.append(grouped_measure_per_layer)
+    measure_series.append(measure_per_layer)
 
-    # TODO: possibility of cumulative MAT? No; if need be I can allow plotting averages over multiple layers.
+    # TODO Allow plotting averages over multiple layers? Or, if only relevant for MAT, consider 'cMat' instead.
 
-# measures_per_layer now contains num_seq * dataframe [num_groups * num_groups]
+# Concatenate just so I can group by the different factors/levels, to compute means
+measure_series = pd.DataFrame(measure_series)
+df = pd.concat([data, measure_series], axis=1)
+means = df.groupby(data.factors).mean().values
+# Now put them back into meaningful shape, with adequate multi-index
+means = means.reshape(2 * 12,-1)  # TODO Remove these magic numbers
+multiindex = pd.MultiIndex.from_product([data[factor].unique() for factor in data.factors] + [list(range(12))], names=data.factors + ['layer'])
+df_means = pd.DataFrame(means, index=multiindex)
 
-# TODO Now sum over sequences of the same type.   data.factors
-
+# Output
+# TODO More meaningful output names
 out_path = 'output/temp'
 out_path_idx = 0
 while os.path.exists(out_path):
@@ -225,38 +234,50 @@ while os.path.exists(out_path):
     out_path = 'output/temp_{}'.format(out_path_idx)
 os.mkdir(out_path)
 
-for l, dfs in enumerate(zip(measures_per_layer[0], measures_per_layer[1])):
+# TODO Make this a global param; for plotting allow at most two factors? Compute diff only for 2 levels?
+factors_to_plot = ['anaphor_type']
 
-    fig, axs = plt.subplots(ncols=len(dfs) + 1, figsize=(12, 4))
+# Global min/max to have same color map everywhere
+vmin = df_means.min().min()
+vmax = df_means.max().max()
+
+# TODO allow taking means over layers
+for l in range(12):
+
+    # TODO Remove MAGIC everywhere below
+    reflexive = pd.DataFrame(df_means.loc[('reflexive',l)].values.reshape(3,3), index=data.groups, columns=data.groups)
+    plain = pd.DataFrame(df_means.loc[('plain',l)].values.reshape(3,3), index=data.groups, columns=data.groups)
+    # TODO index should be either data.groups, or the tokens, depending on GROUPED.
+    dfs_to_plot = [reflexive, plain]
+
+    fig, axs = plt.subplots(ncols=2+1, figsize=(12, 4))
     plt.subplots_adjust(wspace = .6, top = .9)
     fig.suptitle("Layer {}".format(l))
 
-    # Individual sequence plots
-    vmin = min([df.min().min() for df in dfs])
-    vmax = max([df.max().max() for df in dfs])
-
-    for i, df in enumerate(dfs):
+    for i, df in enumerate(dfs_to_plot):
         # (i,j) --> (j,i): how much j is unfluenced by i
         ax = sns.heatmap(df.transpose(), xticklabels=True, yticklabels=True, vmin=vmin, vmax=vmax, linewidth=0.5, ax=axs[i], cbar=False, cmap="Blues", square=True, cbar_kws={'shrink':.5}, label='small')
         ax.xaxis.tick_top()
         plt.setp(ax.get_xticklabels(), rotation=90)
 
     ## Difference plot
-    diff = dfs[0] - dfs[1].values
+    diff = dfs_to_plot[0] - dfs_to_plot[1].values
     # TODO change values to be only shared tokens
-    vmin, vmax = diff.min().min(), diff.max().max()
-    vmin = -(max(0-vmin, vmax))
-    vmax = (max(0-vmin, vmax))
+    # TODO Compute this globally, too
+    vmin2, vmax2 = diff.min().min(), diff.max().max()
+    vmin2 = -(max(0-vmin2, vmax2))
+    vmax2 = (max(0-vmin2, vmax2))
 
-    ax = sns.heatmap(diff.transpose(), xticklabels=True, yticklabels=True, vmin=vmin, vmax=vmax, cbar=False, linewidth=0.5, ax=axs[i+1], cmap="coolwarm_r", square=True, cbar_kws={'shrink':.5}, label='small')
+    ax = sns.heatmap(diff.transpose(), xticklabels=True, yticklabels=True, center=0, vmin=vmin2, cbar=False, linewidth=0.5, ax=axs[i+1], cmap="coolwarm_r", square=True, cbar_kws={'shrink':.5}, label='small')
     ax.xaxis.tick_top()
     plt.setp(ax.get_xticklabels(), rotation=90)
 
+    # TODO More meaningful output names
     print("Saving figure: {}/temp{}.png".format(out_path,l))
     pylab.savefig("{}/temp{}.png".format(out_path,l))
     # pylab.show()
 
-
+# TODO auto-export .gif  :)
 # import imageio
 # images = []
 # for filename in filenames:
