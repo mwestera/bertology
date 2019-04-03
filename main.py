@@ -11,7 +11,9 @@ import os
 
 import csv
 
+import itertools
 import imageio
+import warnings
 
 def normalize(v):
     norm = np.linalg.norm(v)
@@ -27,7 +29,6 @@ def compute_PAT(heads_per_layer, layer_norm=True):
     :param layer_norm:
     :return: percolated activations up to every layer
     """
-    # Method 1: Percolating activations: Starting activations are one hot vector for each token
     percolated_activations_per_layer = []
     percolated_activations = np.diag(np.ones(heads_per_layer.shape[-1]))      # n_tokens × n_tokens
     for layer in heads_per_layer:
@@ -39,10 +40,9 @@ def compute_PAT(heads_per_layer, layer_norm=True):
                 for j in range(0, len(activations_per_head)):
                     activations_per_head[:,j] = normalize(activations_per_head[:, j])
             summed_activations += activations_per_head
-        # TODO store sum_activations
-        # for the next layer, use sum_activations as the next input activations, and reset the sum.
+        # for the next layer, use summed_activations as the next input activations
         percolated_activations = summed_activations
-        # I checked: normalizing the activations (as a whole or per col) makes no difference.
+        # I believe normalizing the activations (as a whole or per col) makes no difference.
 
         percolated_activations_per_layer.append(percolated_activations)
 
@@ -56,14 +56,13 @@ def compute_MAT(heads_per_layer, layer_norm=True):
     :param layer_norm:
     :return: Averages (across heads) per layer
     """
-    # Method 2: summing activations
     mean_activations_per_layer = []
     summed_mean_activations = np.zeros_like(heads_per_layer[0][1])
     for heads_of_layer in heads_per_layer:
         summed_activations = np.zeros_like(heads_per_layer[0][1])
         for head in heads_of_layer:      # n_tokens × n_tokens
             activations_per_head = head.copy()
-            # (i,j) = how much (activations coming ultimately from) token i influences token j
+            # (i,j) = how much (activations coming from) token i influences token j
             if layer_norm:       # Normalize influence (across all tokens i) on each token j
                 for j in range(0, len(activations_per_head)):
                     activations_per_head[:,j] = normalize(activations_per_head[:, j])
@@ -73,9 +72,8 @@ def compute_MAT(heads_per_layer, layer_norm=True):
 
     return mean_activations_per_layer
 
-bert_version = 'bert-base-cased'    # TODO Why no case?
 
-tokenizer = BertTokenizer.from_pretrained(bert_version)
+bert_version = 'bert-base-cased'    # TODO Why no case?
 
 METHOD = "pat" # "pat" or "mat"     # TODO Allow cumulative MAT too
 GROUPED = True
@@ -100,10 +98,10 @@ DATA = [
         # "The boy has a cat while the girl has a pigeon."
         # "The boy has a cat. He likes to stroke it.",
         # "The boy has no cat. He likes to stroke it.",
-        'reflexive, |0 The teacher | wants |1 every boy | to like |2 himself.',
-        'plain, |0 The teacher | wants |1 every boy | to like |2 him.',
-        'reflexive, |0 The officers | want |1 all drivers | to like |2 themselves.',
-        'plain, |0 The officers | want |1 all drivers | to like |2 them.',
+        'reflexive, masc, |0 The teacher | wants |1 every boy | to like |2 himself.',
+        'plain, masc, |0 The teacher | wants |1 every boy | to like |2 him.',
+        'reflexive, fem, |0 The officers | want |1 all drivers | to like |2 themselves.',
+        'plain, fem, |0 The officers | want |1 all drivers | to like |2 them.',
         # "I cannot find one of my ten marbles. It's probably under the couch.",
         # "I only found nine of my ten marbles. It's probably under the couch.",
         # '|0 Every farmer | who |1 owns a donkey |2 beats it.',
@@ -113,9 +111,9 @@ DATA = [
         # "Few of the children ate their ice-cream. The others threw it around the room instead.",
     ]
 
-def parse_data(data, factor_legend=None, group_legend=None):
+def parse_data(data, tokenizer, factor_legend=None, group_legend=None):
 
-    parsed_data = []
+    items = []
     num_factors = None
     max_group_id = 0
 
@@ -145,7 +143,7 @@ def parse_data(data, factor_legend=None, group_legend=None):
         for key in group_to_token_ids:
             token_ids_list[key] = group_to_token_ids[key]
 
-        parsed_data.append(row[:-1] + [sentence.strip()] + [' '.join(['[CLS]'] + tokenizer.tokenize(sentence) + ['[SEP]'])] + token_ids_list)
+        items.append([s.strip() for s in row[:-1]] + [sentence.strip()] + [' '.join(['[CLS]'] + tokenizer.tokenize(sentence) + ['[SEP]'])] + token_ids_list)
 
     if group_legend is None:
         group_names = ['g{}'.format(i) for i in range(max_group_id + 1)]
@@ -159,25 +157,27 @@ def parse_data(data, factor_legend=None, group_legend=None):
 
     columns = factor_names + ['sentence'] + ['tokenized'] + group_names
 
-    parsed_data = pd.DataFrame(parsed_data, columns=columns)
-    parsed_data.num_factors = num_factors
-    parsed_data.factors = factor_names
-    parsed_data.num_groups = max_group_id + 1
-    parsed_data.groups = group_names
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        items = pd.DataFrame(items, columns=columns)
+        items.num_factors = num_factors
+        items.factors = factor_names
+        items.num_groups = max_group_id + 1
+        items.groups = group_names
+        items.conditions = list(itertools.product(*[items[factor].unique() for factor in items.factors]))
+        items.levels = [items[factor].unique() for factor in items.factors]
 
-    return parsed_data
+    return items
 
 
-items = parse_data(DATA, {0: 'anaphor_type'}, {0: 'subject', 1: 'object', 2: 'anaphor'})
-print(items)
+tokenizer = BertTokenizer.from_pretrained(bert_version)
 
-# IDEA: Compare quantifiers, restrictor vs scope, to see how the info flows to the quantifier... advantage: very uniform sentences...
+items = parse_data(DATA, tokenizer, {0: 'anaphor_type', 1: 'gender'}, {0: 'subject', 1: 'object', 2: 'anaphor'})
 
 model = BertModel.from_pretrained(bert_version)
 attention_visualizer = visualization.AttentionVisualizer(model, tokenizer)
 
 # TODO Compute these magic numbers
-n_conditions = 2    # levels of all factors multiplied
 n_layers = 12
 
 
@@ -232,8 +232,8 @@ df = pd.concat([items, weights_for_all_items], axis=1)
 
 ## Compute means for all conditions
 means = df.groupby(items.factors).mean().values
-means = means.reshape(n_conditions * n_layers, -1)
-multi_index = pd.MultiIndex.from_product([items[factor].unique() for factor in items.factors] + [list(range(n_layers))], names=items.factors + ['layer'])
+means = means.reshape(len(items.conditions) * n_layers, -1)
+multi_index = pd.MultiIndex.from_product(items.levels + [list(range(n_layers))], names=items.factors + ['layer'])
 df_means = pd.DataFrame(means, index=multi_index)
 
 
@@ -251,18 +251,21 @@ out_filenames = [] # for keeping track to create gif
 vmin = df_means.min().min()
 vmax = df_means.max().max()
 
-# TODO allow taking means over layers
+
+# Means for selected conditions
+df_means = df_means.groupby(factors_to_plot + ['layer']).mean()
+
+# TODO allow plotting means over layers
 for l in range(n_layers):
 
     # TODO Remove MAGIC everywhere below
-    index = items.groups if GROUPED else items.tokenized.split()
+    index = items.groups if GROUPED else None # TODO Replace None by exemplary tokens... items.iloc[0].tokenized.split()
     weights = df_means.loc[('reflexive', l)].values
-    sqrt = int(np.sqrt(weights.size))
-
-    reflexive = pd.DataFrame(weights.reshape(sqrt, sqrt), index=index, columns=index)
+    dim = int(np.sqrt(weights.shape[-1]))
+    reflexive = pd.DataFrame(weights.reshape(dim, dim), index=index, columns=index)
 
     weights = df_means.loc[('plain',l)]
-    plain = pd.DataFrame(weights.values.reshape(sqrt, sqrt), index=index, columns=index)
+    plain = pd.DataFrame(weights.values.reshape(dim, dim), index=index, columns=index)
 
     # TODO index should be either data.groups, or the tokens, depending on GROUPED.
     dfs_to_plot = [reflexive, plain]
