@@ -1,4 +1,4 @@
-from bertviz import attention, visualization
+import torch
 from bertviz.pytorch_pretrained_bert import BertModel, BertTokenizer
 
 import numpy as np
@@ -78,7 +78,6 @@ def main():
     tokenizer = BertTokenizer.from_pretrained(args.bert)  # TODO The tokenizer seems to get rid of casing; why? Is this an older BERT version?
     items = parse_data(args.data, tokenizer)
     model = BertModel.from_pretrained(args.bert)
-    attention_visualizer = visualization.AttentionVisualizer(model, tokenizer)    # TODO Bypass the AttentionVisualizer code altogether and remove from repo; I'm not really using it.
 
 
     ## Store for convenience
@@ -90,8 +89,9 @@ def main():
     weights_for_all_items = []
     for _, each_item in items.iterrows():
 
-        tokens_a, tokens_b, attention = attention_visualizer.get_viz_data(each_item['sentence'])
+        tokens_a, tokens_b, attention = apply_bert_get_attention(model, tokenizer, each_item['sentence'])
         all_tokens = tokens_a + tokens_b
+        print(all_tokens)
         attention = attention.squeeze()
 
         weights_per_layer = (compute_PAT if args.method == "PAT" else compute_MAT)(attention, layer_norm=not args.no_layernorm)
@@ -234,6 +234,41 @@ def parse_data(data_path, tokenizer):
         items.conditions = list(itertools.product(*[items.levels[factor] for factor in items.factors]))
 
     return items
+
+
+def apply_bert_get_attention(model, tokenizer, sequence):
+    """
+    Essentially isolated from jessevig/bertviz
+    :param model:
+    :param tokenizer:
+    :param sequence:
+    :return:
+    """
+
+    model.eval()
+
+    sequence = sequence.split(" \|\|\| ")
+    if len(sequence) == 1:
+        sentence_a = sequence[0]
+        sentence_b = ""
+    else:
+        sentence_a = sequence[0]
+        sentence_b = sequence[1]
+
+    tokens_a = tokenizer.tokenize(sentence_a)
+    tokens_b = tokenizer.tokenize(sentence_b)
+    tokens_a_delim = ['[CLS]'] + tokens_a + ['[SEP]']
+    tokens_b_delim = tokens_b + (['[SEP]'] if len(tokens_b) > 0 else [])
+    token_ids = tokenizer.convert_tokens_to_ids(tokens_a_delim + tokens_b_delim)
+    tokens_tensor = torch.tensor([token_ids])
+    token_type_tensor = torch.LongTensor([[0] * len(tokens_a_delim) + [1] * len(tokens_b_delim)])
+
+    _, _, attn_data_list = model(tokens_tensor, token_type_ids=token_type_tensor)
+    attn_tensor = torch.stack([attn_data['attn_probs'] for attn_data in attn_data_list])
+    attn = attn_tensor.data.numpy()
+
+    return tokens_a_delim, tokens_b_delim, attn
+
 
 
 def normalize(v):
