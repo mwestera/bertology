@@ -200,6 +200,7 @@ for _, each_item in items.iterrows():
 
     weights_per_layer = (compute_PAT if METHOD == "pat" else compute_MAT)(attention, layer_norm=LAYER_NORM)
 
+    # TODO Put the following outside the current loop, inside its own (anticipating intermediary writing of results to disk)
     # Take averages over groups of tokens
     if GROUPED:
         grouped_weights_per_layer = []
@@ -207,7 +208,7 @@ for _, each_item in items.iterrows():
             # Group horizontally
             grouped_weights_horiz = []
             for group in items.groups:
-                # TODO check if not None?
+                # TODO do I need to check if not None, in case not all items have all groups?
                 grouped_weights_horiz.append(m[each_item[group]].mean(axis=0))
             grouped_weights_horiz = np.stack(grouped_weights_horiz)
 
@@ -226,17 +227,15 @@ for _, each_item in items.iterrows():
     weights_for_all_items.append(weights_per_layer)
 
 weights_for_all_items = pd.DataFrame(weights_for_all_items)
+df = pd.concat([items, weights_for_all_items], axis=1)
+
 
 ## Compute means for all conditions
-
-# 1. Concatenate with items just so I can group by the different factors/levels, to compute means
-df = pd.concat([items, weights_for_all_items], axis=1)
 means = df.groupby(items.factors).mean().values
-
-# 2. Now put them back into meaningful shape, with adequate multi-index
 means = means.reshape(n_conditions * n_layers, -1)
-multiindex = pd.MultiIndex.from_product([items[factor].unique() for factor in items.factors] + [list(range(n_layers))], names=items.factors + ['layer'])
-df_means = pd.DataFrame(means, index=multiindex)
+multi_index = pd.MultiIndex.from_product([items[factor].unique() for factor in items.factors] + [list(range(n_layers))], names=items.factors + ['layer'])
+df_means = pd.DataFrame(means, index=multi_index)
+
 
 ## Prepare creating outputs
 # TODO More meaningful output names
@@ -256,8 +255,15 @@ vmax = df_means.max().max()
 for l in range(n_layers):
 
     # TODO Remove MAGIC everywhere below
-    reflexive = pd.DataFrame(df_means.loc[('reflexive',l)].values.reshape(3,3), index=items.groups, columns=items.groups)
-    plain = pd.DataFrame(df_means.loc[('plain',l)].values.reshape(3,3), index=items.groups, columns=items.groups)
+    index = items.groups if GROUPED else items.tokenized.split()
+    weights = df_means.loc[('reflexive', l)].values
+    sqrt = int(np.sqrt(weights.size))
+
+    reflexive = pd.DataFrame(weights.reshape(sqrt, sqrt), index=index, columns=index)
+
+    weights = df_means.loc[('plain',l)]
+    plain = pd.DataFrame(weights.values.reshape(sqrt, sqrt), index=index, columns=index)
+
     # TODO index should be either data.groups, or the tokens, depending on GROUPED.
     dfs_to_plot = [reflexive, plain]
 
@@ -274,7 +280,7 @@ for l in range(n_layers):
     ## Difference plot
     diff = dfs_to_plot[0] - dfs_to_plot[1].values
     # TODO change values to be only shared tokens
-    # TODO Compute this globally, too
+    # TODO Compute this globally, too; or only if MAT?
     vmin2, vmax2 = diff.min().min(), diff.max().max()
     vmin2 = -(max(0-vmin2, vmax2))
     vmax2 = (max(0-vmin2, vmax2))
