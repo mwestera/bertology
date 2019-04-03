@@ -1,63 +1,84 @@
 from bertviz import attention, visualization
 from bertviz.pytorch_pretrained_bert import BertModel, BertTokenizer
+
 import numpy as np
+import pandas as pd
+import csv
+import itertools
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 import matplotlib.pylab as pylab
-
-import pandas as pd
+import imageio
 
 import os
-
-import csv
-
-import itertools
-import imageio
 import warnings
 
+import argparse
 
-bert_version = 'bert-base-cased'    # TODO Why no cased model available? Is this an older BERT version?
 
-TRANSPOSE = True    # True to plot as "rows influenced by cols" (otherwise: rows influencing cols).
-OUTPUT_GIF = False
-METHOD = "PAT" # PAT/MAT: "Percolated Attention per Token" or "Mean Attention per Token"     # TODO Allow cumulative MAT too... CAT? cMAT?
-GROUPED = True
-LAYER_NORM = True
-    # What about normalizing per layer, instead of per head? Does that make any sense? Yes, a bit.
-    # However, since BERT has LAYER NORM in each attention head, outputs of all heads will have same mean/variance.
-    # Does this mean that all heads will contribute same amount of information? Yes, roughly.
+parser = argparse.ArgumentParser(description='e.g., main.py data/example.csv')
+parser.add_argument('data', type=str,
+                    help='Path to data file (typically .csv).')
+parser.add_argument('--out', type=str, default=None,
+                    help='Output directory for plots (default: creates a new /temp## folder)')
+parser.add_argument('--method', type=str, default='MAT',
+                    help='MAT (mean attention per token) or PAT (percolated attention per token); default: MAT')
+parser.add_argument('--no_layernorm', action="store_true",
+                    help='To prevent applying normalization per attention head.')
+parser.add_argument('--no_groups', action="store_true",
+                    help='To ignore groupings of tokens in the input data, and compute/plot per token.')
+parser.add_argument('--no_transpose', action="store_true",
+                    help='To NOT transpose the weights matrix for plotting; by default it is transposed, plotting as "rows influenced by cols" (otherwise: rows influencing cols).')
+parser.add_argument('--no_difs', action="store_true",
+                    help='To NOT plot the differences between levels of a given factor.')
+parser.add_argument('--gif', action="store_true",
+                    help='To create animated gif of plots across layers.')
+parser.add_argument('--bert', type=str, default='bert-base-cased',
+                    help='Which BERT model to use (default bert-base-cased; not sure which are available)')
+parser.add_argument('--factors', type=str, default=None,
+                    help='Which factors to plot, comma separated like "--factors reflexivity,gender"; default: first 2 factors in the data')
 
-PLOT_DIFFERENCES = True
-FACTORS_TO_PLOT = ['reflexivity', 'gender']
-if len(FACTORS_TO_PLOT) > 2:
-    print("WARNING: Cannot plot more than 2 factors at a time. Trimming to", FACTORS_TO_PLOT[:2])
-    FACTORS_TO_PLOT = FACTORS_TO_PLOT[:2]
-
-DATA_PATH = 'data/example.csv'
-OUT_PATH = None
-if OUT_PATH is not None:
-    if os.path.exists(OUT_PATH):
-        if input('Output directory {} already exists. Risk overwriting files? N/y'.format(OUT_PATH)) != 'y':
-            quit()
-else:
-    OUT_PATH = 'output/temp'
-    out_path_idx = 0
-    while os.path.exists(OUT_PATH):
-        out_path_idx += 1
-        OUT_PATH = 'output/temp_{}'.format(out_path_idx)
-    os.mkdir(OUT_PATH)
-
+# TODO Allow cumulative MAT too... CAT? cMAT?
 
 def main():
+    """
+    To run this code with default settings and example data, do
+    $ python main.py data/example.csv
+    This applies BERT to the data, extracts attention weights, and creates a number of plots.
+    """
 
-    tokenizer = BertTokenizer.from_pretrained(bert_version)
-    items = parse_data(DATA_PATH, tokenizer)
-    model = BertModel.from_pretrained(bert_version)
+    ## Argument parsing
+    args = parser.parse_args()
+    if args.factors is not None:
+        args.factors = ','.split(args.factors)
+        if len(args.factors) > 2:
+            print("WARNING: Cannot plot more than 2 factors at a time. Trimming to", args.factors[:2])
+            args.factors = args.factors[:2]
+    if args.out is not None:
+        if os.path.exists(args.out):
+            if input('Output directory {} already exists. Risk overwriting files? N/y'.format(args.out)) != 'y':
+                quit()
+    else:  # else write to /temp folder, though with increasing numeral to avoid overwriting
+        args.out = 'output/temp'
+        args.out_idx = 0
+        while os.path.exists(args.out):
+            args.out_idx += 1
+            args.out = 'output/temp_{}'.format(args.out_idx)
+        os.mkdir(args.out)
 
+
+    ## Set up tokenizer, data and model
+    tokenizer = BertTokenizer.from_pretrained(args.bert)  # TODO The tokenizer seems to get rid of casing; why? Is this an older BERT version?
+    items = parse_data(args.data, tokenizer)
+    model = BertModel.from_pretrained(args.bert)
+    attention_visualizer = visualization.AttentionVisualizer(model, tokenizer)    # TODO Bypass the AttentionVisualizer code altogether and remove from repo; I'm not really using it.
+
+
+    ## Store for convenience
+    args.factors = args.factors or items.factors[:2]    # by default use the first two factors from the data
     n_layers = len(model.encoder.layer)
 
-    # TODO Bypass the AttentionVisualizer code altogether and remove from repo; I'm not really using it.
-    attention_visualizer = visualization.AttentionVisualizer(model, tokenizer)
 
     ## Compute attention weights, one item at a time
     weights_for_all_items = []
@@ -67,11 +88,11 @@ def main():
         all_tokens = tokens_a + tokens_b
         attention = attention.squeeze()
 
-        weights_per_layer = (compute_PAT if METHOD == "PAT" else compute_MAT)(attention, layer_norm=LAYER_NORM)
+        weights_per_layer = (compute_PAT if args.method == "PAT" else compute_MAT)(attention, layer_norm=not args.no_layernorm)
 
         # TODO Put the following outside the current loop, inside its own (anticipating intermediary writing of results to disk)
         # Take averages over groups of tokens
-        if GROUPED:
+        if not args.no_groups:
             grouped_weights_per_layer = []
             for m in weights_per_layer:
                 # Group horizontally
@@ -95,23 +116,37 @@ def main():
 
         weights_for_all_items.append(weights_per_layer)
 
+    # At this point weights_for_all_items is a list containing, for each item, a numpy array with (flattened) attention weights for all layers
+
+
+    ## Store the weights in dataframe together with original data
     weights_for_all_items = pd.DataFrame(weights_for_all_items)
     df = pd.concat([items, weights_for_all_items], axis=1)
 
-    ## Compute means for all conditions
+
+    ## Compute means over attention weights across all conditions
     means = df.groupby(items.factors).mean().values
     means = means.reshape(len(items.conditions) * n_layers, -1)
     multi_index = pd.MultiIndex.from_product(
         [items.levels[factor] for factor in items.factors] + [list(range(n_layers))], names=items.factors + ['layer'])
     df_means = pd.DataFrame(means, index=multi_index)
 
-    # TODO This might be a good place for text summary of main results, significance tests, etc.?
 
-    # Yay create plots!
-    plot(df_means, items.levels, items.groups, FACTORS_TO_PLOT, n_layers)
+    ## Print a quick text summary of main results, significance tests, etc.
+    # TODO implement this :)
+
+
+    ## Create plots!
+    plot(df_means, items.levels, items.groups, n_layers, args)
 
 
 def parse_data(data_path, tokenizer):
+    """
+    Turns a .csv file with some special markup of 'token groups' into a dataframe.
+    :param data_path:
+    :param tokenizer: BERT's own tokenizer
+    :return: pandas DataFrame with different factors, the sentence, tokenized sentence, and token group indices as columns
+    """
 
     items = []
     num_factors = None
@@ -196,22 +231,28 @@ def parse_data(data_path, tokenizer):
 
 
 def normalize(v):
+    """
+    Divides a vector by its norm.
+    :param v:
+    :return:
+    """
     norm = np.linalg.norm(v)
     if norm == 0:
        return v
     return v / norm
 
 
-def compute_PAT(heads_per_layer, layer_norm=True):
+def compute_PAT(all_attention_weights, layer_norm=True):
     """
     Computes Percolated Attention per Token (PAT), through all layers.
-    :param heads_per_layer:
-    :param layer_norm:
+    :param all_attention_weights: as retrieved from the attention visualizer
+    :param layer_norm: whether to normalize the weights of each attention head
     :return: percolated activations up to every layer
     """
+    # TODO: Think about this. What about normalizing per layer, instead of per head? Does that make any sense? Yes, a bit. However, since BERT has LAYER NORM in each attention head, outputs of all heads will have same mean/variance. Does this mean that all heads will contribute same amount of information? Yes, roughly.
     percolated_activations_per_layer = []
-    percolated_activations = np.diag(np.ones(heads_per_layer.shape[-1]))      # n_tokens × n_tokens
-    for layer in heads_per_layer:
+    percolated_activations = np.diag(np.ones(all_attention_weights.shape[-1]))      # n_tokens × n_tokens
+    for layer in all_attention_weights:
         summed_activations = np.zeros_like(percolated_activations)
         for head in layer:      # n_tokens × n_tokens
             activations_per_head = np.matmul(head, percolated_activations)
@@ -229,17 +270,16 @@ def compute_PAT(heads_per_layer, layer_norm=True):
     return percolated_activations_per_layer
 
 
-def compute_MAT(heads_per_layer, layer_norm=True):
+def compute_MAT(all_attention_weights, layer_norm=True):
     """
-    Computes Mean Attention per Token (MAT), i.e,, mean across all layers and heads.
-    :param heads_per_layer:
-    :param layer_norm:
-    :return: Averages (across heads) per layer
+    Computes Mean Attention per Token (MAT), i.e,, mean across all attention heads, per layer.
+    :param all_attention_weights: as retrieved from attention visualizer
+    :param layer_norm: whether to normalize
+    :return: mean attention weights (across heads) per layer
     """
     mean_activations_per_layer = []
-    summed_mean_activations = np.zeros_like(heads_per_layer[0][1])
-    for heads_of_layer in heads_per_layer:
-        summed_activations = np.zeros_like(heads_per_layer[0][1])
+    for heads_of_layer in all_attention_weights:
+        summed_activations = np.zeros_like(all_attention_weights[0][1])
         for head in heads_of_layer:      # n_tokens × n_tokens
             activations_per_head = head.copy()
             # (i,j) = how much (activations coming from) token i influences token j
@@ -248,23 +288,34 @@ def compute_MAT(heads_per_layer, layer_norm=True):
                     activations_per_head[:,j] = normalize(activations_per_head[:, j])
             summed_activations += activations_per_head
 
-        mean_activations_per_layer.append(summed_activations/heads_per_layer.shape[1])
+        mean_activations_per_layer.append(summed_activations / all_attention_weights.shape[1])
 
     return mean_activations_per_layer
 
 
-def plot(df_means, levels, groups, factors_to_plot, n_layers):
+def plot(df_means, levels, groups, n_layers, args):
+    """
+    Output a series of image files, one for each layer, and optionally an animated gif :).
+    Each image typically contains several plots, depending on which factors to cross.
+    :param df_means: dataframe containing the means per token group for each condition (factor * levels)
+    :param levels: what levels are there per factor
+    :param groups: what are the token groups called?
+    :param n_layers: how many layers are there to plot?
+    :param args: the command line arguments; they contain some further settings.
+    :return:
+    """
     # TODO: levels and n_layers can be inferred from df_means... Remove as arguments?
+    # TODO: perhaps it's useful to allow plotting means over layers
 
     # Consider only those means needed to plot
-    df_means = df_means.groupby(factors_to_plot + ['layer']).mean()
+    df_means = df_means.groupby(args.factors + ['layer']).mean()
 
     # Collect which plots to make (crossing factors + optional difference plot)
-    levels_horiz = levels[factors_to_plot[0]]
-    levels_vert = levels[factors_to_plot[1]] if len(factors_to_plot) == 2 else [None]
-    if len(levels_horiz) == 2 and PLOT_DIFFERENCES:  # if two levels, also compute difference
+    levels_horiz = levels[args.factors[0]]
+    levels_vert = levels[args.factors[1]] if len(args.factors) == 2 else [None]
+    if len(levels_horiz) == 2 and not args.no_difs:  # if two levels, also compute difference
         levels_horiz.append('<DIFF>')
-    if len(levels_vert) == 2 and PLOT_DIFFERENCES:  # if two levels, also compute difference
+    if len(levels_vert) == 2 and not args.no_difs:  # if two levels, also compute difference
         levels_vert.append('<DIFF>')
 
     # Global min/max to have same color map everywhere
@@ -275,12 +326,12 @@ def plot(df_means, levels, groups, factors_to_plot, n_layers):
     out_filepaths = []
 
     # Let's plot!
-    for l in range(n_layers):  # TODO allow plotting means over layers
+    for l in range(n_layers):
 
         fig, axs = plt.subplots(ncols=len(levels_horiz), nrows=len(levels_vert),
                                 figsize=(4 * len(levels_horiz), 4 * len(levels_vert)))
         plt.subplots_adjust(wspace=.6, top=.9)
-        fig.suptitle("{}-scores given {} (layer {})".format(METHOD, ' × '.join(factors_to_plot), l))
+        fig.suptitle("{}-scores given {} (layer {})".format(args.method, ' × '.join(args.factors), l))
 
         # Keep for computing differences
         weights_for_diff = [[None, None],
@@ -290,7 +341,7 @@ def plot(df_means, levels, groups, factors_to_plot, n_layers):
 
             for v, level_vert in enumerate(levels_vert):
 
-                index = groups if GROUPED else None  # TODO None will give error; replace by exemplary tokens... items.iloc[0].tokenized.split()
+                index = groups if not args.no_groups else None  # TODO "None" will give error; replace by exemplary tokens of a given type of item?  items.iloc[0].tokenized.split()
 
                 is_difference_plot = True
                 if level_horiz != "<DIFF>" and level_vert == "<DIFF>":
@@ -306,7 +357,7 @@ def plot(df_means, levels, groups, factors_to_plot, n_layers):
                     weights = weights.values
                     dim = int(np.sqrt(weights.shape[-1]))
                     weights = weights.reshape(dim, dim)
-                    if TRANSPOSE:
+                    if not args.no_transpose:
                         weights = weights.transpose()
                     weights = pd.DataFrame(weights, index=index, columns=index)
                     # Keep for difference plot
@@ -333,15 +384,15 @@ def plot(df_means, levels, groups, factors_to_plot, n_layers):
                 # ax.xaxis.tick_top()
                 plt.setp(ax.get_yticklabels(), rotation=0)
 
-        out_filepath = "{}/{}_{}_layer{}.png".format(OUT_PATH, METHOD, '-x-'.join(factors_to_plot), l)
+        out_filepath = "{}/{}_{}_layer{}.png".format(args.out, args.method, '-x-'.join(args.factors), l)
         print("Saving figure:", out_filepath)
         pylab.savefig(out_filepath)
         # pylab.show()
 
         out_filepaths.append(out_filepath)
 
-    if OUTPUT_GIF:  # :)
-        out_filepath = "{}/{}_{}_animated.gif".format(OUT_PATH, METHOD, '-x-'.join(factors_to_plot))
+    if args.gif:  # :)
+        out_filepath = "{}/{}_{}_animated.gif".format(args.out, args.method, '-x-'.join(args.factors))
         images = []
         for filename in out_filepaths:
             images.append(imageio.imread(filename))
