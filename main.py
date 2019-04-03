@@ -90,32 +90,33 @@ if len(FACTORS_TO_PLOT) > 2:
     print("WARNING: Cannot plot more than 2 factors at a time. Trimming to", FACTORS_TO_PLOT[:2])
     FACTORS_TO_PLOT = FACTORS_TO_PLOT[:2]
 
-
-DATA = [
-        # "The boy has a cat while the girl has a pigeon.",
-        # "The boy has a cat while the girl has a pigeon."
-        # "The boy has a cat. He likes to stroke it.",
-        # "The boy has no cat. He likes to stroke it.",
-        'reflexive, masculine, |0 The teacher | wants |1 every boy | to like |2 himself.',
-        'irreflexive, masculine, |0 The teacher | wants |1 every boy | to like |2 him.',
-        'reflexive, feminine, |0 The officers | want |1 all drivers | to like |2 themselves.',
-        'irreflexive, feminine, |0 The officers | want |1 all drivers | to like |2 them.',
-        # "I cannot find one of my ten marbles. It's probably under the couch.",
-        # "I only found nine of my ten marbles. It's probably under the couch.",
-        # '|0 Every farmer | who |1 owns a donkey |2 beats it.',
-        # '|0 No farmer | who |1 owns a donkey |2 beats it.',
-        # "Few of the children ate their ice-cream. They ate the apple flavor first.",
-        # "Few of the children ate their ice-cream. They threw it around the room instead.",
-        # "Few of the children ate their ice-cream. The others threw it around the room instead.",
-    ]
-
-def parse_data(data, tokenizer, factor_legend=None, group_legend=None):
+def parse_data(data_path, tokenizer):
 
     items = []
     num_factors = None
     max_group_id = 0
 
-    for row in csv.reader(data):
+    # Manual checking and parsing of first line (legend)
+    with open(data_path) as f:
+        legend = f.readline()
+        if not legend.startswith("#"):
+            print("WARNING: Legend is missing from the data. Using boring group and factor labels instead.")
+            group_legend = None
+            factor_legend = None
+        else:
+            legend = [l.strip() for l in legend.strip('#').split(',')]
+            group_legend = {}
+            factor_legend = {}
+            for term in legend:
+                if term.startswith('|'):
+                    ind, term = term.strip('|').split(' ')
+                    group_legend[int(ind)] = term
+                else:
+                    factor_legend[len(factor_legend)] = term
+
+    # Now read the actual data
+    reader = csv.reader(open(data_path), skipinitialspace=True)
+    for row in filter(lambda row: not row[0].startswith('#'), reader):
         num_factors = len(row)-1    # Num rows minus the sentence itself
         group_to_token_ids = {}
         sentence = ""
@@ -140,7 +141,7 @@ def parse_data(data, tokenizer, factor_legend=None, group_legend=None):
         for key in group_to_token_ids:
             token_ids_list[key] = group_to_token_ids[key]
 
-        items.append([s.strip() for s in row[:-1]] + [sentence.strip()] + [' '.join(['[CLS]'] + tokenizer.tokenize(sentence) + ['[SEP]'])] + token_ids_list)
+        items.append(row[:-1] + [sentence.strip()] + [' '.join(['[CLS]'] + tokenizer.tokenize(sentence) + ['[SEP]'])] + token_ids_list)
 
     if group_legend is None:
         group_names = ['g{}'.format(i) for i in range(max_group_id + 1)]
@@ -169,7 +170,7 @@ def parse_data(data, tokenizer, factor_legend=None, group_legend=None):
 
 tokenizer = BertTokenizer.from_pretrained(bert_version)
 
-items = parse_data(DATA, tokenizer, {0: 'reflexivity', 1: 'gender'}, {0: 'subject', 1: 'object', 2: 'anaphor'})
+items = parse_data('data/example.csv', tokenizer)
 
 model = BertModel.from_pretrained(bert_version)
 n_layers = len(model.encoder.layer)
