@@ -20,7 +20,7 @@ bert_version = 'bert-base-cased'    # TODO Why no cased model available? Is this
 
 TRANSPOSE = True    # True to plot as "rows influenced by cols" (otherwise: rows influencing cols).
 OUTPUT_GIF = False
-METHOD = "PAT" # "PAT" or "MAT"     # TODO Allow cumulative MAT too... CAT?
+METHOD = "PAT" # PAT/MAT: "Percolated Attention per Token" or "Mean Attention per Token"     # TODO Allow cumulative MAT too... CAT? cMAT?
 GROUPED = True
 LAYER_NORM = True
     # What about normalizing per layer, instead of per head? Does that make any sense? Yes, a bit.
@@ -77,7 +77,7 @@ def main():
                 # Group horizontally
                 grouped_weights_horiz = []
                 for group in items.groups:
-                    # TODO do I need to check if not None, in case not all items have all groups?
+                    # TODO gives ERROR in case not all items have the same number of groups.
                     grouped_weights_horiz.append(m[each_item[group]].mean(axis=0))
                 grouped_weights_horiz = np.stack(grouped_weights_horiz)
 
@@ -105,12 +105,9 @@ def main():
         [items.levels[factor] for factor in items.factors] + [list(range(n_layers))], names=items.factors + ['layer'])
     df_means = pd.DataFrame(means, index=multi_index)
 
-
-    ## Prepare creating outputs
-
-
     # TODO This might be a good place for text summary of main results, significance tests, etc.?
 
+    # Yay create plots!
     plot(df_means, items.levels, items.groups, FACTORS_TO_PLOT, n_layers)
 
 
@@ -157,7 +154,7 @@ def parse_data(data_path, tokenizer):
             # If group has a number, remember this group for plotting etc.
             if first_char.isdigit():
                 if group_id in group_to_token_ids:
-                    group_to_token_ids[group_id].append(list(range(total_len, total_len + len(tokens))))
+                    group_to_token_ids[group_id].extend(list(range(total_len, total_len + len(tokens))))
                 else:
                     group_to_token_ids[group_id] = list(range(total_len, total_len + len(tokens)))
             total_len += len(tokens)
