@@ -180,15 +180,21 @@ attention_visualizer = visualization.AttentionVisualizer(model, tokenizer)
 n_conditions = 2    # levels of all factors multiplied
 n_layers = 12
 
-weights_for_all_items = []
-for i, item in items.iterrows():
 
-    tokens_a, tokens_b, attention = attention_visualizer.get_viz_data(item['sentence'])
+# TODO Make this a global param; for plotting allow at most two factors? Compute diff only for 2 levels?
+factors_to_plot = ['anaphor_type']
+
+
+## Compute attention weights, one item at a time
+weights_for_all_items = []
+for _, each_item in items.iterrows():
+
+    tokens_a, tokens_b, attention = attention_visualizer.get_viz_data(each_item['sentence'])
     all_tokens = tokens_a + tokens_b
-    if ' '.join(all_tokens) != item['tokenized']:
+    if ' '.join(all_tokens) != each_item['tokenized']:
         print('Warning!')
         print(' '.join(all_tokens))
-        print(item['tokenized'])
+        print(each_item['tokenized'])
 
     attention = attention.squeeze()
 
@@ -202,13 +208,13 @@ for i, item in items.iterrows():
             grouped_weights_horiz = []
             for group in items.groups:
                 # TODO check if not None?
-                grouped_weights_horiz.append(m[item[group]].mean(axis=0))
+                grouped_weights_horiz.append(m[each_item[group]].mean(axis=0))
             grouped_weights_horiz = np.stack(grouped_weights_horiz)
 
             # Group the result also vertically
             grouped_weights = []
             for group in items.groups:
-                grouped_weights.append(grouped_weights_horiz[:, item[group]].mean(axis=1))
+                grouped_weights.append(grouped_weights_horiz[:, each_item[group]].mean(axis=1))
             grouped_weights = np.stack(grouped_weights).transpose() # transpose to restore original order
 
             # store
@@ -242,9 +248,6 @@ while os.path.exists(out_path):
 os.mkdir(out_path)
 out_filenames = [] # for keeping track to create gif
 
-# TODO Make this a global param; for plotting allow at most two factors? Compute diff only for 2 levels?
-factors_to_plot = ['anaphor_type']
-
 # Global min/max to have same color map everywhere
 vmin = df_means.min().min()
 vmax = df_means.max().max()
@@ -262,9 +265,9 @@ for l in range(n_layers):
     plt.subplots_adjust(wspace = .6, top = .9)
     fig.suptitle("Layer {}".format(l))
 
-    for i, df in enumerate(dfs_to_plot):
+    for each_item_index, df in enumerate(dfs_to_plot):
         # (i,j) --> (j,i): how much j is unfluenced by i
-        ax = sns.heatmap(df.transpose(), xticklabels=True, yticklabels=True, vmin=vmin, vmax=vmax, linewidth=0.5, ax=axs[i], cbar=False, cmap="Blues", square=True, cbar_kws={'shrink':.5}, label='small')
+        ax = sns.heatmap(df.transpose(), xticklabels=True, yticklabels=True, vmin=vmin, vmax=vmax, linewidth=0.5, ax=axs[each_item_index], cbar=False, cmap="Blues", square=True, cbar_kws={'shrink':.5}, label='small')
         ax.xaxis.tick_top()
         plt.setp(ax.get_xticklabels(), rotation=90)
 
@@ -276,7 +279,7 @@ for l in range(n_layers):
     vmin2 = -(max(0-vmin2, vmax2))
     vmax2 = (max(0-vmin2, vmax2))
 
-    ax = sns.heatmap(diff.transpose(), xticklabels=True, yticklabels=True, center=0, vmin=vmin2, cbar=False, linewidth=0.5, ax=axs[i+1], cmap="coolwarm_r", square=True, cbar_kws={'shrink':.5}, label='small')
+    ax = sns.heatmap(diff.transpose(), xticklabels=True, yticklabels=True, center=0, vmin=vmin2, cbar=False, linewidth=0.5, ax=axs[each_item_index + 1], cmap="coolwarm_r", square=True, cbar_kws={'shrink':.5}, label='small')
     ax.xaxis.tick_top()
     plt.setp(ax.get_xticklabels(), rotation=90)
 
@@ -293,3 +296,4 @@ images = []
 for filename in out_filenames:
     images.append(imageio.imread(filename))
 imageio.mimsave('{}/temp.gif'.format(out_path), images, format='GIF', duration=.5)
+print("Saving movie:", '{}/temp.gif'.format(out_path))
