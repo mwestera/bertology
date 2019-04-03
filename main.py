@@ -285,10 +285,10 @@ for l in range(n_layers):
                 weights = weights.transpose()
             weights = pd.DataFrame(weights, index=index, columns=index)
 
-            # TODO Add plot subtitles
             ax = sns.heatmap(weights, xticklabels=True, yticklabels=True, vmin=vmin, vmax=vmax, linewidth=0.5, ax=axs[h,v] if level_vert is not None else axs[h], cbar=False, cmap="Blues", square=True, cbar_kws={'shrink':.5}, label='small')
-            ax.xaxis.tick_top()
-            plt.setp(ax.get_xticklabels(), rotation=90)
+            ax.set_title('{} × {}'.format(level_horiz, level_vert) if level_vert is not None else level_horiz)
+            # ax.xaxis.tick_top()
+            plt.setp(ax.get_yticklabels(), rotation=0)
 
     # ## Difference plot
     # # TODO Plot this only when factor has two levels
