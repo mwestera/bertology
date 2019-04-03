@@ -77,7 +77,7 @@ bert_version = 'bert-base-cased'    # TODO Why no case?
 
 tokenizer = BertTokenizer.from_pretrained(bert_version)
 
-METHOD = "pat" # "cat" or "mat"
+METHOD = "pat" # "pat" or "mat"     # TODO Allow cumulative MAT too
 GROUPED = True
 LAYER_NORM = True
     # What about normalizing per layer, instead of per head? Does that make any sense? Yes, a bit.
@@ -145,7 +145,7 @@ def parse_data(data, factor_legend=None, group_legend=None):
         for key in group_to_token_ids:
             token_ids_list[key] = group_to_token_ids[key]
 
-        parsed_data.append(row[:-1] + [sentence.strip()] + [' '.join(['CLS'] + tokenizer.tokenize(sentence) + ['SEP'])] + token_ids_list)
+        parsed_data.append(row[:-1] + [sentence.strip()] + [' '.join(['[CLS]'] + tokenizer.tokenize(sentence) + ['[SEP]'])] + token_ids_list)
 
     if group_legend is None:
         group_names = ['g{}'.format(i) for i in range(max_group_id + 1)]
@@ -168,66 +168,71 @@ def parse_data(data, factor_legend=None, group_legend=None):
     return parsed_data
 
 
-data = parse_data(DATA, {0: 'anaphor_type'}, {0: 'subject', 1: 'object', 2: 'anaphor'})
-print(data)
+items = parse_data(DATA, {0: 'anaphor_type'}, {0: 'subject', 1: 'object', 2: 'anaphor'})
+print(items)
 
 # IDEA: Compare quantifiers, restrictor vs scope, to see how the info flows to the quantifier... advantage: very uniform sentences...
 
 model = BertModel.from_pretrained(bert_version)
 attention_visualizer = visualization.AttentionVisualizer(model, tokenizer)
 
-# First, I want to compare pairs of sentences across layers. Only afterwards think about accumulating stats of multiple sentences.
+# TODO Compute these magic numbers
+n_conditions = 2    # levels of all factors multiplied
+n_layers = 12
 
-# measure_series = pd.Series(index=data.index, dtype=object, name="attention")
-measure_series = []
+weights_for_all_items = []
+for i, item in items.iterrows():
 
-for i, row in data.iterrows():
-
-    tokens_a, tokens_b, attn = attention_visualizer.get_viz_data(row['sentence'])
+    tokens_a, tokens_b, attention = attention_visualizer.get_viz_data(item['sentence'])
     all_tokens = tokens_a + tokens_b
-    attn = attn.squeeze()
+    if ' '.join(all_tokens) != item['tokenized']:
+        print('Warning!')
+        print(' '.join(all_tokens))
+        print(item['tokenized'])
 
-    measure_per_layer = (compute_PAT if METHOD == "pat" else compute_MAT)(attn, layer_norm=LAYER_NORM)
+    attention = attention.squeeze()
 
+    weights_per_layer = (compute_PAT if METHOD == "pat" else compute_MAT)(attention, layer_norm=LAYER_NORM)
 
     # Take averages over groups of tokens
     if GROUPED:
-        grouped_measure_per_layer = []
-        for m in measure_per_layer:
-            # TODO Streamline this code; more transparent variable names
-
-            grouped_measure = []
-
-            for group in data.groups:
+        grouped_weights_per_layer = []
+        for m in weights_per_layer:
+            # Group horizontally
+            grouped_weights_horiz = []
+            for group in items.groups:
                 # TODO check if not None?
-                grouped_measure.append(m[row[group]].mean(axis=0))
+                grouped_weights_horiz.append(m[item[group]].mean(axis=0))
+            grouped_weights_horiz = np.stack(grouped_weights_horiz)
 
-            grouped_measure = np.stack(grouped_measure)
-            grouped_measure2 = []
+            # Group the result also vertically
+            grouped_weights = []
+            for group in items.groups:
+                grouped_weights.append(grouped_weights_horiz[:, item[group]].mean(axis=1))
+            grouped_weights = np.stack(grouped_weights).transpose() # transpose to restore original order
 
-            for group in data.groups:
-                grouped_measure2.append(grouped_measure[:,row[group]].mean(axis=1))
+            # store
+            grouped_weights_per_layer.append(grouped_weights)
 
-            grouped_measure = np.stack(grouped_measure2).transpose()
+        # stack and flatten for much easier handling with pandas, computing means etc.
+        weights_per_layer = np.stack(grouped_weights_per_layer).reshape(-1)
 
-            grouped_measure_per_layer.append(grouped_measure)
+    weights_for_all_items.append(weights_per_layer)
 
-        measure_per_layer = np.stack(grouped_measure_per_layer).reshape(-1)     # flatten for easier handling with pandas, compute means etc.
+weights_for_all_items = pd.DataFrame(weights_for_all_items)
 
-    measure_series.append(measure_per_layer)
+## Compute means for all conditions
 
-    # TODO Allow plotting averages over multiple layers? Or, if only relevant for MAT, consider 'cMat' instead.
+# 1. Concatenate with items just so I can group by the different factors/levels, to compute means
+df = pd.concat([items, weights_for_all_items], axis=1)
+means = df.groupby(items.factors).mean().values
 
-# Concatenate just so I can group by the different factors/levels, to compute means
-measure_series = pd.DataFrame(measure_series)
-df = pd.concat([data, measure_series], axis=1)
-means = df.groupby(data.factors).mean().values
-# Now put them back into meaningful shape, with adequate multi-index
-means = means.reshape(2 * 12,-1)  # TODO Remove these magic numbers
-multiindex = pd.MultiIndex.from_product([data[factor].unique() for factor in data.factors] + [list(range(12))], names=data.factors + ['layer'])
+# 2. Now put them back into meaningful shape, with adequate multi-index
+means = means.reshape(n_conditions * n_layers, -1)
+multiindex = pd.MultiIndex.from_product([items[factor].unique() for factor in items.factors] + [list(range(n_layers))], names=items.factors + ['layer'])
 df_means = pd.DataFrame(means, index=multiindex)
 
-# Output
+## Prepare creating outputs
 # TODO More meaningful output names
 out_path = 'output/temp'
 out_path_idx = 0
@@ -245,11 +250,11 @@ vmin = df_means.min().min()
 vmax = df_means.max().max()
 
 # TODO allow taking means over layers
-for l in range(12):
+for l in range(n_layers):
 
     # TODO Remove MAGIC everywhere below
-    reflexive = pd.DataFrame(df_means.loc[('reflexive',l)].values.reshape(3,3), index=data.groups, columns=data.groups)
-    plain = pd.DataFrame(df_means.loc[('plain',l)].values.reshape(3,3), index=data.groups, columns=data.groups)
+    reflexive = pd.DataFrame(df_means.loc[('reflexive',l)].values.reshape(3,3), index=items.groups, columns=items.groups)
+    plain = pd.DataFrame(df_means.loc[('plain',l)].values.reshape(3,3), index=items.groups, columns=items.groups)
     # TODO index should be either data.groups, or the tokens, depending on GROUPED.
     dfs_to_plot = [reflexive, plain]
 
