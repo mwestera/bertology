@@ -1,5 +1,5 @@
 import torch
-from bertviz.pytorch_pretrained_bert import BertModel, BertTokenizer
+from pytorch_pretrained_bert import BertModel, BertTokenizer
 
 import numpy as np
 import pandas as pd
