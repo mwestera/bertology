@@ -116,7 +116,7 @@ def main():
 
         weights_for_all_items.append(weights_per_layer)
 
-    # At this point weights_for_all_items is a list containing, for each item, a numpy array with (flattened) attention weights for all layers
+    # At this point weights_for_all_items is a list containing, for each item, a numpy array with (flattened) attention weights averaged for token groups, for all layers
 
 
     ## Store the weights in dataframe together with original data
