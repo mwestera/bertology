@@ -75,6 +75,8 @@ def compute_MAT(heads_per_layer, layer_norm=True):
 
 bert_version = 'bert-base-cased'    # TODO Why no case?
 
+TRANSPOSE = True    # True to plot as "rows influenced by cols" (otherwise: rows influencing cols).
+
 METHOD = "pat" # "pat" or "mat"     # TODO Allow cumulative MAT too
 GROUPED = True
 LAYER_NORM = True
@@ -164,8 +166,8 @@ def parse_data(data, tokenizer, factor_legend=None, group_legend=None):
         items.factors = factor_names
         items.num_groups = max_group_id + 1
         items.groups = group_names
-        items.conditions = list(itertools.product(*[items[factor].unique() for factor in items.factors]))
-        items.levels = [items[factor].unique() for factor in items.factors]
+        items.levels = {factor: items[factor].unique().tolist() for factor in items.factors}
+        items.conditions = list(itertools.product(*[items.levels[factor] for factor in items.factors]))
 
     return items
 
@@ -179,11 +181,6 @@ attention_visualizer = visualization.AttentionVisualizer(model, tokenizer)
 
 # TODO Compute these magic numbers
 n_layers = 12
-
-
-# TODO Make this a global param; for plotting allow at most two factors? Compute diff only for 2 levels?
-factors_to_plot = ['anaphor_type']
-
 
 ## Compute attention weights, one item at a time
 weights_for_all_items = []
@@ -233,7 +230,7 @@ df = pd.concat([items, weights_for_all_items], axis=1)
 ## Compute means for all conditions
 means = df.groupby(items.factors).mean().values
 means = means.reshape(len(items.conditions) * n_layers, -1)
-multi_index = pd.MultiIndex.from_product(items.levels + [list(range(n_layers))], names=items.factors + ['layer'])
+multi_index = pd.MultiIndex.from_product([items.levels[factor] for factor in items.factors] + [list(range(n_layers))], names=items.factors + ['layer'])
 df_means = pd.DataFrame(means, index=multi_index)
 
 
@@ -253,44 +250,58 @@ vmax = df_means.max().max()
 
 
 # Means for selected conditions
+
+# TODO Make this a global param; for plotting allow at most two factors? Compute diff only for 2 levels?
+factors_to_plot = ['anaphor_type', 'gender']
+levels_horiz = items.levels[factors_to_plot[0]]
+levels_vert = items.levels[factors_to_plot[1]] if len(factors_to_plot) == 2 else [None]
+n_plots_horiz = len(levels_horiz)
+n_plots_vert = len(levels_vert)
+
+if n_plots_horiz == 2:  # if two levels, also compute difference
+    n_plots_horiz += 1
+if n_plots_vert == 2:  # if two levels, also compute difference
+    n_plots_vert += 1
+
 df_means = df_means.groupby(factors_to_plot + ['layer']).mean()
 
 # TODO allow plotting means over layers
 for l in range(n_layers):
 
-    # TODO Remove MAGIC everywhere below
-    index = items.groups if GROUPED else None # TODO Replace None by exemplary tokens... items.iloc[0].tokenized.split()
-    weights = df_means.loc[('reflexive', l)].values
-    dim = int(np.sqrt(weights.shape[-1]))
-    reflexive = pd.DataFrame(weights.reshape(dim, dim), index=index, columns=index)
-
-    weights = df_means.loc[('plain',l)]
-    plain = pd.DataFrame(weights.values.reshape(dim, dim), index=index, columns=index)
-
-    # TODO index should be either data.groups, or the tokens, depending on GROUPED.
-    dfs_to_plot = [reflexive, plain]
-
-    fig, axs = plt.subplots(ncols=2+1, figsize=(12, 4))
-    plt.subplots_adjust(wspace = .6, top = .9)
+    fig, axs = plt.subplots(ncols=n_plots_horiz, nrows=n_plots_vert, figsize=(4 * n_plots_horiz, 4 * n_plots_vert))
+    plt.subplots_adjust(wspace=.6, top=.9)
     fig.suptitle("Layer {}".format(l))
 
-    for each_item_index, df in enumerate(dfs_to_plot):
-        # (i,j) --> (j,i): how much j is unfluenced by i
-        ax = sns.heatmap(df.transpose(), xticklabels=True, yticklabels=True, vmin=vmin, vmax=vmax, linewidth=0.5, ax=axs[each_item_index], cbar=False, cmap="Blues", square=True, cbar_kws={'shrink':.5}, label='small')
-        ax.xaxis.tick_top()
-        plt.setp(ax.get_xticklabels(), rotation=90)
+    for h, level_horiz in enumerate(levels_horiz):
+        for v, level_vert in enumerate(levels_vert):
 
-    ## Difference plot
-    diff = dfs_to_plot[0] - dfs_to_plot[1].values
-    # TODO change values to be only shared tokens
-    # TODO Compute this globally, too; or only if MAT?
-    vmin2, vmax2 = diff.min().min(), diff.max().max()
-    vmin2 = -(max(0-vmin2, vmax2))
-    vmax2 = (max(0-vmin2, vmax2))
+            index = items.groups if GROUPED else None # TODO Replace None by exemplary tokens... items.iloc[0].tokenized.split()
 
-    ax = sns.heatmap(diff.transpose(), xticklabels=True, yticklabels=True, center=0, vmin=vmin2, cbar=False, linewidth=0.5, ax=axs[each_item_index + 1], cmap="coolwarm_r", square=True, cbar_kws={'shrink':.5}, label='small')
-    ax.xaxis.tick_top()
-    plt.setp(ax.get_xticklabels(), rotation=90)
+            weights = df_means.loc[(level_horiz, level_vert, l)] if level_vert is not None else df_means.loc[(level_horiz, l)]
+            weights = weights.values
+            dim = int(np.sqrt(weights.shape[-1]))
+            weights = weights.reshape(dim, dim)
+            if TRANSPOSE:
+                weights = weights.transpose()
+            weights = pd.DataFrame(weights, index=index, columns=index)
+
+            # TODO Add plot subtitles
+            ax = sns.heatmap(weights, xticklabels=True, yticklabels=True, vmin=vmin, vmax=vmax, linewidth=0.5, ax=axs[h,v] if level_vert is not None else axs[h], cbar=False, cmap="Blues", square=True, cbar_kws={'shrink':.5}, label='small')
+            ax.xaxis.tick_top()
+            plt.setp(ax.get_xticklabels(), rotation=90)
+
+    # ## Difference plot
+    # # TODO Plot this only when factor has two levels
+    # diff = dfs_to_plot[0] - dfs_to_plot[1].values
+    # # TODO change values to be only shared tokens
+    # # TODO Compute this globally, too; or only if MAT?
+    # vmin2, vmax2 = diff.min().min(), diff.max().max()
+    # vmin2 = -(max(0-vmin2, vmax2))
+    # vmax2 = (max(0-vmin2, vmax2))
+    #
+    # ax = sns.heatmap(diff.transpose(), xticklabels=True, yticklabels=True, center=0, vmin=vmin2, cbar=False, linewidth=0.5, ax=axs[each_item_index + 1], cmap="coolwarm_r", square=True, cbar_kws={'shrink':.5}, label='small')
+    # ax.xaxis.tick_top()
+    # plt.setp(ax.get_xticklabels(), rotation=90)
 
     # TODO More meaningful output names
     out_filename = "{}/temp{}.png".format(out_path,l)
