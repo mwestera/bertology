@@ -76,7 +76,7 @@ def compute_MAT(heads_per_layer, layer_norm=True):
 bert_version = 'bert-base-cased'    # TODO Why no cased model available? Is this an older BERT version?
 
 TRANSPOSE = True    # True to plot as "rows influenced by cols" (otherwise: rows influencing cols).
-
+OUTPUT_GIF = False
 METHOD = "PAT" # "PAT" or "MAT"     # TODO Allow cumulative MAT too... CAT?
 GROUPED = True
 LAYER_NORM = True
@@ -85,12 +85,10 @@ LAYER_NORM = True
     # Does this mean that all heads will contribute same amount of information? Yes, roughly.
 
 PLOT_DIFFERENCES = True
-FACTORS_TO_PLOT = ['anaphor_type', 'gender']
+FACTORS_TO_PLOT = ['reflexivity', 'gender']
 if len(FACTORS_TO_PLOT) > 2:
     print("WARNING: Cannot plot more than 2 factors at a time. Trimming to", FACTORS_TO_PLOT[:2])
     FACTORS_TO_PLOT = FACTORS_TO_PLOT[:2]
-
-PLOT_FROM_LAYER = 0
 
 
 DATA = [
@@ -98,10 +96,10 @@ DATA = [
         # "The boy has a cat while the girl has a pigeon."
         # "The boy has a cat. He likes to stroke it.",
         # "The boy has no cat. He likes to stroke it.",
-        'reflexive, masc, |0 The teacher | wants |1 every boy | to like |2 himself.',
-        'plain, masc, |0 The teacher | wants |1 every boy | to like |2 him.',
-        'reflexive, fem, |0 The officers | want |1 all drivers | to like |2 themselves.',
-        'plain, fem, |0 The officers | want |1 all drivers | to like |2 them.',
+        'reflexive, masculine, |0 The teacher | wants |1 every boy | to like |2 himself.',
+        'irreflexive, masculine, |0 The teacher | wants |1 every boy | to like |2 him.',
+        'reflexive, feminine, |0 The officers | want |1 all drivers | to like |2 themselves.',
+        'irreflexive, feminine, |0 The officers | want |1 all drivers | to like |2 them.',
         # "I cannot find one of my ten marbles. It's probably under the couch.",
         # "I only found nine of my ten marbles. It's probably under the couch.",
         # '|0 Every farmer | who |1 owns a donkey |2 beats it.',
@@ -171,7 +169,7 @@ def parse_data(data, tokenizer, factor_legend=None, group_legend=None):
 
 tokenizer = BertTokenizer.from_pretrained(bert_version)
 
-items = parse_data(DATA, tokenizer, {0: 'anaphor_type', 1: 'gender'}, {0: 'subject', 1: 'object', 2: 'anaphor'})
+items = parse_data(DATA, tokenizer, {0: 'reflexivity', 1: 'gender'}, {0: 'subject', 1: 'object', 2: 'anaphor'})
 
 model = BertModel.from_pretrained(bert_version)
 n_layers = len(model.encoder.layer)
@@ -233,7 +231,7 @@ while os.path.exists(out_path):
     out_path_idx += 1
     out_path = 'output/temp_{}'.format(out_path_idx)
 os.mkdir(out_path)
-out_filenames = [] # for keeping track to create gif
+out_filepaths = [] # for keeping track to create gif
 
 # Global min/max to have same color map everywhere
 vmin = df_means.min().min()
@@ -308,21 +306,22 @@ for l in range(n_layers):
             if is_difference_plot:
                 ax.set_title('Difference')
             else:
-                ax.set_title('{} × {}'.format(level_horiz, level_vert) if level_vert is not None else level_horiz)
+                ax.set_title('{} & {}'.format(level_horiz, level_vert) if level_vert is not None else level_horiz)
             # ax.xaxis.tick_top()
             plt.setp(ax.get_yticklabels(), rotation=0)
 
-    # TODO More meaningful output names
-    out_filename = "{}/temp{}.png".format(out_path,l)
-    print("Saving figure:", out_filename)
-    pylab.savefig(out_filename)
+    out_filepath = "{}/{}_{}_layer{}.png".format(out_path, METHOD, '-x-'.join(factors_to_plot), l)
+    print("Saving figure:", out_filepath)
+    pylab.savefig(out_filepath)
     # pylab.show()
 
-    out_filenames.append(out_filename)
+    out_filepaths.append(out_filepath)
 
-# TODO more meaningful output name; tweak timing
-images = []
-for filename in out_filenames:
-    images.append(imageio.imread(filename))
-imageio.mimsave('{}/temp.gif'.format(out_path), images, format='GIF', duration=.5)
-print("Saving movie:", '{}/temp.gif'.format(out_path))
+
+if OUTPUT_GIF:  # :)
+    out_filepath = "{}/{}_{}_animated.gif".format(out_path, METHOD, '-x-'.join(factors_to_plot))
+    images = []
+    for filename in out_filepaths:
+        images.append(imageio.imread(filename))
+    imageio.mimsave(out_filepath, images, format='GIF', duration=.5)
+    print("Saving movie:", out_filepath)
