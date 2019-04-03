@@ -73,7 +73,7 @@ def compute_MAT(heads_per_layer, layer_norm=True):
     return mean_activations_per_layer
 
 
-bert_version = 'bert-base-cased'    # TODO Why no case?
+bert_version = 'bert-base-cased'    # TODO Why no cased model available? Is this an older BERT version?
 
 TRANSPOSE = True    # True to plot as "rows influenced by cols" (otherwise: rows influencing cols).
 
@@ -84,17 +84,15 @@ LAYER_NORM = True
     # However, since BERT has LAYER NORM in each attention head, outputs of all heads will have same mean/variance.
     # Does this mean that all heads will contribute same amount of information? Yes, roughly.
 
+PLOT_DIFFERENCES = True
+FACTORS_TO_PLOT = ['anaphor_type', 'gender']
+if len(FACTORS_TO_PLOT) > 2:
+    print("WARNING: Cannot plot more than 2 factors at a time. Trimming to", FACTORS_TO_PLOT[:2])
+    FACTORS_TO_PLOT = FACTORS_TO_PLOT[:2]
 
-# LAYERS = [[0,1,2], [3,4,5], [6,7,8], [9,10,11]]
-# LAYERS = [[0,1,2,3,4,5,6,7,8,9,10,11]]
-LAYERS = [0,1,2,3,4,5,6,7,8,9,10,11]
-# LAYERS = [layer_inds[:i] for i in range(1,13)]
-# LAYERS = [10,11]
+PLOT_FROM_LAYER = 0
 
-# sentence_a = "Every farmer who owns a donkey beats it."
-# sentence_b = "He is wearing a gray raincoat."
 
-# I want the ability to (i) compare minimal pairs, (ii) sets of them -- only pairs though? For visualisation perhaps, but there can be more factors if just for the stats...
 DATA = [
         # "The boy has a cat while the girl has a pigeon.",
         # "The boy has a cat while the girl has a pigeon."
@@ -139,7 +137,6 @@ def parse_data(data, tokenizer, factor_legend=None, group_legend=None):
             total_len += len(tokens)
             sentence += each_part.strip() + ' '
 
-
         # collect token group ids in a list instead of dict
         token_ids_list = [[] for _ in range(max(group_to_token_ids)+1)]
         for key in group_to_token_ids:
@@ -177,10 +174,9 @@ tokenizer = BertTokenizer.from_pretrained(bert_version)
 items = parse_data(DATA, tokenizer, {0: 'anaphor_type', 1: 'gender'}, {0: 'subject', 1: 'object', 2: 'anaphor'})
 
 model = BertModel.from_pretrained(bert_version)
+n_layers = len(model.encoder.layer)
+# TODO Bypass the AttentionVisualizer code altogether and remove from repo; I'm not really using it.
 attention_visualizer = visualization.AttentionVisualizer(model, tokenizer)
-
-# TODO Compute these magic numbers
-n_layers = 12
 
 ## Compute attention weights, one item at a time
 weights_for_all_items = []
@@ -188,11 +184,6 @@ for _, each_item in items.iterrows():
 
     tokens_a, tokens_b, attention = attention_visualizer.get_viz_data(each_item['sentence'])
     all_tokens = tokens_a + tokens_b
-    if ' '.join(all_tokens) != each_item['tokenized']:
-        print('Warning!')
-        print(' '.join(all_tokens))
-        print(each_item['tokenized'])
-
     attention = attention.squeeze()
 
     weights_per_layer = (compute_PAT if METHOD == "PAT" else compute_MAT)(attention, layer_norm=LAYER_NORM)
@@ -250,15 +241,13 @@ vmax = df_means.max().max()
 
 
 # Means for selected conditions
-
-# TODO Make this a global param; for plotting allow at most two factors? Compute diff only for 2 levels?
-factors_to_plot = ['anaphor_type']
+factors_to_plot = FACTORS_TO_PLOT
 levels_horiz = items.levels[factors_to_plot[0]]
 levels_vert = items.levels[factors_to_plot[1]] if len(factors_to_plot) == 2 else [None]
 
-if len(levels_horiz) == 2:  # if two levels, also compute difference
+if len(levels_horiz) == 2 and PLOT_DIFFERENCES:  # if two levels, also compute difference
     levels_horiz.append('<DIFF>')
-if len(levels_vert) == 2:  # if two levels, also compute difference
+if len(levels_vert) == 2 and PLOT_DIFFERENCES:  # if two levels, also compute difference
     levels_vert.append('<DIFF>')
 
 n_plots_horiz = len(levels_horiz)
