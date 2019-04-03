@@ -233,11 +233,6 @@ while os.path.exists(out_path):
 os.mkdir(out_path)
 out_filepaths = [] # for keeping track to create gif
 
-# Global min/max to have same color map everywhere
-vmin = df_means.min().min()
-vmax = df_means.max().max()
-
-
 # Means for selected conditions
 factors_to_plot = FACTORS_TO_PLOT
 levels_horiz = items.levels[factors_to_plot[0]]
@@ -252,6 +247,10 @@ n_plots_horiz = len(levels_horiz)
 n_plots_vert = len(levels_vert)
 
 df_means = df_means.groupby(factors_to_plot + ['layer']).mean()
+
+# Global min/max to have same color map everywhere
+vmin = df_means.min().min()
+vmax = df_means.max().max()
 
 # TODO allow plotting means over layers
 for l in range(n_layers):
@@ -268,7 +267,7 @@ for l in range(n_layers):
 
         for v, level_vert in enumerate(levels_vert):
 
-            index = items.groups if GROUPED else None # TODO Replace None by exemplary tokens... items.iloc[0].tokenized.split()
+            index = items.groups if GROUPED else None # TODO None will give error; replace by exemplary tokens... items.iloc[0].tokenized.split()
 
             is_difference_plot = True
             if level_horiz != "<DIFF>" and level_vert == "<DIFF>":
