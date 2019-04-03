@@ -167,161 +167,165 @@ def parse_data(data_path, tokenizer):
 
     return items
 
+def main():
 
-tokenizer = BertTokenizer.from_pretrained(bert_version)
+    tokenizer = BertTokenizer.from_pretrained(bert_version)
 
-items = parse_data('data/example.csv', tokenizer)
+    items = parse_data('data/example.csv', tokenizer)
 
-model = BertModel.from_pretrained(bert_version)
-n_layers = len(model.encoder.layer)
-# TODO Bypass the AttentionVisualizer code altogether and remove from repo; I'm not really using it.
-attention_visualizer = visualization.AttentionVisualizer(model, tokenizer)
+    model = BertModel.from_pretrained(bert_version)
+    n_layers = len(model.encoder.layer)
+    # TODO Bypass the AttentionVisualizer code altogether and remove from repo; I'm not really using it.
+    attention_visualizer = visualization.AttentionVisualizer(model, tokenizer)
 
-## Compute attention weights, one item at a time
-weights_for_all_items = []
-for _, each_item in items.iterrows():
+    ## Compute attention weights, one item at a time
+    weights_for_all_items = []
+    for _, each_item in items.iterrows():
 
-    tokens_a, tokens_b, attention = attention_visualizer.get_viz_data(each_item['sentence'])
-    all_tokens = tokens_a + tokens_b
-    attention = attention.squeeze()
+        tokens_a, tokens_b, attention = attention_visualizer.get_viz_data(each_item['sentence'])
+        all_tokens = tokens_a + tokens_b
+        attention = attention.squeeze()
 
-    weights_per_layer = (compute_PAT if METHOD == "PAT" else compute_MAT)(attention, layer_norm=LAYER_NORM)
+        weights_per_layer = (compute_PAT if METHOD == "PAT" else compute_MAT)(attention, layer_norm=LAYER_NORM)
 
-    # TODO Put the following outside the current loop, inside its own (anticipating intermediary writing of results to disk)
-    # Take averages over groups of tokens
-    if GROUPED:
-        grouped_weights_per_layer = []
-        for m in weights_per_layer:
-            # Group horizontally
-            grouped_weights_horiz = []
-            for group in items.groups:
-                # TODO do I need to check if not None, in case not all items have all groups?
-                grouped_weights_horiz.append(m[each_item[group]].mean(axis=0))
-            grouped_weights_horiz = np.stack(grouped_weights_horiz)
+        # TODO Put the following outside the current loop, inside its own (anticipating intermediary writing of results to disk)
+        # Take averages over groups of tokens
+        if GROUPED:
+            grouped_weights_per_layer = []
+            for m in weights_per_layer:
+                # Group horizontally
+                grouped_weights_horiz = []
+                for group in items.groups:
+                    # TODO do I need to check if not None, in case not all items have all groups?
+                    grouped_weights_horiz.append(m[each_item[group]].mean(axis=0))
+                grouped_weights_horiz = np.stack(grouped_weights_horiz)
 
-            # Group the result also vertically
-            grouped_weights = []
-            for group in items.groups:
-                grouped_weights.append(grouped_weights_horiz[:, each_item[group]].mean(axis=1))
-            grouped_weights = np.stack(grouped_weights).transpose() # transpose to restore original order
+                # Group the result also vertically
+                grouped_weights = []
+                for group in items.groups:
+                    grouped_weights.append(grouped_weights_horiz[:, each_item[group]].mean(axis=1))
+                grouped_weights = np.stack(grouped_weights).transpose()  # transpose to restore original order
 
-            # store
-            grouped_weights_per_layer.append(grouped_weights)
+                # store
+                grouped_weights_per_layer.append(grouped_weights)
 
-        # stack and flatten for much easier handling with pandas, computing means etc.
-        weights_per_layer = np.stack(grouped_weights_per_layer).reshape(-1)
+            # stack and flatten for much easier handling with pandas, computing means etc.
+            weights_per_layer = np.stack(grouped_weights_per_layer).reshape(-1)
 
-    weights_for_all_items.append(weights_per_layer)
+        weights_for_all_items.append(weights_per_layer)
 
-weights_for_all_items = pd.DataFrame(weights_for_all_items)
-df = pd.concat([items, weights_for_all_items], axis=1)
+    weights_for_all_items = pd.DataFrame(weights_for_all_items)
+    df = pd.concat([items, weights_for_all_items], axis=1)
+
+    ## Compute means for all conditions
+    means = df.groupby(items.factors).mean().values
+    means = means.reshape(len(items.conditions) * n_layers, -1)
+    multi_index = pd.MultiIndex.from_product(
+        [items.levels[factor] for factor in items.factors] + [list(range(n_layers))], names=items.factors + ['layer'])
+    df_means = pd.DataFrame(means, index=multi_index)
+
+    ## Prepare creating outputs
+    # TODO More meaningful output names
+    out_path = 'output/temp'
+    out_path_idx = 0
+    while os.path.exists(out_path):
+        out_path_idx += 1
+        out_path = 'output/temp_{}'.format(out_path_idx)
+    os.mkdir(out_path)
+    out_filepaths = []  # for keeping track to create gif
+
+    # Compute means for selected conditions
+    factors_to_plot = FACTORS_TO_PLOT
+    levels_horiz = items.levels[factors_to_plot[0]]
+    levels_vert = items.levels[factors_to_plot[1]] if len(factors_to_plot) == 2 else [None]
+
+    if len(levels_horiz) == 2 and PLOT_DIFFERENCES:  # if two levels, also compute difference
+        levels_horiz.append('<DIFF>')
+    if len(levels_vert) == 2 and PLOT_DIFFERENCES:  # if two levels, also compute difference
+        levels_vert.append('<DIFF>')
+
+    n_plots_horiz = len(levels_horiz)
+    n_plots_vert = len(levels_vert)
+
+    df_means = df_means.groupby(factors_to_plot + ['layer']).mean()
+
+    # Global min/max to have same color map everywhere
+    vmin = df_means.min().min()
+    vmax = df_means.max().max()
+
+    # TODO allow plotting means over layers
+    for l in range(n_layers):
+
+        fig, axs = plt.subplots(ncols=n_plots_horiz, nrows=n_plots_vert, figsize=(4 * n_plots_horiz, 4 * n_plots_vert))
+        plt.subplots_adjust(wspace=.6, top=.9)
+        fig.suptitle("{}-scores given {} (layer {})".format(METHOD, ' × '.join(factors_to_plot), l))
+
+        # Keep for computing differences
+        weights_for_diff = [[None, None],
+                            [None, None]]
+
+        for h, level_horiz in enumerate(levels_horiz):
+
+            for v, level_vert in enumerate(levels_vert):
+
+                index = items.groups if GROUPED else None  # TODO None will give error; replace by exemplary tokens... items.iloc[0].tokenized.split()
+
+                is_difference_plot = True
+                if level_horiz != "<DIFF>" and level_vert == "<DIFF>":
+                    weights = weights_for_diff[h][0] - weights_for_diff[h][1]
+                elif level_horiz == "<DIFF>" and level_vert != "<DIFF>":
+                    weights = weights_for_diff[0][v] - weights_for_diff[1][v]
+                elif level_horiz == "<DIFF>" and level_vert == "<DIFF>":
+                    weights = weights_for_diff[0][0] - weights_for_diff[1][1]
+                else:
+                    is_difference_plot = False
+                    weights = df_means.loc[(level_horiz, level_vert, l)] if level_vert is not None else df_means.loc[
+                        (level_horiz, l)]
+                    weights = weights.values
+                    dim = int(np.sqrt(weights.shape[-1]))
+                    weights = weights.reshape(dim, dim)
+                    if TRANSPOSE:
+                        weights = weights.transpose()
+                    weights = pd.DataFrame(weights, index=index, columns=index)
+                    # Keep for difference plot
+                    weights_for_diff[h][v] = weights
+
+                # TODO Consider setting global vmin/vmax only in case of MAT; in that case also for is_difference_plot.
+                ax = sns.heatmap(weights,
+                                 xticklabels=True,
+                                 yticklabels=True,
+                                 vmin=vmin if not is_difference_plot else None,
+                                 vmax=vmax if not is_difference_plot else None,
+                                 center=0 if is_difference_plot else None,
+                                 linewidth=0.5,
+                                 ax=axs[h, v] if level_vert is not None else axs[h],
+                                 cbar=False,
+                                 cmap="coolwarm_r" if is_difference_plot else "Blues",
+                                 square=True,
+                                 cbar_kws={'shrink': .5},
+                                 label='small')
+                if is_difference_plot:
+                    ax.set_title('Difference')
+                else:
+                    ax.set_title('{} & {}'.format(level_horiz, level_vert) if level_vert is not None else level_horiz)
+                # ax.xaxis.tick_top()
+                plt.setp(ax.get_yticklabels(), rotation=0)
+
+        out_filepath = "{}/{}_{}_layer{}.png".format(out_path, METHOD, '-x-'.join(factors_to_plot), l)
+        print("Saving figure:", out_filepath)
+        pylab.savefig(out_filepath)
+        # pylab.show()
+
+        out_filepaths.append(out_filepath)
+
+    if OUTPUT_GIF:  # :)
+        out_filepath = "{}/{}_{}_animated.gif".format(out_path, METHOD, '-x-'.join(factors_to_plot))
+        images = []
+        for filename in out_filepaths:
+            images.append(imageio.imread(filename))
+        imageio.mimsave(out_filepath, images, format='GIF', duration=.5)
+        print("Saving movie:", out_filepath)
 
 
-## Compute means for all conditions
-means = df.groupby(items.factors).mean().values
-means = means.reshape(len(items.conditions) * n_layers, -1)
-multi_index = pd.MultiIndex.from_product([items.levels[factor] for factor in items.factors] + [list(range(n_layers))], names=items.factors + ['layer'])
-df_means = pd.DataFrame(means, index=multi_index)
-
-
-## Prepare creating outputs
-# TODO More meaningful output names
-out_path = 'output/temp'
-out_path_idx = 0
-while os.path.exists(out_path):
-    out_path_idx += 1
-    out_path = 'output/temp_{}'.format(out_path_idx)
-os.mkdir(out_path)
-out_filepaths = [] # for keeping track to create gif
-
-# Means for selected conditions
-factors_to_plot = FACTORS_TO_PLOT
-levels_horiz = items.levels[factors_to_plot[0]]
-levels_vert = items.levels[factors_to_plot[1]] if len(factors_to_plot) == 2 else [None]
-
-if len(levels_horiz) == 2 and PLOT_DIFFERENCES:  # if two levels, also compute difference
-    levels_horiz.append('<DIFF>')
-if len(levels_vert) == 2 and PLOT_DIFFERENCES:  # if two levels, also compute difference
-    levels_vert.append('<DIFF>')
-
-n_plots_horiz = len(levels_horiz)
-n_plots_vert = len(levels_vert)
-
-df_means = df_means.groupby(factors_to_plot + ['layer']).mean()
-
-# Global min/max to have same color map everywhere
-vmin = df_means.min().min()
-vmax = df_means.max().max()
-
-# TODO allow plotting means over layers
-for l in range(n_layers):
-
-    fig, axs = plt.subplots(ncols=n_plots_horiz, nrows=n_plots_vert, figsize=(4 * n_plots_horiz, 4 * n_plots_vert))
-    plt.subplots_adjust(wspace=.6, top=.9)
-    fig.suptitle("{}-scores given {} (layer {})".format(METHOD, ' × '.join(factors_to_plot), l))
-
-    # Keep for computing differences
-    weights_for_diff = [[None,None],
-                       [None,None]]
-
-    for h, level_horiz in enumerate(levels_horiz):
-
-        for v, level_vert in enumerate(levels_vert):
-
-            index = items.groups if GROUPED else None # TODO None will give error; replace by exemplary tokens... items.iloc[0].tokenized.split()
-
-            is_difference_plot = True
-            if level_horiz != "<DIFF>" and level_vert == "<DIFF>":
-                weights = weights_for_diff[h][0] - weights_for_diff[h][1]
-            elif level_horiz == "<DIFF>" and level_vert != "<DIFF>":
-                weights = weights_for_diff[0][v] - weights_for_diff[1][v]
-            elif level_horiz == "<DIFF>" and level_vert == "<DIFF>":
-                weights = weights_for_diff[0][0] - weights_for_diff[1][1]
-            else:
-                is_difference_plot = False
-                weights = df_means.loc[(level_horiz, level_vert, l)] if level_vert is not None else df_means.loc[(level_horiz, l)]
-                weights = weights.values
-                dim = int(np.sqrt(weights.shape[-1]))
-                weights = weights.reshape(dim, dim)
-                if TRANSPOSE:
-                    weights = weights.transpose()
-                weights = pd.DataFrame(weights, index=index, columns=index)
-                # Keep for difference plot
-                weights_for_diff[h][v] = weights
-
-            # TODO Consider setting global vmin/vmax only in case of MAT; in that case also for is_difference_plot.
-            ax = sns.heatmap(weights,
-                             xticklabels=True,
-                             yticklabels=True,
-                             vmin=vmin if not is_difference_plot else None,
-                             vmax=vmax if not is_difference_plot else None,
-                             center=0 if is_difference_plot else None,
-                             linewidth=0.5,
-                             ax=axs[h,v] if level_vert is not None else axs[h],
-                             cbar=False,
-                             cmap="coolwarm_r" if is_difference_plot else "Blues",
-                             square=True,
-                             cbar_kws={'shrink':.5},
-                             label='small')
-            if is_difference_plot:
-                ax.set_title('Difference')
-            else:
-                ax.set_title('{} & {}'.format(level_horiz, level_vert) if level_vert is not None else level_horiz)
-            # ax.xaxis.tick_top()
-            plt.setp(ax.get_yticklabels(), rotation=0)
-
-    out_filepath = "{}/{}_{}_layer{}.png".format(out_path, METHOD, '-x-'.join(factors_to_plot), l)
-    print("Saving figure:", out_filepath)
-    pylab.savefig(out_filepath)
-    # pylab.show()
-
-    out_filepaths.append(out_filepath)
-
-
-if OUTPUT_GIF:  # :)
-    out_filepath = "{}/{}_{}_animated.gif".format(out_path, METHOD, '-x-'.join(factors_to_plot))
-    images = []
-    for filename in out_filepaths:
-        images.append(imageio.imread(filename))
-    imageio.mimsave(out_filepath, images, format='GIF', duration=.5)
-    print("Saving movie:", out_filepath)
+if __name__ == "__main__":
+    main()
