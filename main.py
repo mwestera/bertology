@@ -33,15 +33,29 @@ if len(FACTORS_TO_PLOT) > 2:
     print("WARNING: Cannot plot more than 2 factors at a time. Trimming to", FACTORS_TO_PLOT[:2])
     FACTORS_TO_PLOT = FACTORS_TO_PLOT[:2]
 
+DATA_PATH = 'data/example.csv'
+OUT_PATH = None
+if OUT_PATH is not None:
+    if os.path.exists(OUT_PATH):
+        if input('Output directory {} already exists. Risk overwriting files? N/y'.format(OUT_PATH)) != 'y':
+            quit()
+else:
+    OUT_PATH = 'output/temp'
+    out_path_idx = 0
+    while os.path.exists(OUT_PATH):
+        out_path_idx += 1
+        OUT_PATH = 'output/temp_{}'.format(out_path_idx)
+    os.mkdir(OUT_PATH)
+
 
 def main():
 
     tokenizer = BertTokenizer.from_pretrained(bert_version)
-
-    items = parse_data('data/example.csv', tokenizer)
-
+    items = parse_data(DATA_PATH, tokenizer)
     model = BertModel.from_pretrained(bert_version)
+
     n_layers = len(model.encoder.layer)
+
     # TODO Bypass the AttentionVisualizer code altogether and remove from repo; I'm not really using it.
     attention_visualizer = visualization.AttentionVisualizer(model, tokenizer)
 
@@ -91,108 +105,16 @@ def main():
         [items.levels[factor] for factor in items.factors] + [list(range(n_layers))], names=items.factors + ['layer'])
     df_means = pd.DataFrame(means, index=multi_index)
 
+
     ## Prepare creating outputs
-    # TODO More meaningful output names
-    out_path = 'output/temp'
-    out_path_idx = 0
-    while os.path.exists(out_path):
-        out_path_idx += 1
-        out_path = 'output/temp_{}'.format(out_path_idx)
-    os.mkdir(out_path)
-    out_filepaths = []  # for keeping track to create gif
 
     # Compute means for selected conditions
     factors_to_plot = FACTORS_TO_PLOT
-    levels_horiz = items.levels[factors_to_plot[0]]
-    levels_vert = items.levels[factors_to_plot[1]] if len(factors_to_plot) == 2 else [None]
-
-    if len(levels_horiz) == 2 and PLOT_DIFFERENCES:  # if two levels, also compute difference
-        levels_horiz.append('<DIFF>')
-    if len(levels_vert) == 2 and PLOT_DIFFERENCES:  # if two levels, also compute difference
-        levels_vert.append('<DIFF>')
-
-    n_plots_horiz = len(levels_horiz)
-    n_plots_vert = len(levels_vert)
-
     df_means = df_means.groupby(factors_to_plot + ['layer']).mean()
 
-    # Global min/max to have same color map everywhere
-    vmin = df_means.min().min()
-    vmax = df_means.max().max()
+    # TODO This might be a good place for text summary of main results, significance tests, etc.?
 
-    # TODO allow plotting means over layers
-    for l in range(n_layers):
-
-        fig, axs = plt.subplots(ncols=n_plots_horiz, nrows=n_plots_vert, figsize=(4 * n_plots_horiz, 4 * n_plots_vert))
-        plt.subplots_adjust(wspace=.6, top=.9)
-        fig.suptitle("{}-scores given {} (layer {})".format(METHOD, ' × '.join(factors_to_plot), l))
-
-        # Keep for computing differences
-        weights_for_diff = [[None, None],
-                            [None, None]]
-
-        for h, level_horiz in enumerate(levels_horiz):
-
-            for v, level_vert in enumerate(levels_vert):
-
-                index = items.groups if GROUPED else None  # TODO None will give error; replace by exemplary tokens... items.iloc[0].tokenized.split()
-
-                is_difference_plot = True
-                if level_horiz != "<DIFF>" and level_vert == "<DIFF>":
-                    weights = weights_for_diff[h][0] - weights_for_diff[h][1]
-                elif level_horiz == "<DIFF>" and level_vert != "<DIFF>":
-                    weights = weights_for_diff[0][v] - weights_for_diff[1][v]
-                elif level_horiz == "<DIFF>" and level_vert == "<DIFF>":
-                    weights = weights_for_diff[0][0] - weights_for_diff[1][1]
-                else:
-                    is_difference_plot = False
-                    weights = df_means.loc[(level_horiz, level_vert, l)] if level_vert is not None else df_means.loc[
-                        (level_horiz, l)]
-                    weights = weights.values
-                    dim = int(np.sqrt(weights.shape[-1]))
-                    weights = weights.reshape(dim, dim)
-                    if TRANSPOSE:
-                        weights = weights.transpose()
-                    weights = pd.DataFrame(weights, index=index, columns=index)
-                    # Keep for difference plot
-                    weights_for_diff[h][v] = weights
-
-                # TODO Consider setting global vmin/vmax only in case of MAT; in that case also for is_difference_plot.
-                ax = sns.heatmap(weights,
-                                 xticklabels=True,
-                                 yticklabels=True,
-                                 vmin=vmin if not is_difference_plot else None,
-                                 vmax=vmax if not is_difference_plot else None,
-                                 center=0 if is_difference_plot else None,
-                                 linewidth=0.5,
-                                 ax=axs[h, v] if level_vert is not None else axs[h],
-                                 cbar=False,
-                                 cmap="coolwarm_r" if is_difference_plot else "Blues",
-                                 square=True,
-                                 cbar_kws={'shrink': .5},
-                                 label='small')
-                if is_difference_plot:
-                    ax.set_title('Difference')
-                else:
-                    ax.set_title('{} & {}'.format(level_horiz, level_vert) if level_vert is not None else level_horiz)
-                # ax.xaxis.tick_top()
-                plt.setp(ax.get_yticklabels(), rotation=0)
-
-        out_filepath = "{}/{}_{}_layer{}.png".format(out_path, METHOD, '-x-'.join(factors_to_plot), l)
-        print("Saving figure:", out_filepath)
-        pylab.savefig(out_filepath)
-        # pylab.show()
-
-        out_filepaths.append(out_filepath)
-
-    if OUTPUT_GIF:  # :)
-        out_filepath = "{}/{}_{}_animated.gif".format(out_path, METHOD, '-x-'.join(factors_to_plot))
-        images = []
-        for filename in out_filepaths:
-            images.append(imageio.imread(filename))
-        imageio.mimsave(out_filepath, images, format='GIF', duration=.5)
-        print("Saving movie:", out_filepath)
-
+    plot(df_means, items.levels, items.groups, factors_to_plot, n_layers)
 
 
 def parse_data(data_path, tokenizer):
@@ -272,6 +194,7 @@ def parse_data(data_path, tokenizer):
 
     return items
 
+
 def normalize(v):
     norm = np.linalg.norm(v)
     if norm == 0:
@@ -328,6 +251,98 @@ def compute_MAT(heads_per_layer, layer_norm=True):
         mean_activations_per_layer.append(summed_activations/heads_per_layer.shape[1])
 
     return mean_activations_per_layer
+
+
+def plot(df_means, levels, groups, factors_to_plot, n_layers):
+    ## Yay plotting!
+    # Collect which levels combine for plotting
+    levels_horiz = levels[factors_to_plot[0]]
+    levels_vert = levels[factors_to_plot[1]] if len(factors_to_plot) == 2 else [None]
+    if len(levels_horiz) == 2 and PLOT_DIFFERENCES:  # if two levels, also compute difference
+        levels_horiz.append('<DIFF>')
+    if len(levels_vert) == 2 and PLOT_DIFFERENCES:  # if two levels, also compute difference
+        levels_vert.append('<DIFF>')
+
+    # Global min/max to have same color map everywhere
+    vmin = df_means.min().min()
+    vmax = df_means.max().max()
+
+    # for keeping track to create gif
+    out_filepaths = []
+
+    # Let's plot!
+    for l in range(n_layers):  # TODO allow plotting means over layers
+
+        fig, axs = plt.subplots(ncols=len(levels_horiz), nrows=len(levels_vert),
+                                figsize=(4 * len(levels_horiz), 4 * len(levels_vert)))
+        plt.subplots_adjust(wspace=.6, top=.9)
+        fig.suptitle("{}-scores given {} (layer {})".format(METHOD, ' × '.join(factors_to_plot), l))
+
+        # Keep for computing differences
+        weights_for_diff = [[None, None],
+                            [None, None]]
+
+        for h, level_horiz in enumerate(levels_horiz):
+
+            for v, level_vert in enumerate(levels_vert):
+
+                index = groups if GROUPED else None  # TODO None will give error; replace by exemplary tokens... items.iloc[0].tokenized.split()
+
+                is_difference_plot = True
+                if level_horiz != "<DIFF>" and level_vert == "<DIFF>":
+                    weights = weights_for_diff[h][0] - weights_for_diff[h][1]
+                elif level_horiz == "<DIFF>" and level_vert != "<DIFF>":
+                    weights = weights_for_diff[0][v] - weights_for_diff[1][v]
+                elif level_horiz == "<DIFF>" and level_vert == "<DIFF>":
+                    weights = weights_for_diff[0][0] - weights_for_diff[1][1]
+                else:
+                    is_difference_plot = False
+                    weights = df_means.loc[(level_horiz, level_vert, l)] if level_vert is not None else df_means.loc[
+                        (level_horiz, l)]
+                    weights = weights.values
+                    dim = int(np.sqrt(weights.shape[-1]))
+                    weights = weights.reshape(dim, dim)
+                    if TRANSPOSE:
+                        weights = weights.transpose()
+                    weights = pd.DataFrame(weights, index=index, columns=index)
+                    # Keep for difference plot
+                    weights_for_diff[h][v] = weights
+
+                # TODO Consider setting global vmin/vmax only in case of MAT; in that case also for is_difference_plot.
+                ax = sns.heatmap(weights,
+                                 xticklabels=True,
+                                 yticklabels=True,
+                                 vmin=vmin if not is_difference_plot else None,
+                                 vmax=vmax if not is_difference_plot else None,
+                                 center=0 if is_difference_plot else None,
+                                 linewidth=0.5,
+                                 ax=axs[h, v] if level_vert is not None else axs[h],
+                                 cbar=False,
+                                 cmap="coolwarm_r" if is_difference_plot else "Blues",
+                                 square=True,
+                                 cbar_kws={'shrink': .5},
+                                 label='small')
+                if is_difference_plot:
+                    ax.set_title('Difference')
+                else:
+                    ax.set_title('{} & {}'.format(level_horiz, level_vert) if level_vert is not None else level_horiz)
+                # ax.xaxis.tick_top()
+                plt.setp(ax.get_yticklabels(), rotation=0)
+
+        out_filepath = "{}/{}_{}_layer{}.png".format(OUT_PATH, METHOD, '-x-'.join(factors_to_plot), l)
+        print("Saving figure:", out_filepath)
+        pylab.savefig(out_filepath)
+        # pylab.show()
+
+        out_filepaths.append(out_filepath)
+
+    if OUTPUT_GIF:  # :)
+        out_filepath = "{}/{}_{}_animated.gif".format(OUT_PATH, METHOD, '-x-'.join(factors_to_plot))
+        images = []
+        for filename in out_filepaths:
+            images.append(imageio.imread(filename))
+        imageio.mimsave(out_filepath, images, format='GIF', duration=.5)
+        print("Saving movie:", out_filepath)
 
 
 if __name__ == "__main__":
