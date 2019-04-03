@@ -15,63 +15,6 @@ import itertools
 import imageio
 import warnings
 
-def normalize(v):
-    norm = np.linalg.norm(v)
-    if norm == 0:
-       return v
-    return v / norm
-
-
-def compute_PAT(heads_per_layer, layer_norm=True):
-    """
-    Computes Percolated Attention per Token (PAT), through all layers.
-    :param heads_per_layer:
-    :param layer_norm:
-    :return: percolated activations up to every layer
-    """
-    percolated_activations_per_layer = []
-    percolated_activations = np.diag(np.ones(heads_per_layer.shape[-1]))      # n_tokens × n_tokens
-    for layer in heads_per_layer:
-        summed_activations = np.zeros_like(percolated_activations)
-        for head in layer:      # n_tokens × n_tokens
-            activations_per_head = np.matmul(head, percolated_activations)
-            # (i,j) = how much (activations coming ultimately from) token i influences token j
-            if layer_norm:       # Normalize influence (across all tokens i) on each token j
-                for j in range(0, len(activations_per_head)):
-                    activations_per_head[:,j] = normalize(activations_per_head[:, j])
-            summed_activations += activations_per_head
-        # for the next layer, use summed_activations as the next input activations
-        percolated_activations = summed_activations
-        # I believe normalizing the activations (as a whole or per col) makes no difference.
-
-        percolated_activations_per_layer.append(percolated_activations)
-
-    return percolated_activations_per_layer
-
-
-def compute_MAT(heads_per_layer, layer_norm=True):
-    """
-    Computes Mean Attention per Token (MAT), i.e,, mean across all layers and heads.
-    :param heads_per_layer:
-    :param layer_norm:
-    :return: Averages (across heads) per layer
-    """
-    mean_activations_per_layer = []
-    summed_mean_activations = np.zeros_like(heads_per_layer[0][1])
-    for heads_of_layer in heads_per_layer:
-        summed_activations = np.zeros_like(heads_per_layer[0][1])
-        for head in heads_of_layer:      # n_tokens × n_tokens
-            activations_per_head = head.copy()
-            # (i,j) = how much (activations coming from) token i influences token j
-            if layer_norm:       # Normalize influence (across all tokens i) on each token j
-                for j in range(0, len(activations_per_head)):
-                    activations_per_head[:,j] = normalize(activations_per_head[:, j])
-            summed_activations += activations_per_head
-
-        mean_activations_per_layer.append(summed_activations/heads_per_layer.shape[1])
-
-    return mean_activations_per_layer
-
 
 bert_version = 'bert-base-cased'    # TODO Why no cased model available? Is this an older BERT version?
 
@@ -90,82 +33,6 @@ if len(FACTORS_TO_PLOT) > 2:
     print("WARNING: Cannot plot more than 2 factors at a time. Trimming to", FACTORS_TO_PLOT[:2])
     FACTORS_TO_PLOT = FACTORS_TO_PLOT[:2]
 
-def parse_data(data_path, tokenizer):
-
-    items = []
-    num_factors = None
-    max_group_id = 0
-
-    # Manual checking and parsing of first line (legend)
-    with open(data_path) as f:
-        legend = f.readline()
-        if not legend.startswith("#"):
-            print("WARNING: Legend is missing from the data. Using boring group and factor labels instead.")
-            group_legend = None
-            factor_legend = None
-        else:
-            legend = [l.strip() for l in legend.strip('#').split(',')]
-            group_legend = {}
-            factor_legend = {}
-            for term in legend:
-                if term.startswith('|'):
-                    ind, term = term.strip('|').split(' ')
-                    group_legend[int(ind)] = term
-                else:
-                    factor_legend[len(factor_legend)] = term
-
-    # Now read the actual data
-    reader = csv.reader(open(data_path), skipinitialspace=True)
-    for row in filter(lambda row: not row[0].startswith('#'), reader):
-        num_factors = len(row)-1    # Num rows minus the sentence itself
-        group_to_token_ids = {}
-        sentence = ""
-        total_len = 1   # Take mandatory CLS symbol into account
-        for each_part in row[-1].strip('|').split('|'):
-            first_char = each_part[0]
-            if first_char.isdigit():
-                group_id = int(first_char)
-                each_part = each_part[1:].strip()
-                max_group_id = max(max_group_id, group_id)
-            tokens = tokenizer.tokenize(each_part)
-            if first_char.isdigit():
-                if group_id in group_to_token_ids:
-                    group_to_token_ids[group_id].append(list(range(total_len, total_len + len(tokens))))
-                else:
-                    group_to_token_ids[group_id] = list(range(total_len, total_len + len(tokens)))
-            total_len += len(tokens)
-            sentence += each_part.strip() + ' '
-
-        # collect token group ids in a list instead of dict
-        token_ids_list = [[] for _ in range(max(group_to_token_ids)+1)]
-        for key in group_to_token_ids:
-            token_ids_list[key] = group_to_token_ids[key]
-
-        items.append(row[:-1] + [sentence.strip()] + [' '.join(['[CLS]'] + tokenizer.tokenize(sentence) + ['[SEP]'])] + token_ids_list)
-
-    if group_legend is None:
-        group_names = ['g{}'.format(i) for i in range(max_group_id + 1)]
-    else:
-        group_names = [group_legend[key] for key in group_legend]
-
-    if factor_legend is None:
-        factor_names = ['f{}'.format(i) for i in range(num_factors)]
-    else:
-        factor_names = [factor_legend[key] for key in factor_legend]
-
-    columns = factor_names + ['sentence'] + ['tokenized'] + group_names
-
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore')
-        items = pd.DataFrame(items, columns=columns)
-        items.num_factors = num_factors
-        items.factors = factor_names
-        items.num_groups = max_group_id + 1
-        items.groups = group_names
-        items.levels = {factor: items[factor].unique().tolist() for factor in items.factors}
-        items.conditions = list(itertools.product(*[items.levels[factor] for factor in items.factors]))
-
-    return items
 
 def main():
 
@@ -325,6 +192,142 @@ def main():
             images.append(imageio.imread(filename))
         imageio.mimsave(out_filepath, images, format='GIF', duration=.5)
         print("Saving movie:", out_filepath)
+
+
+
+def parse_data(data_path, tokenizer):
+
+    items = []
+    num_factors = None
+    max_group_id = 0
+
+    # Manual checking and parsing of first line (legend)
+    with open(data_path) as f:
+        legend = f.readline()
+        if not legend.startswith("#"):
+            print("WARNING: Legend is missing from the data. Using boring group and factor labels instead.")
+            group_legend = None
+            factor_legend = None
+        else:
+            legend = [l.strip() for l in legend.strip('#').split(',')]
+            group_legend = {}
+            factor_legend = {}
+            for term in legend:
+                if term.startswith('|'):
+                    ind, term = term.strip('|').split(' ')
+                    group_legend[int(ind)] = term
+                else:
+                    factor_legend[len(factor_legend)] = term
+
+    # Now read the actual data
+    reader = csv.reader(open(data_path), skipinitialspace=True)
+    for row in filter(lambda row: not row[0].startswith('#'), reader):
+        num_factors = len(row)-1    # Num rows minus the sentence itself
+        group_to_token_ids = {}
+        sentence = ""
+        total_len = 1   # Take mandatory CLS symbol into account
+        for each_part in row[-1].strip('|').split('|'):
+            first_char = each_part[0]
+            if first_char.isdigit():
+                group_id = int(first_char)
+                each_part = each_part[1:].strip()
+                max_group_id = max(max_group_id, group_id)
+            tokens = tokenizer.tokenize(each_part)
+            if first_char.isdigit():
+                if group_id in group_to_token_ids:
+                    group_to_token_ids[group_id].append(list(range(total_len, total_len + len(tokens))))
+                else:
+                    group_to_token_ids[group_id] = list(range(total_len, total_len + len(tokens)))
+            total_len += len(tokens)
+            sentence += each_part.strip() + ' '
+
+        # collect token group ids in a list instead of dict
+        token_ids_list = [[] for _ in range(max(group_to_token_ids)+1)]
+        for key in group_to_token_ids:
+            token_ids_list[key] = group_to_token_ids[key]
+
+        items.append(row[:-1] + [sentence.strip()] + [' '.join(['[CLS]'] + tokenizer.tokenize(sentence) + ['[SEP]'])] + token_ids_list)
+
+    if group_legend is None:
+        group_names = ['g{}'.format(i) for i in range(max_group_id + 1)]
+    else:
+        group_names = [group_legend[key] for key in group_legend]
+
+    if factor_legend is None:
+        factor_names = ['f{}'.format(i) for i in range(num_factors)]
+    else:
+        factor_names = [factor_legend[key] for key in factor_legend]
+
+    columns = factor_names + ['sentence'] + ['tokenized'] + group_names
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        items = pd.DataFrame(items, columns=columns)
+        items.num_factors = num_factors
+        items.factors = factor_names
+        items.num_groups = max_group_id + 1
+        items.groups = group_names
+        items.levels = {factor: items[factor].unique().tolist() for factor in items.factors}
+        items.conditions = list(itertools.product(*[items.levels[factor] for factor in items.factors]))
+
+    return items
+
+def normalize(v):
+    norm = np.linalg.norm(v)
+    if norm == 0:
+       return v
+    return v / norm
+
+
+def compute_PAT(heads_per_layer, layer_norm=True):
+    """
+    Computes Percolated Attention per Token (PAT), through all layers.
+    :param heads_per_layer:
+    :param layer_norm:
+    :return: percolated activations up to every layer
+    """
+    percolated_activations_per_layer = []
+    percolated_activations = np.diag(np.ones(heads_per_layer.shape[-1]))      # n_tokens × n_tokens
+    for layer in heads_per_layer:
+        summed_activations = np.zeros_like(percolated_activations)
+        for head in layer:      # n_tokens × n_tokens
+            activations_per_head = np.matmul(head, percolated_activations)
+            # (i,j) = how much (activations coming ultimately from) token i influences token j
+            if layer_norm:       # Normalize influence (across all tokens i) on each token j
+                for j in range(0, len(activations_per_head)):
+                    activations_per_head[:,j] = normalize(activations_per_head[:, j])
+            summed_activations += activations_per_head
+        # for the next layer, use summed_activations as the next input activations
+        percolated_activations = summed_activations
+        # I believe normalizing the activations (as a whole or per col) makes no difference.
+
+        percolated_activations_per_layer.append(percolated_activations)
+
+    return percolated_activations_per_layer
+
+
+def compute_MAT(heads_per_layer, layer_norm=True):
+    """
+    Computes Mean Attention per Token (MAT), i.e,, mean across all layers and heads.
+    :param heads_per_layer:
+    :param layer_norm:
+    :return: Averages (across heads) per layer
+    """
+    mean_activations_per_layer = []
+    summed_mean_activations = np.zeros_like(heads_per_layer[0][1])
+    for heads_of_layer in heads_per_layer:
+        summed_activations = np.zeros_like(heads_per_layer[0][1])
+        for head in heads_of_layer:      # n_tokens × n_tokens
+            activations_per_head = head.copy()
+            # (i,j) = how much (activations coming from) token i influences token j
+            if layer_norm:       # Normalize influence (across all tokens i) on each token j
+                for j in range(0, len(activations_per_head)):
+                    activations_per_head[:,j] = normalize(activations_per_head[:, j])
+            summed_activations += activations_per_head
+
+        mean_activations_per_layer.append(summed_activations/heads_per_layer.shape[1])
+
+    return mean_activations_per_layer
 
 
 if __name__ == "__main__":
