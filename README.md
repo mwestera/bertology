@@ -40,6 +40,8 @@ Groups are separated by `|`, and are optionally numbered. Unnumbered groups will
 
 `|0 The teacher | wants |1 every boy | to like |2 himself.`
 
+This achieves that only the attention weights for the noun phrases will be compared/plotted.
+
 Groups can also be _discontinuous_, e.g., if we want to lump together two coreferring items:
 
 `|0 The teacher | told me that |0 he | wants |1 every boy | to like |2 himself.` <br>
