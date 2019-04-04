@@ -38,6 +38,11 @@ parser.add_argument('--bert', type=str, default='bert-base-cased',
                     help='Which BERT model to use (default bert-base-cased; not sure which are available)')
 parser.add_argument('--factors', type=str, default=None,
                     help='Which factors to plot, comma separated like "--factors reflexivity,gender"; default: first 2 factors in the data')
+parser.add_argument('--colormap', type=str, default="global",
+                    help='Whether to standardize plot coloring across layers ("global") or only within layer ("layer").')
+
+# TODO: perhaps it's useful to allow plotting means over layers
+
 
 def main():
     """
@@ -120,31 +125,46 @@ def main():
     df = pd.concat([items, weights_for_all_items], axis=1)
 
 
-    ## Compute means over attention weights across all conditions
+    ## Compute means over attention weights across all conditions (easy because they're flattened)
     means = df.groupby(items.factors).mean().values
     means = means.reshape(len(items.conditions) * n_layers, -1)
     multi_index = pd.MultiIndex.from_product(
         [items.levels[factor] for factor in items.factors] + [list(range(n_layers))], names=items.factors + ['layer'])
     df_means = pd.DataFrame(means, index=multi_index)
 
-
-    ## Print a quick text summary of main results, significance tests, etc.
-    # TODO implement this :)
+    # TODO Now might be a good time to store intermediate results to disk?
 
 
-    ## Create plots!
-    # Consider only those means needed to plot
+    ## Restrict attention to the factors of interest:
     df_means = df_means.groupby(args.factors + ['layer']).mean()
 
-    # Collect which plots to make (crossing factors + optional difference plot)
-    levels_horiz = items.levels[args.factors[0]]
-    levels_vert = items.levels[args.factors[1]] if len(args.factors) == 2 else [None]
-    if len(levels_horiz) == 2 and not args.no_difs:  # if two levels, also compute difference
-        levels_horiz.append('<DIFF>')
-    if len(levels_vert) == 2 and not args.no_difs:  # if two levels, also compute difference
-        levels_vert.append('<DIFF>')
 
-    plot(df_means, levels_horiz, levels_vert, items.groups, n_layers, args)
+    ## Print a quick text summary of main results, significance tests, etc.
+    # TODO implement this here :)
+
+
+    ## Time to create some plots!
+
+    # Compute a list that contains, for each layer, a list of lists of matrices to be plotted.
+    weights_to_plot_per_layer = create_dataframes_for_plotting(items, df_means, n_layers, args)
+
+    # Compute and set global min/max to have same colormap extremes within or even across layers
+    if args.colormap in ["global", "local"]:
+        calibrate_for_colormap(weights_to_plot_per_layer, args.colormap)
+
+    # Create a plot for each layer (collect file paths)
+    out_filepaths = []
+    for weights_to_plot in weights_to_plot_per_layer:
+        out_filepaths.append(plot(weights_to_plot, args))
+
+    # Optionally, an animated gif :)
+    if args.gif:
+        out_filepath = "{}/{}_{}_animated.gif".format(args.out, args.method, '-x-'.join(args.factors))
+        images = []
+        for filename in out_filepaths:
+            images.append(imageio.imread(filename))
+        imageio.mimsave(out_filepath, images, format='GIF', duration=.5)
+        print("Saving movie:", out_filepath)
 
 
 def parse_data(data_path, tokenizer):
@@ -347,101 +367,162 @@ def compute_CMAT(all_attention_weights, layer_norm=True):
     return cumsum
 
 
-def plot(df_means, levels_horiz, levels_vert, groups, n_layers, args):
-    """
-    Output a series of image files, one for each layer, and optionally an animated gif :).
-    Each image typically contains several plots, depending on which factors to cross.
-    :param df_means: dataframe containing the means per token group for each condition (factor * levels)
-    :param levels: what levels are there per factor
-    :param groups: what are the token groups called?
-    :param n_layers: how many layers are there to plot?
-    :param args: the command line arguments; they contain some further settings.
-    :return:
-    """
-    # TODO: levels and n_layers can be inferred from df_means... Remove as arguments?
-    # TODO: perhaps it's useful to allow plotting means over layers
+def create_dataframes_for_plotting(items, df_means, n_layers, args):
+    ## Prepare for plotting
+    # Determine overall layout of the plots, adding <DIFF> in case difference plot is to be included   # TODO I'm probably mixing up vertical and horizontal here (though plots are labels so interpretation is ok)
+    levels_horiz = items.levels[args.factors[0]]
+    levels_vert = items.levels[args.factors[1]] if len(args.factors) == 2 else [None]
+    if len(levels_horiz) == 2 and not args.no_difs:  # if two levels, also compute difference       # TODO These <DIFF>s are ugly... though at least it works.
+        levels_horiz.append('<DIFF>')
+    if len(levels_vert) == 2 and not args.no_difs:  # if two levels, also compute difference
+        levels_vert.append('<DIFF>')
 
-
-    # Global min/max to have same color map everywhere
-    vmin = df_means.min().min()
-    vmax = df_means.max().max()
-
-    # for keeping track to create gif
-    out_filepaths = []
-
-    # Let's plot!
+    # This list will contain all weights matrices to-be-plotted (computed altogether, prior to plotting, in order to compute global max/min for colormap...)
+    weights_to_plot_per_layer = []
     for l in range(n_layers):
 
-        fig, axs = plt.subplots(ncols=len(levels_horiz), nrows=len(levels_vert),
-                                figsize=(4 * len(levels_horiz), 4 * len(levels_vert)))
-        plt.subplots_adjust(wspace=.6, top=.9)
-        fig.suptitle("{}-scores given {} (layer {})".format(args.method, ' × '.join(args.factors), l))
+        # For each layer, there will be multiple weights matrices due to different levels per factor
+        weights_to_plot = [[[] for _ in levels_vert] for _ in levels_horiz]
 
-        # Keep for computing differences
-        weights_for_diff = [[None, None],
-                            [None, None]]
-
+        # Loop through rows and columns of the multiplot-to-be:
         for h, level_horiz in enumerate(levels_horiz):
-
             for v, level_vert in enumerate(levels_vert):
-
-                index = groups if not args.no_groups else None  # TODO "None" will give error; replace by exemplary tokens of a given type of item?  items.iloc[0].tokenized.split()
-
-                is_difference_plot = True
+                # Things are easy if it's a difference plot of plots we've already computed before:
                 if level_horiz != "<DIFF>" and level_vert == "<DIFF>":
-                    weights = weights_for_diff[h][0] - weights_for_diff[h][1]
+                    weights = weights_to_plot[h][0] - weights_to_plot[h][1]
+                    weights.difference = True
                 elif level_horiz == "<DIFF>" and level_vert != "<DIFF>":
-                    weights = weights_for_diff[0][v] - weights_for_diff[1][v]
+                    weights = weights_to_plot[0][v] - weights_to_plot[1][v]
+                    weights.difference = True
                 elif level_horiz == "<DIFF>" and level_vert == "<DIFF>":
-                    weights = weights_for_diff[0][0] - weights_for_diff[1][1]
+                    weights = weights_to_plot[0][0] - weights_to_plot[1][1]
+                    weights.difference = True
+                # More work if it's an actual weights plot:
                 else:
-                    is_difference_plot = False
-                    weights = df_means.loc[(level_horiz, level_vert, l)] if level_vert is not None else df_means.loc[
-                        (level_horiz, l)]
+                    weights = df_means.loc[(level_horiz, level_vert, l)] if level_vert is not None else df_means.loc[(level_horiz, l)]
                     weights = weights.values
                     dim = int(np.sqrt(weights.shape[-1]))
                     weights = weights.reshape(dim, dim)
                     if not args.no_transpose:
                         weights = weights.transpose()
+                    index = items.groups if not args.no_groups else None  # TODO "None" will give error; replace by exemplary tokens of a given type of item?  items.iloc[0].tokenized.split()
                     weights = pd.DataFrame(weights, index=index, columns=index)
-                    # Keep for difference plot
-                    weights_for_diff[h][v] = weights
+                    weights.difference = False
 
-                # TODO Consider setting global vmin/vmax only in case of MAT; in that case also for is_difference_plot.
-                ax = sns.heatmap(weights,
-                                 xticklabels=True,
-                                 yticklabels=True,
-                                 vmin=vmin if not is_difference_plot else None,
-                                 vmax=vmax if not is_difference_plot else None,
-                                 center=0 if is_difference_plot else None,
-                                 linewidth=0.5,
-                                 ax=axs[h, v] if level_vert is not None else axs[h],
-                                 cbar=True,
-                                 cmap="coolwarm_r" if is_difference_plot else "Blues",
-                                 square=True,
-                                 cbar_kws={'shrink': .5},
-                                 label='small')
-                if is_difference_plot:
-                    ax.set_title('Difference')
+                # Some convenient metadata (used mostly when creating plots)
+                # It's a lot safer that each dataframe carries its own details with it in this way.
+                weights.level_horiz = level_horiz
+                weights.level_vert = level_vert
+                weights.max_for_colormap = weights.max().max()
+                weights.min_for_colormap = weights.min().min()
+                weights.layer = l
+
+                # Add dataframe to designated position
+                weights_to_plot[h][v] = weights
+
+        # Save the weights to plot for this particular layer
+        weights_to_plot_per_layer.append(weights_to_plot)
+
+    # The list weights_to_plot_per_layer now contains, for each layer, a list of lists of weights matrices.
+    return weights_to_plot_per_layer
+
+
+def plot(weights_to_plot, args):
+    """
+    Output a single image file, typically containing several plots, depending on which factors to cross
+    and whether to include a difference plot.
+    :param weights_to_plot: list of lists of weights dataframes; each DF will be plotted as a single heatmap.
+    :param args: the command line arguments; they contain some further settings.
+    :return: output file path
+    """
+
+    # Let's plot!
+    fig, axs = plt.subplots(ncols=len(weights_to_plot), nrows=len(weights_to_plot[0]),
+                            figsize=(4 * len(weights_to_plot), 4 * len(weights_to_plot[0])))
+    plt.subplots_adjust(wspace=.6, top=.9)
+    fig.suptitle("{}-scores given {} (layer {})".format(args.method, ' × '.join(args.factors), weights_to_plot[0][0].layer))
+
+    for c, col in enumerate(weights_to_plot):
+
+        for r, weights in enumerate(col):
+
+            # TODO Consider setting global vmin/vmax only in case of MAT; in that case also for is_difference_plot.
+            ax = sns.heatmap(weights,
+                             xticklabels=True,
+                             yticklabels=True,
+                             vmin=weights.min_for_colormap,
+                             vmax=weights.max_for_colormap,
+                             center=0 if weights.difference else None,
+                             linewidth=0.5,
+                             ax=axs[c, r] if weights.level_vert is not None else axs[c],
+                             cbar=True,
+                             cmap="coolwarm_r" if weights.difference else "Blues",
+                             square=True,
+                             cbar_kws={'shrink': .5},
+                             label='small')
+            if weights.difference:
+                ax.set_title('Difference')
+            else:
+                ax.set_title('{} & {}'.format(weights.level_horiz, weights.level_vert) if weights.level_vert is not None else weights.level_horiz)
+            # ax.xaxis.tick_top()
+            plt.setp(ax.get_yticklabels(), rotation=0)
+
+    out_filepath = "{}/{}_{}_layer{}.png".format(args.out, args.method, '-x-'.join(args.factors), weights_to_plot[0][0].layer)
+    print("Saving figure:", out_filepath)
+    pylab.savefig(out_filepath)
+    # pylab.show()
+
+    return out_filepath
+
+
+def calibrate_for_colormap(weights_to_plot_per_layer, colormap):
+    """
+    Calibrates meta-info of weights dataframes, namely, the max_for_plot and min_for_plot, which will determine the coloration.
+    If colormap == "global", global max and min are computed across all layers; if "layer", max and min are computed within layer.
+    :param weights_to_plot_per_layer: list of (list of lists of dataframes) to be plotted.
+    :param colormap: either "layer" or "global"
+    :return: nothing; two fields of the weights dataframes are modified in-place.
+    """
+    layer_maxes = []
+    layer_mins = []
+    layer_max_diffs = []
+
+    ## First compute and set max and min per layer
+    for l in range(len(weights_to_plot_per_layer)):
+        weights = [w for row in weights_to_plot_per_layer[l] for w in row]
+
+        layer_max = max([w.max_for_colormap for w in weights if not w.difference])
+        layer_min = min([w.min_for_colormap for w in weights if not w.difference])
+        layer_max_diff = max([max(abs(w.max_for_colormap), abs(w.min_for_colormap)) for w in weights if w.difference])
+
+        # If "layer" calibration, set the new max and min values.
+        if colormap == "layer":
+            for w in weights:
+                if w.difference:
+                    w.max_for_colormap = layer_max_diff
+                    w.min_for_colormap = -layer_max_diff
                 else:
-                    ax.set_title('{} & {}'.format(level_horiz, level_vert) if level_vert is not None else level_horiz)
-                # ax.xaxis.tick_top()
-                plt.setp(ax.get_yticklabels(), rotation=0)
+                    w.max_for_colormap = layer_max
+                    w.min_for_colormap = layer_min
 
-        out_filepath = "{}/{}_{}_layer{}.png".format(args.out, args.method, '-x-'.join(args.factors), l)
-        print("Saving figure:", out_filepath)
-        pylab.savefig(out_filepath)
-        # pylab.show()
+        layer_maxes.append(layer_max)
+        layer_mins.append(layer_min)
+        layer_max_diffs.append(layer_max_diff)
 
-        out_filepaths.append(out_filepath)
+    ## If colormap == global, compute overall max and min (across layers) and add these values to dataframes
+    if colormap == "global":
+        overall_max = max(layer_maxes)
+        overall_min = min(layer_mins)
+        overall_max_diff = max(layer_max_diffs)
 
-    if args.gif:  # :)
-        out_filepath = "{}/{}_{}_animated.gif".format(args.out, args.method, '-x-'.join(args.factors))
-        images = []
-        for filename in out_filepaths:
-            images.append(imageio.imread(filename))
-        imageio.mimsave(out_filepath, images, format='GIF', duration=.5)
-        print("Saving movie:", out_filepath)
+        weights = [w for layer in weights_to_plot_per_layer for row in layer for w in row]
+        for w in weights:
+            if w.difference:
+                w.max_for_colormap = overall_max_diff
+                w.min_for_colormap = -overall_max_diff
+            else:
+                w.max_for_colormap = overall_max
+                w.min_for_colormap = overall_min
 
 
 if __name__ == "__main__":
