@@ -23,7 +23,7 @@ parser.add_argument('data', type=str,
 parser.add_argument('--out', type=str, default=None,
                     help='Output directory for plots (default: creates a new /temp## folder)')
 parser.add_argument('--method', type=str, default='MAT',
-                    help='MAT (mean attention per token) or PAT (percolated attention per token); default: MAT')
+                    help='MAT (mean attention per token); PAT (percolated attention per token) or CMAT (Cumulative MAT); default: MAT')
 parser.add_argument('--no_layernorm', action="store_true",
                     help='To prevent applying normalization per attention head.')
 parser.add_argument('--no_groups', action="store_true",
@@ -38,8 +38,6 @@ parser.add_argument('--bert', type=str, default='bert-base-cased',
                     help='Which BERT model to use (default bert-base-cased; not sure which are available)')
 parser.add_argument('--factors', type=str, default=None,
                     help='Which factors to plot, comma separated like "--factors reflexivity,gender"; default: first 2 factors in the data')
-
-# TODO Allow cumulative MAT too... CAT? cMAT?
 
 def main():
     """
@@ -68,7 +66,7 @@ def main():
 
 
     ## Set up tokenizer, data and model
-    tokenizer = BertTokenizer.from_pretrained(args.bert)
+    tokenizer = BertTokenizer.from_pretrained(args.bert, do_lower_case=("uncased" in args.bert))
     items = parse_data(args.data, tokenizer)
     model = BertModel.from_pretrained(args.bert)
 
@@ -85,7 +83,8 @@ def main():
         tokens_a, tokens_b, attention = apply_bert_get_attention(model, tokenizer, each_item['sentence'])
         attention = attention.squeeze()
 
-        weights_per_layer = (compute_PAT if args.method == "PAT" else compute_MAT)(attention, layer_norm=not args.no_layernorm)
+        method = globals()["compute_" + args.method]
+        weights_per_layer = method(attention, layer_norm=not args.no_layernorm)
 
         # TODO Put the following outside the current loop, inside its own (anticipating intermediary writing of results to disk)
         # Take averages over groups of tokens
@@ -323,6 +322,18 @@ def compute_MAT(all_attention_weights, layer_norm=True):
         mean_activations_per_layer.append(summed_activations / all_attention_weights.shape[1])
 
     return mean_activations_per_layer
+
+
+def compute_CMAT(all_attention_weights, layer_norm=True):
+    """
+    Computes Cumulative Mean Attention per Token (MAT), i.e., cumulative sum of MAT over all layers.
+    :param all_attention_weights: as retrieved from attention visualizer
+    :param layer_norm: whether to normalize
+    :return: cumulative sum of mean attention weights (across heads) per layer
+    """
+    mean_activations_per_layer = compute_MAT(all_attention_weights, layer_norm)
+    cumsum = np.cumsum(mean_activations_per_layer, axis=0)
+    return cumsum
 
 
 def plot(df_means, levels, groups, n_layers, args):
