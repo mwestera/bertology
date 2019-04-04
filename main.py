@@ -68,7 +68,7 @@ def main():
 
 
     ## Set up tokenizer, data and model
-    tokenizer = BertTokenizer.from_pretrained(args.bert)  # TODO The tokenizer seems to get rid of casing; why? Is this an older BERT version?
+    tokenizer = BertTokenizer.from_pretrained(args.bert)
     items = parse_data(args.data, tokenizer)
     model = BertModel.from_pretrained(args.bert)
 
@@ -83,8 +83,6 @@ def main():
     for _, each_item in items.iterrows():
 
         tokens_a, tokens_b, attention = apply_bert_get_attention(model, tokenizer, each_item['sentence'])
-        all_tokens = tokens_a + tokens_b
-        print(all_tokens)
         attention = attention.squeeze()
 
         weights_per_layer = (compute_PAT if args.method == "PAT" else compute_MAT)(attention, layer_norm=not args.no_layernorm)
