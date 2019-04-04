@@ -31,10 +31,10 @@ The first factor has levels [reflexive, irreflexive], the second factor has leve
 
 #### Grouping tokens ####
 
-Sentences can be given as such, are with tokens 'grouped' in ways deemed interesting.
+Sentences can be given as such, or with tokens 'grouped' in ways deemed interesting.
 The attention weights for all tokens in a group will be averaged, and the group activations will be plotted.
 
-###### [Note: without groups currently requires sentences to have the same number of words]
+###### [Note: running without groups currently requires sentences to have the same number of words]
 
 Groups are separated by `|`, and are optionally numbered. Unnumbered groups will be ignored.
 
