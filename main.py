@@ -415,7 +415,7 @@ def plot(df_means, levels, groups, n_layers, args):
                                  center=0 if is_difference_plot else None,
                                  linewidth=0.5,
                                  ax=axs[h, v] if level_vert is not None else axs[h],
-                                 cbar=False,
+                                 cbar=True,
                                  cmap="coolwarm_r" if is_difference_plot else "Blues",
                                  square=True,
                                  cbar_kws={'shrink': .5},
