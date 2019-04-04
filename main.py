@@ -67,6 +67,8 @@ def main():
         while os.path.exists(args.out):
             args.out_idx += 1
             args.out = 'output/temp_{}'.format(args.out_idx)
+        if not os.path.exists("output"):
+            os.mkdir('output')
         os.mkdir(args.out)
 
 
