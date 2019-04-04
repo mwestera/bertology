@@ -45,13 +45,6 @@ def main():
     """
     To run this code with default settings and example data, do
        $ python main.py data/example.csv
-
-    For more interpretable plots, look only at factor reflexivity (ignore gender) by doing:
-      $ python main.py data/example.csv --factors reflexivity
-
-    And for a little bonus, add --gif .
-
-    This applies BERT to the data, extracts attention weights, and creates a number of plots.
     """
 
     ## Argument parsing
