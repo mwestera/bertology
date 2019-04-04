@@ -42,7 +42,9 @@ parser.add_argument('--colormap', type=str, default="global",
                     help='Whether to standardize plot coloring across layers ("global") or only within layer ("layer").')
 
 # TODO: perhaps it's useful to allow plotting means over layers
-
+# TODO: Alternative measure 1: gradients of token representation wrt. in put token.
+# TODO: Alternative measure 2: run bert, freeze attention, mask everything except token, run through bert again.
+# TODO: Same heads in each layer? Consider tracking particular heads across layers.
 
 def main():
     """
@@ -128,6 +130,7 @@ def main():
 
 
     ## Compute means over attention weights across all conditions (easy because they're flattened)
+    # TODO Exception "no group keys passed!" when no factors/levels are given; but should be allowed.
     means = df.groupby(items.factors).mean().values
     means = means.reshape(len(items.conditions) * n_layers, -1)
     multi_index = pd.MultiIndex.from_product(
