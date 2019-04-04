@@ -4,7 +4,7 @@ The file main.py does the following:
 
 1. apply BERT to the data (code from pytorch_pretrained_bert with modifications from bertviz),
 2. extract attention weights,
-3. use these to compute a global measure of, let's say, "information flow" between (groups of) tokens
+3. use these to compute a global measure of, let's say, "information flow" between (groups of) tokens (3 possible methods: PAT, MAT and CMAT, see below)
 4. create a number of plots of this global measure across potentially multiple experimental conditions.
 
 To run this code with default settings and example data, do:
@@ -17,11 +17,12 @@ For more interpretable plots, look only at factor *reflexivity* (ignore *gender*
 
 For more info enter `main.py -h`.
 
-## Different possible measures ##
+## Different possible methods ##
 
 Currently supports:
-- PAT: percolated attention per token: start with one-hots for the tokens and percolate these through the attention weights of all layers and heads, essentially 'tracking' the information through the layers.
-- MAT: mean attention per token: for each layer, simply take the average of all attention heads' weights.
+- MAT (default): Mean Attention per Token: for each layer, simply take the average of all attention heads' weights.
+- PAT: Percolated Attention per Token: start with one-hots for the tokens and percolate these through the attention weights of all layers and heads, essentially 'tracking' the information through the layers.
+- CMAT: Cumulative MAT: the cumulative sum of MAT across layers (layer 1, layers 1+2, layers 1+2+3, etc.).
 
 ## Input data format ##
 
