@@ -133,7 +133,18 @@ def main():
 
 
     ## Create plots!
-    plot(df_means, items.levels, items.groups, n_layers, args)
+    # Consider only those means needed to plot
+    df_means = df_means.groupby(args.factors + ['layer']).mean()
+
+    # Collect which plots to make (crossing factors + optional difference plot)
+    levels_horiz = items.levels[args.factors[0]]
+    levels_vert = items.levels[args.factors[1]] if len(args.factors) == 2 else [None]
+    if len(levels_horiz) == 2 and not args.no_difs:  # if two levels, also compute difference
+        levels_horiz.append('<DIFF>')
+    if len(levels_vert) == 2 and not args.no_difs:  # if two levels, also compute difference
+        levels_vert.append('<DIFF>')
+
+    plot(df_means, levels_horiz, levels_vert, items.groups, n_layers, args)
 
 
 def parse_data(data_path, tokenizer):
@@ -336,7 +347,7 @@ def compute_CMAT(all_attention_weights, layer_norm=True):
     return cumsum
 
 
-def plot(df_means, levels, groups, n_layers, args):
+def plot(df_means, levels_horiz, levels_vert, groups, n_layers, args):
     """
     Output a series of image files, one for each layer, and optionally an animated gif :).
     Each image typically contains several plots, depending on which factors to cross.
@@ -350,16 +361,6 @@ def plot(df_means, levels, groups, n_layers, args):
     # TODO: levels and n_layers can be inferred from df_means... Remove as arguments?
     # TODO: perhaps it's useful to allow plotting means over layers
 
-    # Consider only those means needed to plot
-    df_means = df_means.groupby(args.factors + ['layer']).mean()
-
-    # Collect which plots to make (crossing factors + optional difference plot)
-    levels_horiz = levels[args.factors[0]]
-    levels_vert = levels[args.factors[1]] if len(args.factors) == 2 else [None]
-    if len(levels_horiz) == 2 and not args.no_difs:  # if two levels, also compute difference
-        levels_horiz.append('<DIFF>')
-    if len(levels_vert) == 2 and not args.no_difs:  # if two levels, also compute difference
-        levels_vert.append('<DIFF>')
 
     # Global min/max to have same color map everywhere
     vmin = df_means.min().min()
