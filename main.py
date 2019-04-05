@@ -64,16 +64,6 @@ def main():
         if os.path.exists(args.out):
             if input('Output directory {} already exists. Risk overwriting files? N/y'.format(args.out)) != 'y':
                 quit()
-    else:  # else write to /temp folder, though with increasing numeral to avoid overwriting
-        args.out = 'output/temp'
-        args.out_idx = 0
-        while os.path.exists(args.out):
-            args.out_idx += 1
-            args.out = 'output/temp_{}'.format(args.out_idx)
-        if not os.path.exists("output"):
-            os.mkdir('output')
-        os.mkdir(args.out)
-
 
     ## Set up tokenizer, data and model
     tokenizer = BertTokenizer.from_pretrained(args.bert, do_lower_case=("uncased" in args.bert))
@@ -84,6 +74,21 @@ def main():
     ## Store for convenience
     args.factors = args.factors or items.factors[:2]    # by default use the first two factors from the data
     n_layers = len(model.encoder.layer)
+
+
+    ## Now that args.factors is known, finally choose output directory
+    if args.out is None:
+        dirname = 'temp'
+        out_idx = 0
+        if not os.path.exists("output"):
+            os.mkdir('output')
+        while any(x.startswith(dirname) for x in os.listdir('output')):
+            out_idx += 1
+            dirname = 'temp{}'.format(out_idx)
+        dirname += "_{}{}_{}".format(args.method, "-" + args.combine if args.combine != "no" else "",
+                                     '-x-'.join(args.factors))
+        args.out = os.path.join("output", dirname)
+        os.mkdir(args.out)
 
 
     ## Compute attention weights, one item at a time
