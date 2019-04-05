@@ -148,8 +148,10 @@ def main():
 
 
     ## Compute means over attention weights across all conditions (easy because they're flattened)
-    # TODO Exception "no group keys passed!" when no factors/levels are given; but should be allowed.
-    means = df.groupby(items.factors).mean().values
+    if len(items.factors) > 0:
+        means = df.groupby(items.factors).mean().values
+    else:
+        means = df.mean().values
     means = means.reshape(len(items.conditions) * n_layers, -1)
     multi_index = pd.MultiIndex.from_product(
         [items.levels[factor] for factor in items.factors] + [list(range(n_layers))], names=items.factors + ['layer'])
@@ -432,8 +434,8 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
     """
     ## Prepare for plotting
     # Determine overall layout of the plots, adding <DIFF> in case difference plot is to be included   # TODO I'm probably mixing up vertical and horizontal here (though plots are labels so interpretation is ok)
-    levels_horiz = items.levels[args.factors[0]]
-    levels_vert = items.levels[args.factors[1]] if len(args.factors) == 2 else [None]
+    levels_horiz = items.levels[args.factors[0]] if len(args.factors) >= 1 else [None]
+    levels_vert = items.levels[args.factors[1]] if len(args.factors) >= 2 else [None]
     if len(levels_horiz) == 2 and not args.no_diff_plots:  # if two levels, also compute difference       # TODO These <DIFF>s are ugly... though at least it works.
         levels_horiz.append('<DIFF>')
     if len(levels_vert) == 2 and not args.no_diff_plots:  # if two levels, also compute difference
@@ -461,7 +463,7 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
                     weights.difference = True
                 # More work if it's an actual weights plot:
                 else:
-                    weights = df_means.loc[(level_horiz, level_vert, l)] if level_vert is not None else df_means.loc[(level_horiz, l)]
+                    weights = df_means.loc[(level_horiz, level_vert, l)] if level_vert is not None else (df_means.loc[(level_horiz, l)] if level_horiz is not None else df_means.loc[l])
                     weights = weights.values
                     dim = int(np.sqrt(weights.shape[-1]))
                     weights = weights.reshape(dim, dim)
@@ -497,6 +499,8 @@ def plot(weights_to_plot, args):
     :param args: the command line arguments; they contain some further settings.
     :return: output file path
     """
+    # TODO Tweak side-title and main title font size, padding, which is ugly especially if there's only a single plot (i.e., if there are no factors).
+    # TODO Tweak filename and title if there are no factors being crossed.
 
     # Let's plot!
     fig, axs = plt.subplots(ncols=len(weights_to_plot), nrows=len(weights_to_plot[0]),
@@ -522,7 +526,7 @@ def plot(weights_to_plot, args):
                              vmax=weights.max_for_colormap,
                              center=0 if weights.difference else None,
                              linewidth=0.5,
-                             ax=axs[c, r] if weights.level_vert is not None else axs[c],
+                             ax=axs[c, r] if weights.level_vert is not None else axs[c] if weights.level_horiz is not None else axs,
                              cbar=True,
                              cmap="coolwarm_r" if weights.difference else "Blues",
                              square=True,
@@ -564,7 +568,7 @@ def calibrate_for_colormap(weights_to_plot_per_layer, global_colormap):
 
         layer_max = max([w.max_for_colormap for w in weights if not w.difference])
         layer_min = min([w.min_for_colormap for w in weights if not w.difference])
-        layer_max_diff = max([max(abs(w.max_for_colormap), abs(w.min_for_colormap)) for w in weights if w.difference])
+        layer_max_diff = max([max(abs(w.max_for_colormap), abs(w.min_for_colormap)) for w in weights if w.difference] + [0])
 
         # Default: "layer" calibration, set the new max and min values.
         for w in weights:
