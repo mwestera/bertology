@@ -1,5 +1,7 @@
 # Bert Attention Maps #
 
+![](output/example.gif)
+
 Motivation: visualizing BERT's attention per head (as in https://github.com/jessevig/bertviz) is too much data for a human mind to comprehend. 
 This is an attempt at distilling more global but still interpretable patterns from BERT. 
 It does so primarily by averaging over attention heads, and by lumping certain tokens together into interesting groups (e.g., subject vs. object). 
