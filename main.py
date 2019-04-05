@@ -40,7 +40,7 @@ parser.add_argument('--bert', type=str, default='bert-base-cased',
                     help='Which BERT model to use (default bert-base-cased; not sure which are available)')
 parser.add_argument('--factors', type=str, default=None,
                     help='Which factors to plot, comma separated like "--factors reflexivity,gender"; default: first 2 factors in the data')
-parser.add_argument('--global_colormap', action="store_true",
+parser.add_argument('--no_global_colormap', action="store_true",
                     help='Whether to standardize plot coloring across plots ("global"); otherwise only per plot (i.e., per layer)')
 
 # TODO: perhaps it's useful to allow plotting means over layers; sliding window-style? or chaining but with different starting points?
@@ -165,7 +165,7 @@ def main():
     weights_to_plot_per_layer = create_dataframes_for_plotting(items, df_means, n_layers, args)
 
     # Compute and set global min/max to have same colormap extremes within or even across layers
-    calibrate_for_colormap(weights_to_plot_per_layer, args.global_colormap)
+    calibrate_for_colormap(weights_to_plot_per_layer, not args.no_global_colormap)
 
     # Create a plot for each layer (collect file paths)
     out_filepaths = []
@@ -420,9 +420,9 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
     # Determine overall layout of the plots, adding <DIFF> in case difference plot is to be included   # TODO I'm probably mixing up vertical and horizontal here (though plots are labels so interpretation is ok)
     levels_horiz = items.levels[args.factors[0]]
     levels_vert = items.levels[args.factors[1]] if len(args.factors) == 2 else [None]
-    if len(levels_horiz) == 2 and not args.no_difs:  # if two levels, also compute difference       # TODO These <DIFF>s are ugly... though at least it works.
+    if len(levels_horiz) == 2 and not args.no_diff_plots:  # if two levels, also compute difference       # TODO These <DIFF>s are ugly... though at least it works.
         levels_horiz.append('<DIFF>')
-    if len(levels_vert) == 2 and not args.no_difs:  # if two levels, also compute difference
+    if len(levels_vert) == 2 and not args.no_diff_plots:  # if two levels, also compute difference
         levels_vert.append('<DIFF>')
 
     # This list will contain all weights matrices to-be-plotted (computed altogether, prior to plotting, in order to compute global max/min for colormap...)
@@ -488,7 +488,10 @@ def plot(weights_to_plot, args):
     fig, axs = plt.subplots(ncols=len(weights_to_plot), nrows=len(weights_to_plot[0]),
                             figsize=(4 * len(weights_to_plot), 4 * len(weights_to_plot[0])))
     plt.subplots_adjust(wspace=.6, top=.9)
-    fig.suptitle("{}{} given {} (layer {})".format(args.method, "-"+args.combine if args.combine != "no" else "", ' × '.join(args.factors), weights_to_plot[0][0].layer))
+    fig.suptitle("{}{} given {} (layer {})".format(args.method, "-"+args.combine if args.combine != "no" else "", ' × '.join(args.factors), weights_to_plot[0][0].layer), size=20)
+
+    suplabel("x", "Tokens at {}".format("embedding layer" if (args.combine != "no" or weights_to_plot[0][0].layer == 0) else "layer {}".format(weights_to_plot[0][0].layer - 1)), labelpad=3)
+    suplabel("y", "Tokens at layer {}".format(weights_to_plot[0][0].layer), labelpad=8)
 
     for c, col in enumerate(weights_to_plot):
 
@@ -572,5 +575,45 @@ def calibrate_for_colormap(weights_to_plot_per_layer, global_colormap):
                 w.min_for_colormap = overall_min
 
 
+def suplabel(axis, label,label_prop={"size": 16},
+             labelpad=5,
+             ha='center',va='center'):
+    ''' Add super ylabel or xlabel to the figure
+    Similar to matplotlib.suptitle
+    Thanks to user KYC on StackOverflow.com. https://stackoverflow.com/questions/6963035/pyplot-axes-labels-for-subplots
+    axis       - string: "x" or "y"
+    label      - string
+    label_prop - keyword dictionary for Text
+    labelpad   - padding from the axis (default: 5)
+    ha         - horizontal alignment (default: "center")
+    va         - vertical alignment (default: "center")
+    '''
+    fig = pylab.gcf()
+    xmin = []
+    ymin = []
+    for ax in fig.axes:
+        xmin.append(ax.get_position().xmin)
+        ymin.append(ax.get_position().ymin)
+    xmin,ymin = min(xmin),min(ymin)
+    dpi = fig.dpi
+    if axis.lower() == "y":
+        rotation=90.
+        x = xmin-float(labelpad)/dpi
+        y = 0.5
+    elif axis.lower() == 'x':
+        rotation = 0.
+        x = 0.5
+        y = ymin - float(labelpad)/dpi
+    else:
+        raise Exception("Unexpected axis: x or y")
+    if label_prop is None:
+        label_prop = dict()
+    pylab.text(x,y,label,rotation=rotation,
+               transform=fig.transFigure,
+               ha=ha,va=va,
+               **label_prop)
+
+
 if __name__ == "__main__":
     main()
+
