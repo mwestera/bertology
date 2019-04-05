@@ -1,8 +1,8 @@
 # reflexivity, gender, |0 np1, |1 np2, |2 pronoun
 reflexive, masculine, |0 The teacher | wants |1 every boy | to like |2 himself.
 irreflexive, masculine, |0 The teacher | wants |1 every boy | to like |2 him.
-reflexive, masculine, |0 Everybody | loves |1 a dog | who walks |2 himself | in the morning.
-irreflexive, masculine, |0 Everybody | loves |1 a dog | who walks |2 him | in the morning.
+reflexive, masculine, |0 Every child | loves |1 a father | who wakes |2 himself | gently in the morning.
+irreflexive, masculine, |0 Every child | loves |1 a father | who wakes |2 him | gently in the morning.
 reflexive, feminine, |0 My mother | thinks |1 the girl next door | really hates |2 herself.
 irreflexive, feminine, |0 My mother | thinks |1 the girl next door | really hates |2 her.
 reflexive, feminine, |0 The officer | told |1 her trainee | not to shoot |2 herself | in the leg.
