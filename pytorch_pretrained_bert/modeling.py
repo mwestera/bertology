@@ -17,6 +17,8 @@
 # Changes made by Jesse Vig on 2/23/19:
 # - Return attention weights
 #
+# Changes made by M Westera on 5/4/19:
+# - make BertModel.forward() optionally return embedded tokens
 
 """PyTorch BERT model."""
 
@@ -706,7 +708,8 @@ class BertModel(BertPreTrainedModel):
         self.pooler = BertPooler(config)
         self.apply(self.init_bert_weights)
 
-    def forward(self, input_ids, token_type_ids=None, attention_mask=None, output_all_encoded_layers=True):
+    def forward(self, input_ids, token_type_ids=None, attention_mask=None, output_all_encoded_layers=True, output_embedding=False):
+        # argument output_embedding=False added by mwestera
         if attention_mask is None:
             attention_mask = torch.ones_like(input_ids)
         if token_type_ids is None:
@@ -735,6 +738,8 @@ class BertModel(BertPreTrainedModel):
         pooled_output = self.pooler(sequence_output)
         if not output_all_encoded_layers:
             encoded_layers = encoded_layers[-1]
+        if output_embedding:
+            return encoded_layers, pooled_output, attn_data_list, embedding_output  # Added by mwestera
         return encoded_layers, pooled_output, attn_data_list
 
 
