@@ -22,15 +22,17 @@ parser.add_argument('data', type=str,
                     help='Path to data file (typically .csv).')
 parser.add_argument('--out', type=str, default=None,
                     help='Output directory for plots (default: creates a new /temp## folder)')
-parser.add_argument('--method', type=str, default='MAT',
-                    help='MAT (mean attention per token); PAT (percolated attention per token) or CMAT (Cumulative MAT); default: MAT')
-parser.add_argument('--no_layernorm', action="store_true",
-                    help='To prevent applying normalization per attention head.')
-parser.add_argument('--no_groups', action="store_true",
-                    help='To ignore groupings of tokens in the input data, and compute/plot per token.')
-parser.add_argument('--no_transpose', action="store_true",
-                    help='To NOT transpose the weights matrix for plotting; by default it is transposed, plotting as "rows influenced by cols" (otherwise: rows influencing cols).')
-parser.add_argument('--no_difs', action="store_true",
+parser.add_argument('--method', type=str, default='gradient', choices=["gradient", "attention"],
+                    help='attention or gradient (default)')
+parser.add_argument('--combine', type=str, default='no', choices=["chain", "cumsum", "no"],
+                    help='how to combine layers: chain, cumsum, or no (default)')
+parser.add_argument('--normalize_heads', action="store_true",
+                    help='To apply normalization per attention head (only used for "attention" method).')
+parser.add_argument('--ignore_groups', action="store_true",
+                    help='To ignore groupings of tokens in the input data, and compute/plot per token. NOTE: POTENTIALLY BUGGY.')
+parser.add_argument('--transpose', action="store_true",
+                    help='To transpose the plots; by default they read like "rows influenced by cols" (otherwise: rows influencing cols).')
+parser.add_argument('--no_diff_plots', action="store_true",
                     help='To NOT plot the differences between levels of a given factor.')
 parser.add_argument('--gif', action="store_true",
                     help='To create animated gif of plots across layers.')
@@ -38,11 +40,10 @@ parser.add_argument('--bert', type=str, default='bert-base-cased',
                     help='Which BERT model to use (default bert-base-cased; not sure which are available)')
 parser.add_argument('--factors', type=str, default=None,
                     help='Which factors to plot, comma separated like "--factors reflexivity,gender"; default: first 2 factors in the data')
-parser.add_argument('--colormap', type=str, default="global",
-                    help='Whether to standardize plot coloring across layers ("global") or only within layer ("layer").')
+parser.add_argument('--global_colormap', action="store_true",
+                    help='Whether to standardize plot coloring across plots ("global"); otherwise only per plot (i.e., per layer)')
 
-# TODO: perhaps it's useful to allow plotting means over layers
-# TODO: Alternative measure 1: gradients of token representation wrt. in put token.
+# TODO: perhaps it's useful to allow plotting means over layers; sliding window-style? or chaining but with different starting points?
 # TODO: Alternative measure 2: run bert, freeze attention, mask everything except token, run through bert again.
 # TODO: Same heads in each layer? Consider tracking particular heads across layers.
 
@@ -89,15 +90,25 @@ def main():
     weights_for_all_items = []
     for _, each_item in items.iterrows():
 
-        tokens_a, tokens_b, attention = apply_bert_get_attention(model, tokenizer, each_item['sentence'])
-        attention = attention.squeeze()
+        if args.method == "attention":
+            tokens_a, tokens_b, attention = apply_bert_get_attention(model, tokenizer, each_item['sentence'])
+            attention = attention.squeeze()
+            if args.combine == "chain":
+                weights_per_layer = compute_pMAT(attention, layer_norm=args.normalize_heads)
+            else:
+                weights_per_layer = compute_MAT(attention, layer_norm=args.normalize_heads)
+            weights_per_layer.transpose(0,2,1)  # for uniformity with gradients: (layer, output_token, input_token)
+        elif args.method == "gradient":
+            tokens_a, tokens_b, weights_per_layer = apply_bert_get_gradients(model, tokenizer, each_item['sentence'], chain=args.combine=="chain")
 
-        method = globals()["compute_" + args.method]
-        weights_per_layer = method(attention, layer_norm=not args.no_layernorm)
+        if args.combine == "cumsum":
+            weights_per_layer = np.cumsum(weights_per_layer, axis=0)
+
+        # weights_per_layer now contains: (n_layers, n_tokens, n_tokens)
 
         # TODO Put the following outside the current loop, inside its own (anticipating intermediary writing of results to disk)
         # Take averages over groups of tokens
-        if not args.no_groups:
+        if not args.ignore_groups:
             grouped_weights_per_layer = []
             for m in weights_per_layer:
                 # Group horizontally
@@ -154,8 +165,7 @@ def main():
     weights_to_plot_per_layer = create_dataframes_for_plotting(items, df_means, n_layers, args)
 
     # Compute and set global min/max to have same colormap extremes within or even across layers
-    if args.colormap in ["global", "local"]:
-        calibrate_for_colormap(weights_to_plot_per_layer, args.colormap)
+    calibrate_for_colormap(weights_to_plot_per_layer, args.global_colormap)
 
     # Create a plot for each layer (collect file paths)
     out_filepaths = []
@@ -262,17 +272,7 @@ def parse_data(data_path, tokenizer):
     return items
 
 
-def apply_bert_get_attention(model, tokenizer, sequence):
-    """
-    Essentially isolated from jessevig/bertviz
-    :param model:
-    :param tokenizer:
-    :param sequence:
-    :return:
-    """
-
-    model.eval()
-
+def tokenize_sequence(tokenizer, sequence):
     sequence = sequence.split(" \|\|\| ")
     if len(sequence) == 1:
         sentence_a = sequence[0]
@@ -289,12 +289,67 @@ def apply_bert_get_attention(model, tokenizer, sequence):
     tokens_tensor = torch.tensor([token_ids])
     token_type_tensor = torch.LongTensor([[0] * len(tokens_a_delim) + [1] * len(tokens_b_delim)])
 
+    return tokens_a_delim, tokens_b_delim, tokens_tensor, token_type_tensor
+
+
+def apply_bert_get_attention(model, tokenizer, sequence):
+    """
+    Essentially isolated from jessevig/bertviz
+    :param model:
+    :param tokenizer:
+    :param sequence:
+    :return:
+    """
+
+    model.eval()
+    tokens_a, tokens_b, tokens_tensor, token_type_tensor = tokenize_sequence(tokenizer, sequence)
     _, _, attn_data_list = model(tokens_tensor, token_type_ids=token_type_tensor)
     attn_tensor = torch.stack([attn_data['attn_probs'] for attn_data in attn_data_list])
     attn = attn_tensor.data.numpy()
 
-    return tokens_a_delim, tokens_b_delim, attn
+    return tokens_a, tokens_b, attn
 
+
+def apply_bert_get_gradients(model, tokenizer, sequence, chain):
+    """
+    :param model:
+    :param tokenizer:
+    :param sequence:
+    :param method: in ["Grad", "cGrad", "pGrad"]
+    :return:
+    """
+    model.train()   # Because I need the gradients
+    model.zero_grad()
+
+    tokens_a, tokens_b, tokens_tensor, token_type_tensor = tokenize_sequence(tokenizer, sequence)
+
+    encoded_layers, _, _, embedding_output = model(tokens_tensor, token_type_ids=token_type_tensor, output_embedding=True)
+#   [n_layers x [batch_size, seq_len, hidden]]      [seq_len x hidden]
+
+    previous_activations = embedding_output
+    gradients = []
+    for layer in encoded_layers:        # layer: [batch_size, seq_len, hidden]
+        target = embedding_output if chain else previous_activations
+        gradients_for_layer = []
+
+        for token_idx in range(layer.shape[1]):
+            target.retain_grad()    # not sure if needed every iteration
+            mask = torch.zeros_like(layer)
+            mask[:,token_idx,:] = 1
+            layer.backward(mask, retain_graph=True)
+            gradient = target.grad.data    # [batch_size, seq_len, hidden]
+            gradient = gradient.squeeze().clone().numpy()
+            gradient_norm = np.linalg.norm(gradient, axis=-1)
+            gradients_for_layer.append(gradient_norm)
+            target.grad.data.zero_()
+            previous_activations = layer
+
+        gradients_for_layer = np.stack(gradients_for_layer)
+        gradients.append(gradients_for_layer)
+
+    gradients = np.stack(gradients)
+
+    return tokens_a, tokens_b, gradients
 
 
 def normalize(v):
@@ -307,34 +362,6 @@ def normalize(v):
     if norm == 0:
        return v
     return v / norm
-
-
-def compute_PAT(all_attention_weights, layer_norm=True):
-    """
-    Computes Percolated Attention per Token (PAT), through all layers.
-    :param all_attention_weights: as retrieved from the attention visualizer
-    :param layer_norm: whether to normalize the weights of each attention head
-    :return: percolated activations up to every layer
-    """
-    # TODO: Think about this. What about normalizing per layer, instead of per head? Does that make any sense? Yes, a bit. However, since BERT has LAYER NORM in each attention head, outputs of all heads will have same mean/variance. Does this mean that all heads will contribute same amount of information? Yes, roughly.
-    percolated_activations_per_layer = []
-    percolated_activations = np.diag(np.ones(all_attention_weights.shape[-1]))      # n_tokens × n_tokens
-    for layer in all_attention_weights:
-        summed_activations = np.zeros_like(percolated_activations)
-        for head in layer:      # n_tokens × n_tokens
-            activations_per_head = np.matmul(head, percolated_activations)
-            # (i,j) = how much (activations coming ultimately from) token i influences token j
-            if layer_norm:       # Normalize influence (across all tokens i) on each token j
-                for j in range(0, len(activations_per_head)):
-                    activations_per_head[:,j] = normalize(activations_per_head[:, j])
-            summed_activations += activations_per_head
-        # for the next layer, use summed_activations as the next input activations
-        percolated_activations = summed_activations
-        # I believe normalizing the activations (as a whole or per col) makes no difference.
-
-        percolated_activations_per_layer.append(percolated_activations)
-
-    return percolated_activations_per_layer
 
 
 def compute_MAT(all_attention_weights, layer_norm=True):
@@ -357,19 +384,35 @@ def compute_MAT(all_attention_weights, layer_norm=True):
 
         mean_activations_per_layer.append(summed_activations / all_attention_weights.shape[1])
 
-    return mean_activations_per_layer
+    return np.stack(mean_activations_per_layer)
 
 
-def compute_CMAT(all_attention_weights, layer_norm=True):
+def compute_pMAT(all_attention_weights, layer_norm=True):
     """
-    Computes Cumulative Mean Attention per Token (MAT), i.e., cumulative sum of MAT over all layers.
-    :param all_attention_weights: as retrieved from attention visualizer
-    :param layer_norm: whether to normalize
-    :return: cumulative sum of mean attention weights (across heads) per layer
+    Computes Percolated Mean Attention per Token (pMAT), through all layers.
+    :param all_attention_weights: as retrieved from the attention visualizer
+    :param layer_norm: whether to normalize the weights of each attention head
+    :return: percolated activations up to every layer
     """
-    mean_activations_per_layer = compute_MAT(all_attention_weights, layer_norm)
-    cumsum = np.cumsum(mean_activations_per_layer, axis=0)
-    return cumsum
+    # TODO: Think about this. What about normalizing per layer, instead of per head? Does that make any sense? Yes, a bit. However, since BERT has LAYER NORM in each attention head, outputs of all heads will have same mean/variance. Does this mean that all heads will contribute same amount of information? Yes, roughly.
+    percolated_activations_per_layer = []
+    percolated_activations = np.diag(np.ones(all_attention_weights.shape[-1]))      # n_tokens × n_tokens
+    for layer in all_attention_weights:
+        summed_activations = np.zeros_like(percolated_activations)
+        for head in layer:      # n_tokens × n_tokens
+            activations_per_head = np.matmul(head, percolated_activations)
+            # (i,j) = how much (activations coming ultimately from) token i influences token j
+            if layer_norm:       # Normalize influence (across all tokens i) on each token j
+                for j in range(0, len(activations_per_head)):
+                    activations_per_head[:,j] = normalize(activations_per_head[:, j])
+            summed_activations += activations_per_head
+        # for the next layer, use summed_activations as the next input activations
+        percolated_activations = summed_activations
+        # I believe normalizing the activations (as a whole or per col) makes no difference.
+
+        percolated_activations_per_layer.append(percolated_activations)
+
+    return np.stack(percolated_activations_per_layer)
 
 
 def create_dataframes_for_plotting(items, df_means, n_layers, args):
@@ -408,9 +451,9 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
                     weights = weights.values
                     dim = int(np.sqrt(weights.shape[-1]))
                     weights = weights.reshape(dim, dim)
-                    if not args.no_transpose:
+                    if args.transpose:
                         weights = weights.transpose()
-                    index = items.groups if not args.no_groups else None  # TODO "None" will give error; replace by exemplary tokens of a given type of item?  items.iloc[0].tokenized.split()
+                    index = items.groups if not args.ignore_groups else None  # TODO "None" will give error; replace by exemplary tokens of a given type of item?  items.iloc[0].tokenized.split()
                     weights = pd.DataFrame(weights, index=index, columns=index)
                     weights.difference = False
 
@@ -445,7 +488,7 @@ def plot(weights_to_plot, args):
     fig, axs = plt.subplots(ncols=len(weights_to_plot), nrows=len(weights_to_plot[0]),
                             figsize=(4 * len(weights_to_plot), 4 * len(weights_to_plot[0])))
     plt.subplots_adjust(wspace=.6, top=.9)
-    fig.suptitle("{}-scores given {} (layer {})".format(args.method, ' × '.join(args.factors), weights_to_plot[0][0].layer))
+    fig.suptitle("{}{} given {} (layer {})".format(args.method, "-"+args.combine if args.combine != "no" else "", ' × '.join(args.factors), weights_to_plot[0][0].layer))
 
     for c, col in enumerate(weights_to_plot):
 
@@ -472,7 +515,7 @@ def plot(weights_to_plot, args):
             # ax.xaxis.tick_top()
             plt.setp(ax.get_yticklabels(), rotation=0)
 
-    out_filepath = "{}/{}_{}_layer{}.png".format(args.out, args.method, '-x-'.join(args.factors), weights_to_plot[0][0].layer)
+    out_filepath = "{}/{}{}_{}_layer{}.png".format(args.out, args.method,  "-"+args.combine if args.combine != "no" else "", '-x-'.join(args.factors), weights_to_plot[0][0].layer)
     print("Saving figure:", out_filepath)
     pylab.savefig(out_filepath)
     # pylab.show()
@@ -480,7 +523,7 @@ def plot(weights_to_plot, args):
     return out_filepath
 
 
-def calibrate_for_colormap(weights_to_plot_per_layer, colormap):
+def calibrate_for_colormap(weights_to_plot_per_layer, global_colormap):
     """
     Calibrates meta-info of weights dataframes, namely, the max_for_plot and min_for_plot, which will determine the coloration.
     If colormap == "global", global max and min are computed across all layers; if "layer", max and min are computed within layer.
@@ -500,22 +543,21 @@ def calibrate_for_colormap(weights_to_plot_per_layer, colormap):
         layer_min = min([w.min_for_colormap for w in weights if not w.difference])
         layer_max_diff = max([max(abs(w.max_for_colormap), abs(w.min_for_colormap)) for w in weights if w.difference])
 
-        # If "layer" calibration, set the new max and min values.
-        if colormap == "layer":
-            for w in weights:
-                if w.difference:
-                    w.max_for_colormap = layer_max_diff
-                    w.min_for_colormap = -layer_max_diff
-                else:
-                    w.max_for_colormap = layer_max
-                    w.min_for_colormap = layer_min
+        # Default: "layer" calibration, set the new max and min values.
+        for w in weights:
+            if w.difference:
+                w.max_for_colormap = layer_max_diff
+                w.min_for_colormap = -layer_max_diff
+            else:
+                w.max_for_colormap = layer_max
+                w.min_for_colormap = layer_min
 
         layer_maxes.append(layer_max)
         layer_mins.append(layer_min)
         layer_max_diffs.append(layer_max_diff)
 
-    ## If colormap == global, compute overall max and min (across layers) and add these values to dataframes
-    if colormap == "global":
+    ## If global_colormap requested, compute overall max and min (across layers) and add these values to dataframes
+    if global_colormap:
         overall_max = max(layer_maxes)
         overall_min = min(layer_mins)
         overall_max_diff = max(layer_max_diffs)
