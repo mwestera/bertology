@@ -45,7 +45,6 @@ parser.add_argument('--no_global_colormap', action="store_true",
 
 # TODO: perhaps it's useful to allow plotting means over layers; sliding window-style? or chaining but with different starting points?
 # TODO: Alternative measure 2: run bert, freeze attention, mask everything except token, run through bert again.
-# TODO: Same heads in each layer? Consider tracking particular heads across layers.
 
 def main():
     """
