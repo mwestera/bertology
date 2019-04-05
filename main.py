@@ -45,6 +45,7 @@ parser.add_argument('--no_global_colormap', action="store_true",
 
 # TODO: perhaps it's useful to allow plotting means over layers; sliding window-style? or chaining but with different starting points?
 # TODO: Alternative measure 2: run bert, freeze attention, mask everything except token, run through bert again.
+# TODO: Is attention-chain bugged? Plots are uninterpretable; without normalization super high values only at layer 10-11... with normalization... big gray mess.
 
 def main():
     """
@@ -338,14 +339,14 @@ def apply_bert_get_gradients(model, tokenizer, sequence, chain):
         target = embedding_output if chain else previous_activations
         gradients_for_layer = []
 
-        for token_idx in range(layer.shape[1]):
+        for token_idx in range(layer.shape[1]): # loop over output tokens
             target.retain_grad()    # not sure if needed every iteration
             mask = torch.zeros_like(layer)
             mask[:,token_idx,:] = 1
             layer.backward(mask, retain_graph=True)
             gradient = target.grad.data    # [batch_size, seq_len, hidden]
             gradient = gradient.squeeze().clone().numpy()
-            gradient_norm = np.linalg.norm(gradient, axis=-1)
+            gradient_norm = np.linalg.norm(gradient, axis=-1)   # take norm per input token
             gradients_for_layer.append(gradient_norm)
             target.grad.data.zero_()
             previous_activations = layer
