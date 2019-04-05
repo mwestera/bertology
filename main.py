@@ -84,8 +84,10 @@ def main():
         while any(x.startswith(dirname) for x in os.listdir('output')):
             out_idx += 1
             dirname = 'temp{}'.format(out_idx)
-        dirname += "_{}{}_{}".format(args.method, "-" + args.combine if args.combine != "no" else "",
-                                     '-x-'.join(args.factors))
+        dirname += "_{}{}{}_{}".format(args.method,
+                                       "-" + args.combine if args.combine != "no" else "",
+                                       "_normalized" if (args.method == "attention" and args.normalize_heads) else "",
+                                       '-x-'.join(args.factors))
         args.out = os.path.join("output", dirname)
         os.mkdir(args.out)
 
@@ -299,9 +301,9 @@ def tokenize_sequence(tokenizer, sequence):
 def apply_bert_get_attention(model, tokenizer, sequence):
     """
     Essentially isolated from jessevig/bertviz
-    :param model:
-    :param tokenizer:
-    :param sequence:
+    :param model: bert
+    :param tokenizer: bert tokenizer
+    :param sequence: single sentence
     :return:
     """
 
@@ -316,10 +318,10 @@ def apply_bert_get_attention(model, tokenizer, sequence):
 
 def apply_bert_get_gradients(model, tokenizer, sequence, chain):
     """
-    :param model:
-    :param tokenizer:
-    :param sequence:
-    :param method: in ["Grad", "cGrad", "pGrad"]
+    :param model: bert
+    :param tokenizer: bert tokenizer
+    :param sequence: single sentence
+    :param chain: whether to compute the gradients all the way back, i.e., wrt the input embeddings
     :return:
     """
     model.train()   # Because I need the gradients
@@ -367,7 +369,7 @@ def normalize(v):
        return v
     return v / norm
 
-
+# TODO Merge the following two functions and change names
 def compute_MAT(all_attention_weights, layer_norm=True):
     """
     Computes Mean Attention per Token (MAT), i.e,, mean across all attention heads, per layer.
@@ -420,6 +422,13 @@ def compute_pMAT(all_attention_weights, layer_norm=True):
 
 
 def create_dataframes_for_plotting(items, df_means, n_layers, args):
+    """
+    :param items: as read from data/example.csv
+    :param df_means: means as resulting from .groupby() the relevant factors.
+    :param n_layers: TODO can be inferred from df_means... omit here?
+    :param args: command line arguments; contain some useful things
+    :return:
+    """
     ## Prepare for plotting
     # Determine overall layout of the plots, adding <DIFF> in case difference plot is to be included   # TODO I'm probably mixing up vertical and horizontal here (though plots are labels so interpretation is ok)
     levels_horiz = items.levels[args.factors[0]]
@@ -494,9 +503,12 @@ def plot(weights_to_plot, args):
     plt.subplots_adjust(wspace=.6, top=.9)
     fig.suptitle("{}{} given {} (layer {})".format(args.method, "-"+args.combine if args.combine != "no" else "", ' × '.join(args.factors), weights_to_plot[0][0].layer), size=20)
 
-    suplabel("x", "Tokens at {}".format("embedding layer" if (args.combine != "no" or weights_to_plot[0][0].layer == 0) else "layer {}".format(weights_to_plot[0][0].layer - 1)), labelpad=3)
-    suplabel("y", "Tokens at layer {}".format(weights_to_plot[0][0].layer), labelpad=8)
-
+    if args.combine != "cumsum":
+        suplabel("x", "...influenced by tokens at {}".format("embedding layer" if (args.combine != "no" or weights_to_plot[0][0].layer == 0) else "layer {}".format(weights_to_plot[0][0].layer - 1)), labelpad=3)
+        suplabel("y", "Tokens at layer {}...".format(weights_to_plot[0][0].layer), labelpad=8)
+    else:
+        suplabel("x", "...influenced by tokens at previous layer", labelpad=3)
+        suplabel("y", "Tokens up to layer {}...".format(weights_to_plot[0][0].layer), labelpad=8)
     for c, col in enumerate(weights_to_plot):
 
         for r, weights in enumerate(col):
@@ -522,7 +534,10 @@ def plot(weights_to_plot, args):
             # ax.xaxis.tick_top()
             plt.setp(ax.get_yticklabels(), rotation=0)
 
-    out_filepath = "{}/{}{}_{}_layer{}.png".format(args.out, args.method,  "-"+args.combine if args.combine != "no" else "", '-x-'.join(args.factors), weights_to_plot[0][0].layer)
+    out_filepath = "{}/{}{}{}_{}_layer{}.png".format(args.out, args.method,
+                                                     "-"+args.combine if args.combine != "no" else "",
+                                                     "_normalized" if (args.method == "attention" and args.normalize_heads) else "",
+                                                     '-x-'.join(args.factors), weights_to_plot[0][0].layer)
     print("Saving figure:", out_filepath)
     pylab.savefig(out_filepath)
     # pylab.show()
