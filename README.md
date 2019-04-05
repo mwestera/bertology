@@ -1,11 +1,15 @@
 # Bert Attention Maps #
 
+Motivation: visualizing BERT's attention per head (as in https://github.com/jessevig/bertviz) is too much data for a human mind to comprehend. 
+This is an attempt at distilling more global but still interpretable patterns from BERT. 
+It does so primarily by averaging over attention heads, and by lumping certain tokens together into interesting groups (e.g., subject vs. object). 
+
 The file main.py does the following:
 
 1. apply BERT to the data (code from pytorch_pretrained_bert with modifications from bertviz),
-2. extract attention weights,
-3. use these to compute a global measure of, let's say, "information flow" between (groups of) tokens (3 possible methods: PAT, MAT and CMAT, see below)
-4. create a number of plots of this global measure across potentially multiple experimental conditions.
+2. extract either gradients or attention weights,
+3. process these in a certain way, e.g., averaging across attention heads, layers and/or token groups,
+4. plot the result, potentially comparing multiple experimental conditions defined in the input data file.
 
 To run this code with default settings and example data, do:
 
@@ -19,10 +23,17 @@ For more info enter `main.py -h`.
 
 ## Different possible methods ##
 
-Currently supports:
-- MAT (default): Mean Attention per Token: for each layer, simply take the average of all attention heads' weights.
-- PAT: Percolated Attention per Token: start with one-hots for the tokens and percolate these through the attention weights of all layers and heads, essentially 'tracking' the information through the layers.
-- CMAT: Cumulative MAT: the cumulative sum of MAT across layers (layer 1, layers 1+2, layers 1+2+3, etc.).
+Methods are defined by the command line arguments `--method` and `--combine`.
+
+Argument `--method` specifies how to compute how much token _i_ depends on token _j_. It can be:
+- `gradient`: gradient of token _i_ wrt. token _j_.
+- `attention`: attention weight of token _i_ wrt. token _j_. 
+
+Argument `--combine` specifies how gradients/attention weights across different layers _n_ are to be combined. It can be:
+- `no`: treat each layer separately, i.e., how much token _i_ in layer _n_ depends on token _j_'s representation in layer _n-1_.
+- `cumsum`: cumulative sum, across layers, of the foregoing.
+- `chain`: influence through the entire network, i.e.: how much token _i_ in layer _n_ depends on token _j_'s representation _prior to layer 0_.
+
 
 ## Input data format ##
 
