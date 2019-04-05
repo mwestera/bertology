@@ -46,6 +46,7 @@ parser.add_argument('--no_global_colormap', action="store_true",
 # TODO: perhaps it's useful to allow plotting means over layers; sliding window-style? or chaining but with different starting points?
 # TODO: Alternative measure 2: run bert, freeze attention, mask everything except token, run through bert again.
 # TODO: Is attention-chain bugged? Plots are uninterpretable; without normalization super high values only at layer 10-11... with normalization... big gray mess.
+# TODO: Should I take sum influence per group of tokens, or mean? E.g., with averaging, "a boy" will be dragged down by uninformative "a"...
 
 def main():
     """
