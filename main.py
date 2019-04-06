@@ -7,6 +7,8 @@ import csv
 import itertools
 
 import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+from matplotlib import ticker
 import seaborn as sns
 import matplotlib.pylab as pylab
 import imageio
@@ -42,9 +44,10 @@ parser.add_argument('--factors', type=str, default=None,
                     help='Which factors to plot, comma separated like "--factors reflexivity,gender"; default: first 2 factors in the data')
 parser.add_argument('--no_global_colormap', action="store_true",
                     help='Whether to standardize plot coloring across plots ("global"); otherwise only per plot (i.e., per layer)')
+parser.add_argument('--balance', action="store_true",
+                    help='To compute and plot balances, i.e., how much a token influences minus how much it is influenced.')
 
 # TODO: perhaps it's useful to allow plotting means over layers; sliding window-style? or chaining but with different starting points?
-# TODO: Alternative measure 2: run bert, freeze attention, mask everything except token, run through bert again.
 # TODO: Is attention-chain bugged? Plots are uninterpretable; without normalization super high values only at layer 10-11... with normalization... big gray mess.
 # TODO: Should I take sum influence per group of tokens, or mean? E.g., with averaging, "a boy" will be dragged down by uninformative "a"...
 
@@ -474,6 +477,12 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
                     weights = pd.DataFrame(weights, index=index, columns=index)
                     weights.difference = False
 
+                # Compute how much (more) each token influences vs. how much it is influenced:
+                # TODO Not sure how to interpret this for DIFF plots...
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore')
+                    weights.balance = pd.DataFrame({'balance': (weights.transpose()-weights.values).sum(axis=0)})
+
                 # Some convenient metadata (used mostly when creating plots)
                 # It's a lot safer that each dataframe carries its own details with it in this way.
                 weights.level_horiz = level_horiz
@@ -493,6 +502,9 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
 
 
 def plot(weights_to_plot, args):
+
+    return plot_new(weights_to_plot, args)
+
     """
     Output a single image file, typically containing several plots, depending on which factors to cross
     and whether to include a difference plot.
@@ -519,6 +531,8 @@ def plot(weights_to_plot, args):
 
         for r, weights in enumerate(col):
 
+            axis = axs[c, r] if weights.level_vert is not None else axs[c] if weights.level_horiz is not None else axs
+
             # TODO Consider setting global vmin/vmax only in case of MAT; in that case also for is_difference_plot.
             ax = sns.heatmap(weights,
                              xticklabels=True,
@@ -527,7 +541,7 @@ def plot(weights_to_plot, args):
                              vmax=weights.max_for_colormap,
                              center=0 if weights.difference else None,
                              linewidth=0.5,
-                             ax=axs[c, r] if weights.level_vert is not None else axs[c] if weights.level_horiz is not None else axs,
+                             ax=axis,
                              cbar=True,
                              cmap="coolwarm_r" if weights.difference else "Blues",
                              square=True,
@@ -549,6 +563,102 @@ def plot(weights_to_plot, args):
     # pylab.show()
 
     return out_filepath
+
+
+def plot_new(weights_to_plot, args):
+
+    """
+    Output a single image file, typically containing several plots, depending on which factors to cross
+    and whether to include a difference plot.
+    :param weights_to_plot: list of lists of weights dataframes; each DF will be plotted as a single heatmap.
+    :param args: the command line arguments; they contain some further settings.
+    :return: output file path
+    """
+    # TODO Tweak side-title and main title font size, padding, which is ugly especially if there's only a single plot (i.e., if there are no factors).
+    # TODO Tweak filename and title if there are no factors being crossed.
+
+    # Let's plot!
+    f = plt.figure()
+    gs0 = gridspec.GridSpec(len(weights_to_plot[0]), len(weights_to_plot), figure=f)
+
+    # plt.subplots_adjust(wspace=.6, top=.9)
+    f.suptitle("{}{} given {} (layer {})".format(args.method, "-"+args.combine if args.combine != "no" else "", ' × '.join(args.factors), weights_to_plot[0][0].layer), size=20)
+
+#    if args.combine != "cumsum":
+#        suplabel("x", "...influenced by tokens at {}".format("embedding layer" if (args.combine != "no" or weights_to_plot[0][0].layer == 0) else "layer {}".format(weights_to_plot[0][0].layer - 1)), labelpad=3)
+#        suplabel("y", "Tokens at layer {}...".format(weights_to_plot[0][0].layer), labelpad=8)
+#    else:
+#        suplabel("x", "...influenced by tokens at previous layer", labelpad=3)
+#        suplabel("y", "Tokens up to layer {}...".format(weights_to_plot[0][0].layer), labelpad=8)
+
+    for c, col in enumerate(weights_to_plot):
+
+        for r, weights in enumerate(col):
+
+            axis = gs0[c, r] if weights.level_vert is not None else gs0[c] if weights.level_horiz is not None else gs0[0]
+
+            subgs = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=axis, height_ratios=(len(weights), 1), width_ratios=(.95, .05), hspace=.2, wspace=.1)
+
+            ax1 = plt.Subplot(f, subgs[0,0])
+            f.add_subplot(ax1)
+            ax2 = plt.Subplot(f, subgs[1,0])
+            f.add_subplot(ax2)
+            ax3 = plt.Subplot(f, subgs[0,1])
+            f.add_subplot(ax3)
+            ax4 = plt.Subplot(f, subgs[1,1])
+            f.add_subplot(ax4)
+
+            # TODO Consider setting global vmin/vmax only in case of MAT; in that case also for is_difference_plot.
+            sns.heatmap(weights,
+                         xticklabels=True,
+                         yticklabels=True,
+                         vmin=weights.min_for_colormap,
+                         vmax=weights.max_for_colormap,
+                         center=0 if weights.difference else None,
+                         linewidth=0.5,
+                         ax=ax1,
+                         cbar=True,
+                         cbar_ax=ax3,
+                         cmap="coolwarm_r" if weights.difference else "Blues",
+                         square=False,      # TODO See if I can get the square to work...
+#                        cbar_kws={'shrink': .5},
+                         label='small')
+            if weights.difference:
+                ax1.set_title('Difference')
+            else:
+                ax1.set_title('{} & {}'.format(weights.level_horiz, weights.level_vert) if weights.level_vert is not None else (weights.level_horiz or ""))
+            # ax.xaxis.tick_top()
+            plt.setp(ax1.get_yticklabels(), rotation=0)
+
+#            print(weights.balance, weights.balance.index, weights.balance.values)
+            sns.heatmap(weights.balance.transpose(),
+                        xticklabels=False,
+                        yticklabels=False,
+                        ax=ax2,
+                        center=0,
+                        vmin = -.05,   # TODO compute vmin and vmax globally
+                        vmax = .05,
+                        linewidth=0.5,
+                        cmap="coolwarm_r",
+                        cbar=True,
+                        cbar_ax=ax4,
+                        # cbar_kws={'shrink': .5}, # makes utterly mini...
+                        label='small',
+                        cbar_kws=dict(ticks=[-.05, 0, .05])    # TODO Add global cmin and vmax here.
+                        )
+            plt.setp(ax2.get_yticklabels(), rotation=0)
+
+    out_filepath = "{}/{}{}{}_{}_layer{}.png".format(args.out, args.method,
+                                                     "-"+args.combine if args.combine != "no" else "",
+                                                     "_normalized" if (args.method == "attention" and args.normalize_heads) else "",
+                                                     '-x-'.join(args.factors), weights_to_plot[0][0].layer)
+    print("Saving figure:", out_filepath)
+    pylab.savefig(out_filepath)
+    # pylab.show()
+
+    return out_filepath
+
+# plt.subplots(1, 2, gridspec_kw={'width_ratios': [3, 1]})      # different size subplots
 
 
 def calibrate_for_colormap(weights_to_plot_per_layer, global_colormap):
