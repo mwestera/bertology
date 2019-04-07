@@ -8,6 +8,7 @@ import itertools
 
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
+import matplotlib.image as mpimg
 from matplotlib import ticker
 import seaborn as sns
 import matplotlib.pylab as pylab
@@ -32,8 +33,9 @@ parser.add_argument('--normalize_heads', action="store_true",
                     help='To apply normalization per attention head (only used for "attention" method).')
 parser.add_argument('--ignore_groups', action="store_true",
                     help='To ignore groupings of tokens in the input data, and compute/plot per token. NOTE: POTENTIALLY BUGGY.')
-parser.add_argument('--transpose', action="store_true",
-                    help='To transpose the plots; by default they read like "rows influenced by cols" (otherwise: rows influencing cols).')
+## Disabled, as axis labels etc. would be incorrect:
+# parser.add_argument('--transpose', action="store_true",
+#                     help='To transpose the plots; by default they read like "rows influenced by cols" (otherwise: rows influencing cols).')
 parser.add_argument('--no_diff_plots', action="store_true",
                     help='To NOT plot the differences between levels of a given factor.')
 parser.add_argument('--gif', action="store_true",
@@ -108,9 +110,11 @@ def main():
                 weights_per_layer = compute_pMAT(attention, layer_norm=args.normalize_heads)
             else:
                 weights_per_layer = compute_MAT(attention, layer_norm=args.normalize_heads)
-            weights_per_layer.transpose(0,2,1)  # for uniformity with gradients: (layer, output_token, input_token)
+            ## Nope, instead of the following, transpose the gradients: from input_token to output_token
+            # weights_per_layer = weights_per_layer.transpose(0,2,1)  # for uniformity with gradients: (layer, output_token, input_token)
         elif args.method == "gradient":
             tokens_a, tokens_b, weights_per_layer = apply_bert_get_gradients(model, tokenizer, each_item['sentence'], chain=args.combine=="chain")
+            weights_per_layer = weights_per_layer.transpose(0,2,1)  # for uniformity with attention weights: (layer, input_token, output_token)
 
         if args.combine == "cumsum":
             weights_per_layer = np.cumsum(weights_per_layer, axis=0)
@@ -471,8 +475,8 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
                     weights = weights.values
                     dim = int(np.sqrt(weights.shape[-1]))
                     weights = weights.reshape(dim, dim)
-                    if args.transpose:
-                        weights = weights.transpose()
+                    # if args.transpose:        ## Disabled; would yield incorrect axis labels etc.
+                    #    weights = weights.transpose()
                     index = items.groups if not args.ignore_groups else None  # TODO "None" will give error; replace by exemplary tokens of a given type of item?  items.iloc[0].tokenized.split()
                     weights = pd.DataFrame(weights, index=index, columns=index)
                     weights.difference = False
@@ -584,13 +588,6 @@ def plot_new(weights_to_plot, args):
     # plt.subplots_adjust(wspace=.6, top=.9)
     f.suptitle("{}{} given {} (layer {})".format(args.method, "-"+args.combine if args.combine != "no" else "", ' × '.join(args.factors), weights_to_plot[0][0].layer), size=16)
 
-#    if args.combine != "cumsum":
-#        suplabel("x", "...influenced by tokens at {}".format("embedding layer" if (args.combine != "no" or weights_to_plot[0][0].layer == 0) else "layer {}".format(weights_to_plot[0][0].layer - 1)), labelpad=3)
-#        suplabel("y", "Tokens at layer {}...".format(weights_to_plot[0][0].layer), labelpad=8)
-#    else:
-#        suplabel("x", "...influenced by tokens at previous layer", labelpad=3)
-#        suplabel("y", "Tokens up to layer {}...".format(weights_to_plot[0][0].layer), labelpad=8)
-
     for c, col in enumerate(weights_to_plot):
 
         for r, weights in enumerate(col):
@@ -611,7 +608,7 @@ def plot_new(weights_to_plot, args):
 
             # TODO Consider setting global vmin/vmax only in case of MAT; in that case also for is_difference_plot.
             sns.heatmap(weights,
-                         xticklabels=True,
+                         xticklabels=not args.balance,
                          yticklabels=True,
                          vmin=weights.min_for_colormap,
                          vmax=weights.max_for_colormap,
@@ -624,17 +621,27 @@ def plot_new(weights_to_plot, args):
                          square=False,      # TODO See if I can get the square to work...
 #                        cbar_kws={'shrink': .5},
                          label='small')
+            ax_main.set_xlabel('...to layer {}'.format(weights.layer))
+            ax_main.set_ylabel('From previous layer...' if args.combine == "no" else "From initial embeddings...")
             if weights.difference:
                 ax_main.set_title('Difference')
             else:
                 ax_main.set_title('{} & {}'.format(weights.level_horiz, weights.level_vert) if weights.level_vert is not None else (weights.level_horiz or ""))
+
+            map_img = mpimg.imread('arrow-down-white.png')
+
+            ax_main.imshow(map_img,
+                        aspect=ax_main.get_aspect(),
+                        extent=ax_main.get_xlim() + ax_main.get_ylim(),
+                        zorder=3,
+                        alpha=.2)
 
             plt.setp(ax_main.get_yticklabels(), rotation=0)
 
 #            print(weights.balance, weights.balance.index, weights.balance.values)
             if args.balance:
                 sns.heatmap(weights.balance.transpose(),
-                        xticklabels=['' for _ in weights.index],
+                        xticklabels=True,
                         yticklabels=['Balance'],
                         ax=ax_balance,
                         center=0,
@@ -649,7 +656,8 @@ def plot_new(weights_to_plot, args):
                         cbar_kws=dict(ticks=[-.05, 0, .05])    # TODO Add global cmin and vmax here.
                         )
                 plt.setp(ax_balance.get_yticklabels(), rotation=0)
-                ax_balance.xaxis.tick_top()
+                # ax_balance.xaxis.tick_top()
+                # ax_main.set_xlabel('...to layer {}'.format(weights.layer))
 
     gs0.tight_layout(f, rect=[0, 0.03, 1, 0.95])
 #    f.subplots_adjust(top=1.0-(1.0 / (4 * len(weights_to_plot) + 1)))
