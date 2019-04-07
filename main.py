@@ -504,73 +504,7 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
     # The list weights_to_plot_per_layer now contains, for each layer, a list of lists of weights matrices.
     return weights_to_plot_per_layer
 
-
 def plot(weights_to_plot, args):
-
-    return plot_new(weights_to_plot, args)
-
-    """
-    Output a single image file, typically containing several plots, depending on which factors to cross
-    and whether to include a difference plot.
-    :param weights_to_plot: list of lists of weights dataframes; each DF will be plotted as a single heatmap.
-    :param args: the command line arguments; they contain some further settings.
-    :return: output file path
-    """
-    # TODO Tweak side-title and main title font size, padding, which is ugly especially if there's only a single plot (i.e., if there are no factors).
-    # TODO Tweak filename and title if there are no factors being crossed.
-
-    # Let's plot!
-    fig, axs = plt.subplots(ncols=len(weights_to_plot), nrows=len(weights_to_plot[0]),
-                            figsize=(4 * len(weights_to_plot), 4 * len(weights_to_plot[0])))
-    plt.subplots_adjust(wspace=.6, top=.9)
-    fig.suptitle("{}{} given {} (layer {})".format(args.method, "-"+args.combine if args.combine != "no" else "", ' × '.join(args.factors), weights_to_plot[0][0].layer), size=20)
-
-    if args.combine != "cumsum":
-        suplabel("x", "...influenced by tokens at {}".format("embedding layer" if (args.combine != "no" or weights_to_plot[0][0].layer == 0) else "layer {}".format(weights_to_plot[0][0].layer - 1)), labelpad=3)
-        suplabel("y", "Tokens at layer {}...".format(weights_to_plot[0][0].layer), labelpad=8)
-    else:
-        suplabel("x", "...influenced by tokens at previous layer", labelpad=3)
-        suplabel("y", "Tokens up to layer {}...".format(weights_to_plot[0][0].layer), labelpad=8)
-    for c, col in enumerate(weights_to_plot):
-
-        for r, weights in enumerate(col):
-
-            axis = axs[c, r] if weights.level_vert is not None else axs[c] if weights.level_horiz is not None else axs
-
-            # TODO Consider setting global vmin/vmax only in case of MAT; in that case also for is_difference_plot.
-            ax = sns.heatmap(weights,
-                             xticklabels=True,
-                             yticklabels=True,
-                             vmin=weights.min_for_colormap,
-                             vmax=weights.max_for_colormap,
-                             center=0 if weights.difference else None,
-                             linewidth=0.5,
-                             ax=axis,
-                             cbar=True,
-                             cmap="coolwarm_r" if weights.difference else "Blues",
-                             square=True,
-                             cbar_kws={'shrink': .5},
-                             label='small')
-            if weights.difference:
-                ax.set_title('Difference')
-            else:
-                ax.set_title('{} & {}'.format(weights.level_horiz, weights.level_vert) if weights.level_vert is not None else weights.level_horiz)
-            # ax.xaxis.tick_top()
-            plt.setp(ax.get_yticklabels(), rotation=0)
-
-    out_filepath = "{}/{}{}{}_{}_layer{}.png".format(args.out, args.method,
-                                                     "-"+args.combine if args.combine != "no" else "",
-                                                     "_normalized" if (args.method == "attention" and args.normalize_heads) else "",
-                                                     '-x-'.join(args.factors), weights_to_plot[0][0].layer)
-    print("Saving figure:", out_filepath)
-    pylab.savefig(out_filepath)
-    # pylab.show()
-
-    return out_filepath
-
-
-def plot_new(weights_to_plot, args):
-
     """
     Output a single image file, typically containing several plots, depending on which factors to cross
     and whether to include a difference plot.
