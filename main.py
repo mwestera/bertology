@@ -597,16 +597,17 @@ def plot_new(weights_to_plot, args):
 
             axis = gs0[c, r] if weights.level_vert is not None else gs0[c] if weights.level_horiz is not None else gs0[0]
 
-            subgs = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=axis, height_ratios=(len(weights), 1), width_ratios=(.95, .05))
+            subgs = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=axis, height_ratios=(len(weights), 1 if args.balance else .0001), width_ratios=(.95, .05))
 
-            ax1 = plt.Subplot(f, subgs[0,0])
-            f.add_subplot(ax1)
-            ax2 = plt.Subplot(f, subgs[1,0])
-            f.add_subplot(ax2)
-            ax3 = plt.Subplot(f, subgs[0,1])
-            f.add_subplot(ax3)
-            ax4 = plt.Subplot(f, subgs[1,1])
-            f.add_subplot(ax4)
+            ax_main = plt.Subplot(f, subgs[0,0])
+            f.add_subplot(ax_main)
+            ax_main_cbar = plt.Subplot(f, subgs[0,1])
+            f.add_subplot(ax_main_cbar)
+            if args.balance:
+                ax_balance = plt.Subplot(f, subgs[1, 0])
+                f.add_subplot(ax_balance)
+                ax_balance_cbar = plt.Subplot(f, subgs[1,1])
+                f.add_subplot(ax_balance_cbar)
 
             # TODO Consider setting global vmin/vmax only in case of MAT; in that case also for is_difference_plot.
             sns.heatmap(weights,
@@ -616,38 +617,39 @@ def plot_new(weights_to_plot, args):
                          vmax=weights.max_for_colormap,
                          center=0 if weights.difference else None,
                          linewidth=0.5,
-                         ax=ax1,
+                         ax=ax_main,
                          cbar=True,
-                         cbar_ax=ax3,
+                         cbar_ax=ax_main_cbar,
                          cmap="coolwarm_r" if weights.difference else "Blues",
                          square=False,      # TODO See if I can get the square to work...
 #                        cbar_kws={'shrink': .5},
                          label='small')
             if weights.difference:
-                ax1.set_title('Difference')
+                ax_main.set_title('Difference')
             else:
-                ax1.set_title('{} & {}'.format(weights.level_horiz, weights.level_vert) if weights.level_vert is not None else (weights.level_horiz or ""))
+                ax_main.set_title('{} & {}'.format(weights.level_horiz, weights.level_vert) if weights.level_vert is not None else (weights.level_horiz or ""))
 
-            plt.setp(ax1.get_yticklabels(), rotation=0)
+            plt.setp(ax_main.get_yticklabels(), rotation=0)
 
 #            print(weights.balance, weights.balance.index, weights.balance.values)
-            sns.heatmap(weights.balance.transpose(),
+            if args.balance:
+                sns.heatmap(weights.balance.transpose(),
                         xticklabels=['' for _ in weights.index],
                         yticklabels=['Balance'],
-                        ax=ax2,
+                        ax=ax_balance,
                         center=0,
                         vmin = -.05,   # TODO compute vmin and vmax globally
                         vmax = .05,
                         linewidth=0.5,
                         cmap="coolwarm_r",
                         cbar=True,
-                        cbar_ax=ax4,
+                        cbar_ax=ax_balance_cbar,
                         # cbar_kws={'shrink': .5}, # makes utterly mini...
                         label='small',
                         cbar_kws=dict(ticks=[-.05, 0, .05])    # TODO Add global cmin and vmax here.
                         )
-            plt.setp(ax2.get_yticklabels(), rotation=0)
-            ax2.xaxis.tick_top()
+                plt.setp(ax_balance.get_yticklabels(), rotation=0)
+                ax_balance.xaxis.tick_top()
 
     gs0.tight_layout(f, rect=[0, 0.03, 1, 0.95])
 #    f.subplots_adjust(top=1.0-(1.0 / (4 * len(weights_to_plot) + 1)))
