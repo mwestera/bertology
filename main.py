@@ -543,7 +543,6 @@ def plot(weights_to_plot, args):
                 ax_balance_cbar = plt.Subplot(f, subgs[1,1])
                 f.add_subplot(ax_balance_cbar)
 
-            # TODO Consider setting global vmin/vmax only in case of MAT; in that case also for is_difference_plot.
             sns.heatmap(weights,
                          xticklabels=True,
                          yticklabels=True,
@@ -591,6 +590,7 @@ def plot(weights_to_plot, args):
                         # cbar_kws={'shrink': .5}, # makes utterly mini...
                         label='small',
                         cbar_kws=dict(ticks=[math.ceil(100*weights.balance.min_for_colormap)/100.0, 0, math.floor(100*weights.balance.max_for_colormap)/100.0], format="%.2f")
+                            # TODO bug in rounding?
                         )
                 plt.setp(ax_balance.get_yticklabels(), rotation=0)
                 ax_balance.xaxis.tick_top()
@@ -599,10 +599,10 @@ def plot(weights_to_plot, args):
     gs0.tight_layout(f, rect=[0, 0.03, 1, 0.95])
 #    f.subplots_adjust(top=1.0-(1.0 / (4 * len(weights_to_plot) + 1)))
 
-    out_filepath = "{}/{}{}{}_{}_layer{}.png".format(args.out, args.method,
+    out_filepath = "{}/{}{}{}{}_layer{}.png".format(args.out, args.method,
                                                      "-"+args.combine if args.combine != "no" else "",
                                                      "_normalized" if (args.method == "attention" and args.normalize_heads) else "",
-                                                     '-x-'.join(args.factors), weights_to_plot[0][0].layer)
+                                                     '_'+'-x-'.join(args.factors) if len(args.factors) > 0 else '', weights_to_plot[0][0].layer)
     print("Saving figure:", out_filepath)
     pylab.savefig(out_filepath)
     # pylab.show()
