@@ -19,6 +19,7 @@ import warnings
 
 import argparse
 
+import math
 
 parser = argparse.ArgumentParser(description='e.g., main.py data/example.csv')
 parser.add_argument('data', type=str,
@@ -492,6 +493,8 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
                 weights.level_vert = level_vert
                 weights.max_for_colormap = weights.max().max()
                 weights.min_for_colormap = weights.min().min()
+                weights.balance.max_for_colormap = weights.balance.max().max()
+                weights.balance.min_for_colormap = weights.balance.min().min()
                 weights.layer = l
 
                 # Add dataframe to designated position
@@ -502,6 +505,7 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
 
     # The list weights_to_plot_per_layer now contains, for each layer, a list of lists of weights matrices.
     return weights_to_plot_per_layer
+
 
 def plot(weights_to_plot, args):
     """
@@ -550,7 +554,7 @@ def plot(weights_to_plot, args):
                          ax=ax_main,
                          cbar=True,
                          cbar_ax=ax_main_cbar,
-                         cmap="coolwarm_r" if weights.difference else "Blues",
+                         cmap="RdBu" if weights.difference else "Greys",
                          square=False,      # TODO See if I can get the square to work...
 #                        cbar_kws={'shrink': .5},
                          label='small')
@@ -578,15 +582,15 @@ def plot(weights_to_plot, args):
                         yticklabels=['Balance'],
                         ax=ax_balance,
                         center=0,
-                        vmin = -.05,   # TODO compute vmin and vmax globally
-                        vmax = .05,
+                        vmin = weights.balance.min_for_colormap,
+                        vmax = weights.balance.max_for_colormap,
                         linewidth=0.5,
-                        cmap="coolwarm_r",
+                        cmap="PiYG" if weights.difference else "PiYG",
                         cbar=True,
                         cbar_ax=ax_balance_cbar,
                         # cbar_kws={'shrink': .5}, # makes utterly mini...
                         label='small',
-                        cbar_kws=dict(ticks=[-.05, 0, .05])    # TODO Add global cmin and vmax here.
+                        cbar_kws=dict(ticks=[math.ceil(100*weights.balance.min_for_colormap)/100.0, 0, math.floor(100*weights.balance.max_for_colormap)/100.0], format="%.2f")
                         )
                 plt.setp(ax_balance.get_yticklabels(), rotation=0)
                 ax_balance.xaxis.tick_top()
@@ -620,6 +624,10 @@ def calibrate_for_colormap(weights_to_plot_per_layer, global_colormap):
     layer_mins = []
     layer_max_diffs = []
 
+    layer_balance_maxes = []
+    layer_balance_mins = []
+    layer_balance_max_diffs = []
+
     ## First compute and set max and min per layer
     for l in range(len(weights_to_plot_per_layer)):
         weights = [w for row in weights_to_plot_per_layer[l] for w in row]
@@ -628,18 +636,31 @@ def calibrate_for_colormap(weights_to_plot_per_layer, global_colormap):
         layer_min = min([w.min_for_colormap for w in weights if not w.difference])
         layer_max_diff = max([max(abs(w.max_for_colormap), abs(w.min_for_colormap)) for w in weights if w.difference] + [0])
 
+        layer_balance_max = max([w.balance.max_for_colormap for w in weights if not w.difference])
+        layer_balance_min = min([w.balance.min_for_colormap for w in weights if not w.difference])
+        layer_balance_max_diff = max([max(abs(w.balance.max_for_colormap), abs(w.balance.min_for_colormap)) for w in weights if w.difference] + [0])
+
         # Default: "layer" calibration, set the new max and min values.
         for w in weights:
             if w.difference:
                 w.max_for_colormap = layer_max_diff
                 w.min_for_colormap = -layer_max_diff
+                w.balance.max_for_colormap = layer_balance_max_diff
+                w.balance.min_for_colormap = -layer_balance_max_diff
             else:
                 w.max_for_colormap = layer_max
                 w.min_for_colormap = layer_min
+                w.balance.max_for_colormap = layer_balance_max
+                w.balance.min_for_colormap = layer_balance_min
 
         layer_maxes.append(layer_max)
         layer_mins.append(layer_min)
         layer_max_diffs.append(layer_max_diff)
+
+        layer_balance_maxes.append(layer_balance_max)
+        layer_balance_mins.append(layer_balance_min)
+        layer_balance_max_diffs.append(layer_balance_max_diff)
+
 
     ## If global_colormap requested, compute overall max and min (across layers) and add these values to dataframes
     if global_colormap:
@@ -647,14 +668,22 @@ def calibrate_for_colormap(weights_to_plot_per_layer, global_colormap):
         overall_min = min(layer_mins)
         overall_max_diff = max(layer_max_diffs)
 
+        overall_balance_max = max(layer_balance_maxes)
+        overall_balance_min = min(layer_balance_mins)
+        overall_balance_max_diff = max(layer_balance_max_diffs)
+
         weights = [w for layer in weights_to_plot_per_layer for row in layer for w in row]
         for w in weights:
             if w.difference:
                 w.max_for_colormap = overall_max_diff
                 w.min_for_colormap = -overall_max_diff
+                w.balance.max_for_colormap = overall_balance_max_diff
+                w.balance.min_for_colormap = -overall_balance_max_diff
             else:
                 w.max_for_colormap = overall_max
                 w.min_for_colormap = overall_min
+                w.balance.max_for_colormap = overall_balance_max
+                w.balance.min_for_colormap = overall_balance_min
 
 
 def suplabel(axis, label,label_prop={"size": 16},
