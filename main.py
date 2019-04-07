@@ -564,7 +564,7 @@ def plot(weights_to_plot, args):
             else:
                 ax_main.set_title('{} & {}'.format(weights.level_horiz, weights.level_vert) if weights.level_vert is not None else (weights.level_horiz or ""))
 
-            map_img = mpimg.imread('arrow-down-white.png')
+            map_img = mpimg.imread('figures/arrow-down.png')
 
             ax_main.imshow(map_img,
                         aspect=ax_main.get_aspect(),
@@ -581,15 +581,15 @@ def plot(weights_to_plot, args):
                         yticklabels=['Balance'],
                         ax=ax_balance,
                         center=0,
-                        vmin = weights.balance.min_for_colormap,
-                        vmax = weights.balance.max_for_colormap,
+                        vmin = -round(weights.balance.max_for_colormap, 2),
+                        vmax = round(weights.balance.max_for_colormap, 2),
                         linewidth=0.5,
                         cmap="PiYG" if weights.difference else "PiYG",
                         cbar=True,
                         cbar_ax=ax_balance_cbar,
                         # cbar_kws={'shrink': .5}, # makes utterly mini...
                         label='small',
-                        cbar_kws=dict(ticks=[math.ceil(100*weights.balance.min_for_colormap)/100.0, 0, math.floor(100*weights.balance.max_for_colormap)/100.0], format="%.2f")
+                        cbar_kws=dict(ticks=[-round(weights.balance.max_for_colormap, 2), 0, round(weights.balance.max_for_colormap, 2)], format="%.2f")
                             # TODO bug in rounding?
                         )
                 plt.setp(ax_balance.get_yticklabels(), rotation=0)
