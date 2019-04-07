@@ -578,11 +578,11 @@ def plot_new(weights_to_plot, args):
     # TODO Tweak filename and title if there are no factors being crossed.
 
     # Let's plot!
-    f = plt.figure()
-    gs0 = gridspec.GridSpec(len(weights_to_plot[0]), len(weights_to_plot), figure=f)
+    f = plt.figure(figsize=(4 * len(weights_to_plot) + 1, 4 * len(weights_to_plot[0])))
+    gs0 = gridspec.GridSpec(len(weights_to_plot[0]), len(weights_to_plot), figure=f, hspace=.6, wspace=.6)
 
     # plt.subplots_adjust(wspace=.6, top=.9)
-    f.suptitle("{}{} given {} (layer {})".format(args.method, "-"+args.combine if args.combine != "no" else "", ' × '.join(args.factors), weights_to_plot[0][0].layer), size=20)
+    f.suptitle("{}{} given {} (layer {})".format(args.method, "-"+args.combine if args.combine != "no" else "", ' × '.join(args.factors), weights_to_plot[0][0].layer), size=16)
 
 #    if args.combine != "cumsum":
 #        suplabel("x", "...influenced by tokens at {}".format("embedding layer" if (args.combine != "no" or weights_to_plot[0][0].layer == 0) else "layer {}".format(weights_to_plot[0][0].layer - 1)), labelpad=3)
@@ -597,7 +597,7 @@ def plot_new(weights_to_plot, args):
 
             axis = gs0[c, r] if weights.level_vert is not None else gs0[c] if weights.level_horiz is not None else gs0[0]
 
-            subgs = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=axis, height_ratios=(len(weights), 1), width_ratios=(.95, .05), hspace=.2, wspace=.1)
+            subgs = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=axis, height_ratios=(len(weights), 1), width_ratios=(.95, .05))
 
             ax1 = plt.Subplot(f, subgs[0,0])
             f.add_subplot(ax1)
@@ -627,13 +627,13 @@ def plot_new(weights_to_plot, args):
                 ax1.set_title('Difference')
             else:
                 ax1.set_title('{} & {}'.format(weights.level_horiz, weights.level_vert) if weights.level_vert is not None else (weights.level_horiz or ""))
-            # ax.xaxis.tick_top()
+
             plt.setp(ax1.get_yticklabels(), rotation=0)
 
 #            print(weights.balance, weights.balance.index, weights.balance.values)
             sns.heatmap(weights.balance.transpose(),
-                        xticklabels=False,
-                        yticklabels=False,
+                        xticklabels=['' for _ in weights.index],
+                        yticklabels=['Balance'],
                         ax=ax2,
                         center=0,
                         vmin = -.05,   # TODO compute vmin and vmax globally
@@ -647,6 +647,10 @@ def plot_new(weights_to_plot, args):
                         cbar_kws=dict(ticks=[-.05, 0, .05])    # TODO Add global cmin and vmax here.
                         )
             plt.setp(ax2.get_yticklabels(), rotation=0)
+            ax2.xaxis.tick_top()
+
+    gs0.tight_layout(f, rect=[0, 0.03, 1, 0.95])
+#    f.subplots_adjust(top=1.0-(1.0 / (4 * len(weights_to_plot) + 1)))
 
     out_filepath = "{}/{}{}{}_{}_layer{}.png".format(args.out, args.method,
                                                      "-"+args.combine if args.combine != "no" else "",
