@@ -482,10 +482,9 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
                     weights.difference = False
 
                 # Compute how much (more) each token influences vs. how much it is influenced:
-                # TODO Not sure how to interpret this for DIFF plots...
                 with warnings.catch_warnings():
                     warnings.simplefilter('ignore')
-                    weights.balance = pd.DataFrame({'balance': (weights.transpose()-weights.values).sum(axis=0)})
+                    weights.balance = pd.DataFrame({'balance': (weights-weights.transpose().values).sum(axis=0)})
 
                 # Some convenient metadata (used mostly when creating plots)
                 # It's a lot safer that each dataframe carries its own details with it in this way.
@@ -520,7 +519,7 @@ def plot(weights_to_plot, args):
     gs0 = gridspec.GridSpec(len(weights_to_plot[0]), len(weights_to_plot), figure=f, hspace=.6, wspace=.6)
 
     # plt.subplots_adjust(wspace=.6, top=.9)
-    f.suptitle("{}{} (layer {})".format(args.method, " ("+args.combine+")" if args.combine != "no" else "", weights_to_plot[0][0].layer), size=16)
+    f.suptitle("{}{} {}layer {}".format(args.method, " ("+args.combine+")" if args.combine != "no" else "", "up to " if args.combine != "no" else "", weights_to_plot[0][0].layer), size=16)
 
     for c, col in enumerate(weights_to_plot):
 
