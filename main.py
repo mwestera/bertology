@@ -586,7 +586,7 @@ def plot_new(weights_to_plot, args):
     gs0 = gridspec.GridSpec(len(weights_to_plot[0]), len(weights_to_plot), figure=f, hspace=.6, wspace=.6)
 
     # plt.subplots_adjust(wspace=.6, top=.9)
-    f.suptitle("{}{} given {} (layer {})".format(args.method, "-"+args.combine if args.combine != "no" else "", ' × '.join(args.factors), weights_to_plot[0][0].layer), size=16)
+    f.suptitle("{}{} (layer {})".format(args.method, " ("+args.combine+")" if args.combine != "no" else "", weights_to_plot[0][0].layer), size=16)
 
     for c, col in enumerate(weights_to_plot):
 
@@ -608,7 +608,7 @@ def plot_new(weights_to_plot, args):
 
             # TODO Consider setting global vmin/vmax only in case of MAT; in that case also for is_difference_plot.
             sns.heatmap(weights,
-                         xticklabels=not args.balance,
+                         xticklabels=True,
                          yticklabels=True,
                          vmin=weights.min_for_colormap,
                          vmax=weights.max_for_colormap,
@@ -621,10 +621,10 @@ def plot_new(weights_to_plot, args):
                          square=False,      # TODO See if I can get the square to work...
 #                        cbar_kws={'shrink': .5},
                          label='small')
-            ax_main.set_xlabel('...to layer {}'.format(weights.layer))
-            ax_main.set_ylabel('From previous layer...' if args.combine == "no" else "From initial embeddings...")
+            # ax_main.set_xlabel('...to layer {}'.format(weights.layer))
+            # ax_main.set_ylabel('From previous layer...' if args.combine == "no" else "From initial embeddings...")
             if weights.difference:
-                ax_main.set_title('Difference')
+                ax_main.set_title("difference")
             else:
                 ax_main.set_title('{} & {}'.format(weights.level_horiz, weights.level_vert) if weights.level_vert is not None else (weights.level_horiz or ""))
 
@@ -641,7 +641,7 @@ def plot_new(weights_to_plot, args):
 #            print(weights.balance, weights.balance.index, weights.balance.values)
             if args.balance:
                 sns.heatmap(weights.balance.transpose(),
-                        xticklabels=True,
+                        xticklabels=["" for _ in weights.balance.index],
                         yticklabels=['Balance'],
                         ax=ax_balance,
                         center=0,
@@ -656,7 +656,7 @@ def plot_new(weights_to_plot, args):
                         cbar_kws=dict(ticks=[-.05, 0, .05])    # TODO Add global cmin and vmax here.
                         )
                 plt.setp(ax_balance.get_yticklabels(), rotation=0)
-                # ax_balance.xaxis.tick_top()
+                ax_balance.xaxis.tick_top()
                 # ax_main.set_xlabel('...to layer {}'.format(weights.layer))
 
     gs0.tight_layout(f, rect=[0, 0.03, 1, 0.95])
