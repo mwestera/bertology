@@ -243,7 +243,7 @@ def parse_data(data_path, tokenizer):
         total_len = 1   # Take mandatory CLS symbol into account
 
         # go through the sentence group by group (separated by | )
-        for each_part in row[-1].strip('|').split('|'):
+        for each_part in (' '+row[-1]).strip('|').split('|'):   # Cheap fix to avoid unintended groups for sentence starting with number
             first_char = each_part[0]
             if first_char.isdigit():
                 group_id = int(first_char)
@@ -260,9 +260,13 @@ def parse_data(data_path, tokenizer):
             sentence += each_part.strip() + ' '
 
         # collect token group ids in a list instead of dict, for inclusion in the final DataFrame
-        token_ids_list = [[] for _ in range(max(group_to_token_ids)+1)]
-        for key in group_to_token_ids:
-            token_ids_list[key] = group_to_token_ids[key]
+
+        if len(group_to_token_ids) == 0:
+            token_ids_list = []
+        else:
+            token_ids_list = [[] for _ in range(max(group_to_token_ids)+1)]
+            for key in group_to_token_ids:
+                token_ids_list[key] = group_to_token_ids[key]
 
         # create data row
         items.append(row[:-1] + [sentence.strip()] + [' '.join(['[CLS]'] + tokenizer.tokenize(sentence) + ['[SEP]'])] + token_ids_list)
