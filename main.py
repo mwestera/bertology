@@ -92,10 +92,10 @@ def main():
         while any(x.startswith(dirname) for x in os.listdir('output')):
             out_idx += 1
             dirname = 'temp{}'.format(out_idx)
-        dirname += "_{}{}{}_{}".format(args.method,
+        dirname += "_{}{}{}{}".format(args.method,
                                        "-" + args.combine if args.combine != "no" else "",
                                        "_normalized" if (args.method == "attention" and args.normalize_heads) else "",
-                                       '-x-'.join(args.factors))
+                                       '_' + '-x-'.join(args.factors) if len(args.factors) > 0 else '')
         args.out = os.path.join("output", dirname)
         os.mkdir(args.out)
 
@@ -192,7 +192,11 @@ def main():
 
     # Optionally, an animated gif :)
     if args.gif:
-        out_filepath = "{}/{}_{}_animated.gif".format(args.out, args.method, '-x-'.join(args.factors))
+        out_filepath = "{}/{}{}{}{}.gif".format(args.out, args.method,
+                                                        "-" + args.combine if args.combine != "no" else "",
+                                                        "_normalized" if (
+                                                                args.method == "attention" and args.normalize_heads) else "",
+                                                        '_' + '-x-'.join(args.factors) if len(args.factors) > 0 else '')
         images = []
         for filename in out_filepaths:
             images.append(imageio.imread(filename))
@@ -515,9 +519,6 @@ def plot(weights_to_plot, args):
     :param args: the command line arguments; they contain some further settings.
     :return: output file path
     """
-    # TODO Tweak side-title and main title font size, padding, which is ugly especially if there's only a single plot (i.e., if there are no factors).
-    # TODO Tweak filename and title if there are no factors being crossed.
-
     # Let's plot!
     f = plt.figure(figsize=(4 * len(weights_to_plot) + 1, 4 * len(weights_to_plot[0])))
     gs0 = gridspec.GridSpec(len(weights_to_plot[0]), len(weights_to_plot), figure=f, hspace=.6, wspace=.6)
@@ -590,7 +591,6 @@ def plot(weights_to_plot, args):
                         # cbar_kws={'shrink': .5}, # makes utterly mini...
                         label='small',
                         cbar_kws=dict(ticks=[-round(weights.balance.max_for_colormap, 2), 0, round(weights.balance.max_for_colormap, 2)], format="%.2f")
-                            # TODO bug in rounding?
                         )
                 plt.setp(ax_balance.get_yticklabels(), rotation=0)
                 ax_balance.xaxis.tick_top()
