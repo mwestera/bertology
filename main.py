@@ -122,6 +122,7 @@ def main():
         elif args.method == "gradient":
             tokens_a, tokens_b, weights_per_layer = apply_bert_get_gradients(model, tokenizer, each_item['sentence'], chain=args.combine=="chain")
             weights_per_layer = weights_per_layer.transpose(0,2,1)  # for uniformity with attention weights: (layer, input_token, output_token)
+            # TODO IMPORTANT Not sure if this is right; the picture comes out all weird, almost the inverse of attention-based...
 
         if args.combine == "cumsum":
             weights_per_layer = np.cumsum(weights_per_layer, axis=0)
@@ -131,6 +132,7 @@ def main():
         # TODO Put the following outside the current loop, inside its own (anticipating intermediary writing of results to disk)
         # Take averages over groups of tokens
         if not args.ignore_groups:
+            # TODO Ideally this would be done still on cuda
             grouped_weights_per_layer = []
             for m in weights_per_layer:
                 # Group horizontally
@@ -386,6 +388,8 @@ def apply_bert_get_gradients(model, tokenizer, sequence, chain):
             layer.backward(mask, retain_graph=True)
             gradient = target.grad.data    # [batch_size, seq_len, hidden]
             gradient = gradient.squeeze().clone().cpu().numpy()
+
+            # TODO Ideally this would be done still on cuda
             gradient_norm = np.linalg.norm(gradient, axis=-1)   # take norm per input token
             gradients_for_layer.append(gradient_norm)
             target.grad.data.zero_()
@@ -418,6 +422,7 @@ def compute_MAT(all_attention_weights, layer_norm=True):
     :param layer_norm: whether to normalize
     :return: mean attention weights (across heads) per layer
     """
+    # TODO Ideally this would be done still on cuda
     mean_activations_per_layer = []
     for heads_of_layer in all_attention_weights:
         summed_activations = np.zeros_like(all_attention_weights[0][1])
@@ -441,6 +446,7 @@ def compute_pMAT(all_attention_weights, layer_norm=True):
     :param layer_norm: whether to normalize the weights of each attention head
     :return: percolated activations up to every layer
     """
+    # TODO Ideally this would be done still on cuda
     # TODO: Think about this. What about normalizing per layer, instead of per head? Does that make any sense? Yes, a bit. However, since BERT has LAYER NORM in each attention head, outputs of all heads will have same mean/variance. Does this mean that all heads will contribute same amount of information? Yes, roughly.
     percolated_activations_per_layer = []
     percolated_activations = np.diag(np.ones(all_attention_weights.shape[-1]))      # n_tokens × n_tokens
