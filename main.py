@@ -130,7 +130,6 @@ def main():
                 # Group horizontally
                 grouped_weights_horiz = []
                 for group in items.groups:
-                    # TODO gives ERROR in case not all items have the same number of groups.
                     grouped_weights_horiz.append(m[each_item[group]].mean(axis=0))
                 grouped_weights_horiz = np.stack(grouped_weights_horiz)
 
@@ -271,6 +270,10 @@ def parse_data(data_path, tokenizer):
         # create data row
         items.append(row[:-1] + [sentence.strip()] + [' '.join(['[CLS]'] + tokenizer.tokenize(sentence) + ['[SEP]'])] + token_ids_list)
 
+    # Make all rows the same length
+    row_length = num_factors + 2 + max_group_id + 1
+    items = [item + [[] for _ in range(row_length - len(item))] for item in items]
+
     # If no legend was given, infer legends with boring names from the data itself
     if group_legend is None:
         group_names = ['g{}'.format(i) for i in range(max_group_id + 1)]
@@ -284,6 +287,8 @@ def parse_data(data_path, tokenizer):
     # Create dataframe with nice column names
     columns = factor_names + ['sentence'] + ['tokenized'] + group_names
     items = pd.DataFrame(items, columns=columns)
+
+    print(items)
 
     # Add a bunch of useful metadata to the DataFrame
     with warnings.catch_warnings():
