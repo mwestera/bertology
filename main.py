@@ -19,7 +19,7 @@ import warnings
 
 import argparse
 
-import math
+from tqdm import tqdm
 
 parser = argparse.ArgumentParser(description='e.g., main.py data/example.csv')
 parser.add_argument('data', type=str,
@@ -49,6 +49,8 @@ parser.add_argument('--no_global_colormap', action="store_true",
                     help='Whether to standardize plot coloring across plots ("global"); otherwise only per plot (i.e., per layer)')
 parser.add_argument('--balance', action="store_true",
                     help='To compute and plot balances, i.e., how much a token influences minus how much it is influenced.')
+parser.add_argument('--cuda', action="store_true",
+                    help='To use cuda.')
 
 # TODO: perhaps it's useful to allow plotting means over layers; sliding window-style? or chaining but with different starting points?
 # TODO: Is attention-chain bugged? Plots are uninterpretable; without normalization super high values only at layer 10-11... with normalization... big gray mess.
@@ -74,9 +76,13 @@ def main():
 
     ## Set up tokenizer, data and model
     tokenizer = BertTokenizer.from_pretrained(args.bert, do_lower_case=("uncased" in args.bert))
-    items = parse_data(args.data, tokenizer)
+    items = parse_data(args.data, tokenizer, max_items=None)
     model = BertModel.from_pretrained(args.bert)
 
+    if args.cuda:
+        model.cuda()
+
+    print(len(items), 'items')
 
     ## Store for convenience
     args.factors = args.factors or items.factors[:2]    # by default use the first two factors from the data
@@ -102,7 +108,7 @@ def main():
 
     ## Compute attention weights, one item at a time
     weights_for_all_items = []
-    for _, each_item in items.iterrows():
+    for _, each_item in tqdm(items.iterrows(), total=len(items)):
 
         if args.method == "attention":
             tokens_a, tokens_b, attention = apply_bert_get_attention(model, tokenizer, each_item['sentence'])
@@ -203,7 +209,7 @@ def main():
         print("Saving movie:", out_filepath)
 
 
-def parse_data(data_path, tokenizer):
+def parse_data(data_path, tokenizer, max_items=None):
     """
     Turns a .csv file with some special markup of 'token groups' into a dataframe.
     :param data_path:
@@ -270,6 +276,9 @@ def parse_data(data_path, tokenizer):
         # create data row
         items.append(row[:-1] + [sentence.strip()] + [' '.join(['[CLS]'] + tokenizer.tokenize(sentence) + ['[SEP]'])] + token_ids_list)
 
+        if max_items is not None and len(items) >= max_items:
+            break
+
     # Make all rows the same length
     row_length = num_factors + 2 + max_group_id + 1
     items = [item + [[] for _ in range(row_length - len(item))] for item in items]
@@ -287,8 +296,6 @@ def parse_data(data_path, tokenizer):
     # Create dataframe with nice column names
     columns = factor_names + ['sentence'] + ['tokenized'] + group_names
     items = pd.DataFrame(items, columns=columns)
-
-    print(items)
 
     # Add a bunch of useful metadata to the DataFrame
     with warnings.catch_warnings():
@@ -334,9 +341,14 @@ def apply_bert_get_attention(model, tokenizer, sequence):
 
     model.eval()
     tokens_a, tokens_b, tokens_tensor, token_type_tensor = tokenize_sequence(tokenizer, sequence)
+
+    if next(model.parameters()).is_cuda:
+        tokens_tensor = tokens_tensor.cuda()
+        token_type_tensor = token_type_tensor.cuda()
+
     _, _, attn_data_list = model(tokens_tensor, token_type_ids=token_type_tensor)
     attn_tensor = torch.stack([attn_data['attn_probs'] for attn_data in attn_data_list])
-    attn = attn_tensor.data.numpy()
+    attn = attn_tensor.data.cpu().numpy()
 
     return tokens_a, tokens_b, attn
 
@@ -354,6 +366,10 @@ def apply_bert_get_gradients(model, tokenizer, sequence, chain):
 
     tokens_a, tokens_b, tokens_tensor, token_type_tensor = tokenize_sequence(tokenizer, sequence)
 
+    if next(model.parameters()).is_cuda:
+        tokens_tensor = tokens_tensor.cuda()
+        token_type_tensor = token_type_tensor.cuda()
+
     encoded_layers, _, _, embedding_output = model(tokens_tensor, token_type_ids=token_type_tensor, output_embedding=True)
 #   [n_layers x [batch_size, seq_len, hidden]]      [seq_len x hidden]
 
@@ -369,7 +385,7 @@ def apply_bert_get_gradients(model, tokenizer, sequence, chain):
             mask[:,token_idx,:] = 1
             layer.backward(mask, retain_graph=True)
             gradient = target.grad.data    # [batch_size, seq_len, hidden]
-            gradient = gradient.squeeze().clone().numpy()
+            gradient = gradient.squeeze().clone().cpu().numpy()
             gradient_norm = np.linalg.norm(gradient, axis=-1)   # take norm per input token
             gradients_for_layer.append(gradient_norm)
             target.grad.data.zero_()
