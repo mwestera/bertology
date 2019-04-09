@@ -24,6 +24,8 @@ from tqdm import tqdm
 parser = argparse.ArgumentParser(description='e.g., main.py data/example.csv')
 parser.add_argument('data', type=str,
                     help='Path to data file (typically .csv).')
+parser.add_argument('--n_items', type=int, default=None,
+                    help='Max number of items from dataset to consider.')
 parser.add_argument('--out', type=str, default=None,
                     help='Output directory for plots (default: creates a new /temp## folder)')
 parser.add_argument('--method', type=str, default='gradient', choices=["gradient", "attention"],
@@ -76,7 +78,7 @@ def main():
 
     ## Set up tokenizer, data and model
     tokenizer = BertTokenizer.from_pretrained(args.bert, do_lower_case=("uncased" in args.bert))
-    items = parse_data(args.data, tokenizer, max_items=None)
+    items = parse_data(args.data, tokenizer, max_items=args.n_items)
     model = BertModel.from_pretrained(args.bert)
 
     if args.cuda:
@@ -520,7 +522,8 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
                 # Compute how much (more) each token influences vs. how much it is influenced:
                 with warnings.catch_warnings():
                     warnings.simplefilter('ignore')
-                    weights.balance = pd.DataFrame({'balance': (weights-weights.transpose().values).sum(axis=0)})
+                    weights.balance = pd.DataFrame({'balance': (weights - weights.transpose().values).sum(axis=1)})
+                    # weights.balance2 = pd.DataFrame({'balance': weights.sum(axis=1) - weights.sum(axis=0).values})    # equivalent
 
                 # Some convenient metadata (used mostly when creating plots)
                 # It's a lot safer that each dataframe carries its own details with it in this way.
