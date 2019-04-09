@@ -109,7 +109,7 @@ def main():
 
 
     ## Compute attention weights, one item at a time
-    weights_for_all_items = []
+    data_for_all_items = []
     for _, each_item in tqdm(items.iterrows(), total=len(items)):
 
         if args.method == "attention":
@@ -135,7 +135,7 @@ def main():
         # Take averages over groups of tokens
         if not args.ignore_groups:
             # TODO Ideally this would be done still on cuda
-            grouped_weights_per_layer = []
+            data_per_layer = []
             for m in weights_per_layer:
                 # Group horizontally
                 grouped_weights_horiz = []
@@ -149,31 +149,37 @@ def main():
                     grouped_weights.append(grouped_weights_horiz[:, each_item[group]].mean(axis=1))
                 grouped_weights = np.stack(grouped_weights).transpose()  # transpose to restore original order
 
+                # Compute balance: how much token influences minus how much is influenced
+                balance = np.nansum(grouped_weights - grouped_weights.transpose(), axis=1)
+
+                grouped_weights = grouped_weights.reshape(-1)
+
                 # store
-                grouped_weights_per_layer.append(grouped_weights)
+                data_per_layer.append(each_item.to_list() + np.concatenate((grouped_weights, balance)).tolist())
 
             # stack and flatten for much easier handling with pandas, computing means etc.
-            weights_per_layer = np.stack(grouped_weights_per_layer).reshape(-1)
+            # weights_per_layer = np.stack(grouped_weights_per_layer).reshape(-1)
 
-        weights_for_all_items.append(weights_per_layer)
+        data_for_all_items.append(data_per_layer)
 
     # At this point weights_for_all_items is a list containing, for each item, a numpy array with (flattened) attention weights averaged for token groups, for all layers
 
-
     ## Store the weights in dataframe together with original data
-    weights_for_all_items = pd.DataFrame(weights_for_all_items)
-    df = pd.concat([items, weights_for_all_items], axis=1)
+    # data_for_all_items = pd.DataFrame(data_for_all_items)
+    data_for_all_items = [layer for data_per_layer in data_for_all_items for layer in data_per_layer]
 
+    multi_index = pd.MultiIndex.from_product([items.index, list(range(n_layers))], names=["item", "layer"])
+    multi_columns = pd.MultiIndex.from_tuples([(c, '') for c in items.columns] + [('weights', i) for i in range(len(items.groups)**2)] + [('balance', n) for n in items.groups])
+
+    df = pd.DataFrame(data_for_all_items, index=multi_index, columns=multi_columns)
+    # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT), and the balance computed from them
 
     ## Compute means over attention weights across all conditions (easy because they're flattened)
-    if len(items.factors) > 0:
-        means = df.groupby(items.factors).mean().values
-    else:
-        means = df.mean().values
+    means = df.groupby(items.factors + ['layer']).mean().values
     means = means.reshape(len(items.conditions) * n_layers, -1)
-    multi_index = pd.MultiIndex.from_product(
-        [items.levels[factor] for factor in items.factors] + [list(range(n_layers))], names=items.factors + ['layer'])
-    df_means = pd.DataFrame(means, index=multi_index)
+    multi_index = pd.MultiIndex.from_product([items.levels[factor] for factor in items.factors] + [list(range(n_layers))], names=items.factors + ['layer'])
+    multi_columns = pd.MultiIndex.from_tuples([('weights', i) for i in range(len(items.groups)**2)] + [('balance', n) for n in items.groups])
+    df_means = pd.DataFrame(means, index=multi_index, columns=multi_columns)
 
     # TODO Now might be a good time to store intermediate results to disk?
 
@@ -510,29 +516,16 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
                 # More work if it's an actual weights plot:
                 else:
                     weights = df_means.loc[(level_horiz, level_vert, l)] if level_vert is not None else (df_means.loc[(level_horiz, l)] if level_horiz is not None else df_means.loc[l])
-                    weights = weights.values
-                    dim = int(np.sqrt(weights.shape[-1]))
-                    weights = weights.reshape(dim, dim)
-                    # if args.transpose:        ## Disabled; would yield incorrect axis labels etc.
-                    #    weights = weights.transpose()
-                    index = items.groups if not args.ignore_groups else None  # TODO "None" will give error; replace by exemplary tokens of a given type of item?  items.iloc[0].tokenized.split()
-                    weights = pd.DataFrame(weights, index=index, columns=index)
                     weights.difference = False
-
-                # Compute how much (more) each token influences vs. how much it is influenced:
-                with warnings.catch_warnings():
-                    warnings.simplefilter('ignore')
-                    weights.balance = pd.DataFrame({'balance': (weights - weights.transpose().values).sum(axis=1)})
-                    # weights.balance2 = pd.DataFrame({'balance': weights.sum(axis=1) - weights.sum(axis=0).values})    # equivalent
 
                 # Some convenient metadata (used mostly when creating plots)
                 # It's a lot safer that each dataframe carries its own details with it in this way.
                 weights.level_horiz = level_horiz
                 weights.level_vert = level_vert
-                weights.max_for_colormap = weights.max().max()
-                weights.min_for_colormap = weights.min().min()
-                weights.balance.max_for_colormap = weights.balance.max().max()
-                weights.balance.min_for_colormap = weights.balance.min().min()
+                weights.max_for_colormap = weights['weights'].max().max()
+                weights.min_for_colormap = weights['weights'].min().min()
+                weights.balance_max_for_colormap = weights['balance'].max().max()
+                weights.balance_min_for_colormap = weights['balance'].min().min()
                 weights.layer = l
 
                 # Add dataframe to designated position
@@ -564,9 +557,11 @@ def plot(weights_to_plot, args):
 
         for r, weights in enumerate(col):
 
+            tokens = weights['balance'].index
+
             axis = gs0[c, r] if weights.level_vert is not None else gs0[c] if weights.level_horiz is not None else gs0[0]
 
-            subgs = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=axis, height_ratios=(len(weights), 1 if args.balance else .0001), width_ratios=(.95, .05))
+            subgs = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=axis, height_ratios=(len(tokens), 1 if args.balance else .0001), width_ratios=(.95, .05))
 
             ax_main = plt.Subplot(f, subgs[0,0])
             f.add_subplot(ax_main)
@@ -578,9 +573,9 @@ def plot(weights_to_plot, args):
                 ax_balance_cbar = plt.Subplot(f, subgs[1,1])
                 f.add_subplot(ax_balance_cbar)
 
-            sns.heatmap(weights,
-                         xticklabels=True,
-                         yticklabels=True,
+            sns.heatmap(weights['weights'].values.reshape(len(tokens), len(tokens)),
+                         xticklabels=tokens,
+                         yticklabels=tokens,
                          vmin=weights.min_for_colormap,
                          vmax=weights.max_for_colormap,
                          center=0 if weights.difference else None,
@@ -609,22 +604,21 @@ def plot(weights_to_plot, args):
 
             plt.setp(ax_main.get_yticklabels(), rotation=0)
 
-#            print(weights.balance, weights.balance.index, weights.balance.values)
             if args.balance:
-                sns.heatmap(weights.balance.transpose(),
-                        xticklabels=["" for _ in weights.balance.index],
+                sns.heatmap(weights['balance'].values.reshape(1, len(tokens)),
+                        xticklabels=["" for _ in tokens],
                         yticklabels=['Balance'],
                         ax=ax_balance,
                         center=0,
-                        vmin = -round(weights.balance.max_for_colormap, 2),
-                        vmax = round(weights.balance.max_for_colormap, 2),
+                        vmin = -round(weights.balance_max_for_colormap, 2),
+                        vmax = round(weights.balance_max_for_colormap, 2),
                         linewidth=0.5,
                         cmap="PiYG" if weights.difference else "PiYG",
                         cbar=True,
                         cbar_ax=ax_balance_cbar,
                         # cbar_kws={'shrink': .5}, # makes utterly mini...
                         label='small',
-                        cbar_kws=dict(ticks=[-round(weights.balance.max_for_colormap, 2), 0, round(weights.balance.max_for_colormap, 2)], format="%.2f")
+                        cbar_kws=dict(ticks=[-round(weights.balance_max_for_colormap, 2), 0, round(weights.balance_max_for_colormap, 2)], format="%.2f")
                         )
                 plt.setp(ax_balance.get_yticklabels(), rotation=0)
                 ax_balance.xaxis.tick_top()
@@ -670,22 +664,22 @@ def calibrate_for_colormap(weights_to_plot_per_layer, global_colormap):
         layer_min = min([w.min_for_colormap for w in weights if not w.difference])
         layer_max_diff = max([max(abs(w.max_for_colormap), abs(w.min_for_colormap)) for w in weights if w.difference] + [0])
 
-        layer_balance_max = max([w.balance.max_for_colormap for w in weights if not w.difference])
-        layer_balance_min = min([w.balance.min_for_colormap for w in weights if not w.difference])
-        layer_balance_max_diff = max([max(abs(w.balance.max_for_colormap), abs(w.balance.min_for_colormap)) for w in weights if w.difference] + [0])
+        layer_balance_max = max([w.balance_max_for_colormap for w in weights if not w.difference])
+        layer_balance_min = min([w.balance_min_for_colormap for w in weights if not w.difference])
+        layer_balance_max_diff = max([max(abs(w.balance_max_for_colormap), abs(w.balance_min_for_colormap)) for w in weights if w.difference] + [0])
 
         # Default: "layer" calibration, set the new max and min values.
         for w in weights:
             if w.difference:
                 w.max_for_colormap = layer_max_diff
                 w.min_for_colormap = -layer_max_diff
-                w.balance.max_for_colormap = layer_balance_max_diff
-                w.balance.min_for_colormap = -layer_balance_max_diff
+                w.balance_max_for_colormap = layer_balance_max_diff
+                w.balance_min_for_colormap = -layer_balance_max_diff
             else:
                 w.max_for_colormap = layer_max
                 w.min_for_colormap = layer_min
-                w.balance.max_for_colormap = layer_balance_max
-                w.balance.min_for_colormap = layer_balance_min
+                w.balance_max_for_colormap = layer_balance_max
+                w.balance_min_for_colormap = layer_balance_min
 
         layer_maxes.append(layer_max)
         layer_mins.append(layer_min)
@@ -711,13 +705,13 @@ def calibrate_for_colormap(weights_to_plot_per_layer, global_colormap):
             if w.difference:
                 w.max_for_colormap = overall_max_diff
                 w.min_for_colormap = -overall_max_diff
-                w.balance.max_for_colormap = overall_balance_max_diff
-                w.balance.min_for_colormap = -overall_balance_max_diff
+                w.balance_max_for_colormap = overall_balance_max_diff
+                w.balance_min_for_colormap = -overall_balance_max_diff
             else:
                 w.max_for_colormap = overall_max
                 w.min_for_colormap = overall_min
-                w.balance.max_for_colormap = overall_balance_max
-                w.balance.min_for_colormap = overall_balance_min
+                w.balance_max_for_colormap = overall_balance_max
+                w.balance_min_for_colormap = overall_balance_min
 
 
 def suplabel(axis, label,label_prop={"size": 16},
