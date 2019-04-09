@@ -57,6 +57,7 @@ parser.add_argument('--cuda', action="store_true",
 # TODO: perhaps it's useful to allow plotting means over layers; sliding window-style? or chaining but with different starting points?
 # TODO: Is attention-chain bugged? Plots are uninterpretable; without normalization super high values only at layer 10-11... with normalization... big gray mess.
 # TODO: Should I take sum influence per group of tokens, or mean? E.g., with averaging, "a boy" will be dragged down by uninformative "a"...
+# TODO: Check why attention-chain doesn't yield good pictures; does normalization even make sense? What about normalizing the whole matrix just for the sake of comparability across layers?
 
 def main():
     """
@@ -435,11 +436,11 @@ def compute_MAT(all_attention_weights, layer_norm=True):
     for heads_of_layer in all_attention_weights:
         summed_activations = np.zeros_like(all_attention_weights[0][1])
         for head in heads_of_layer:      # n_tokens × n_tokens
-            activations_per_head = head.copy()
+            activations_per_head = head.copy().transpose()
             # (i,j) = how much (activations coming from) token i influences token j
             if layer_norm:       # Normalize influence (across all tokens i) on each token j
                 for j in range(0, len(activations_per_head)):
-                    activations_per_head[:,j] = normalize(activations_per_head[:, j])
+                    activations_per_head[:,j] = normalize(activations_per_head[:, j])   # TODO check if this really makes sense... I don't think it does.
             summed_activations += activations_per_head
 
         mean_activations_per_layer.append(summed_activations / all_attention_weights.shape[1])
@@ -461,11 +462,12 @@ def compute_pMAT(all_attention_weights, layer_norm=True):
     for layer in all_attention_weights:
         summed_activations = np.zeros_like(percolated_activations)
         for head in layer:      # n_tokens × n_tokens
-            activations_per_head = np.matmul(head, percolated_activations)
+            head_t = head.copy().transpose()    # TODO Check if correct
+            activations_per_head = np.matmul(head_t, percolated_activations)
             # (i,j) = how much (activations coming ultimately from) token i influences token j
             if layer_norm:       # Normalize influence (across all tokens i) on each token j
                 for j in range(0, len(activations_per_head)):
-                    activations_per_head[:,j] = normalize(activations_per_head[:, j])
+                    activations_per_head[:,j] = normalize(activations_per_head[:, j])       # TODO Check if this makes sense
             summed_activations += activations_per_head
         # for the next layer, use summed_activations as the next input activations
         percolated_activations = summed_activations
