@@ -1,9 +1,7 @@
-# specificity, |0 noun, |1 rest
--1, |1 There's a |0 labrador |1 in the garden.
-0, |1 There's a |0 dog |1 in the garden.
-1, |1 There's an |0 animal |1 in the garden.
-2, |1 There's a |0 lifeform |1 in the garden.
--1, |1 There's a |0 baker |1 in the garden.
-0, |1 There's a |0 man |1 in the garden.
-1, |1 There's an |0 adult |1 in the garden.
-2, |1 there's a |0 person |1 in the garden.
+# level, |0 noun, |1 rest
+subordinate, |1 There's a |0 labrador |1 in the garden.
+basic, |1 There's a |0 dog |1 in the garden.
+superordinate, |1 There's an |0 animal |1 in the garden.
+subordinate, |1 There's a |0 baker |1 in the garden.
+basic, |1 There's a |0 man |1 in the garden.
+superordinate, |1 There's a |0 person |1 in the garden.
