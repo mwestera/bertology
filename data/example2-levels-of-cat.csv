@@ -1,0 +1,9 @@
+# specificity, |0 noun
+-1, There's a |0 labrador | in the garden.
+0, There's a |0 dog | in the garden.
+1, There's an |0 animal | in the garden.
+2, There's a |0 lifeform | in the garden.
+-1, There's a |0 baker | in the garden.
+0, There's a |0 man | in the garden.
+1, There's an |0 adult | in the garden.
+2, there's a |0 person | in the garden.
