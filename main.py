@@ -134,7 +134,7 @@ def main():
 
         # TODO Put the following outside the current loop, inside its own (anticipating intermediary writing of results to disk)
         # Take averages over groups of tokens
-        if not args.ignore_groups:
+        if not args.ignore_groups and not len(items.groups) == 0:
             # TODO Ideally this would be done still on cuda
             data_per_layer = []
             for m in weights_per_layer:
@@ -157,6 +157,8 @@ def main():
 
                 # store
                 data_per_layer.append(each_item.to_list() + np.concatenate((grouped_weights, balance)).tolist())
+        else:
+            data_per_layer = weights_per_layer
 
             # stack and flatten for much easier handling with pandas, computing means etc.
             # weights_per_layer = np.stack(grouped_weights_per_layer).reshape(-1)
@@ -303,6 +305,10 @@ def parse_data(data_path, tokenizer, max_items=None):
         factor_names = ['f{}'.format(i) for i in range(num_factors)]
     else:
         factor_names = [factor_legend[key] for key in factor_legend]
+
+    # Remove empty list of groups if there are no groups
+    if len(group_names) == 0:
+        items = [item[:-1] for item in items]
 
     # Create dataframe with nice column names
     columns = factor_names + ['sentence'] + ['tokenized'] + group_names
