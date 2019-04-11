@@ -138,21 +138,23 @@ def write_file_for_main_POS():
     """
     To extract sentences where all POS of a certain type are grouped.
     :return:
-    """
-tags_of_interest = ['ADJ', 'ADV', 'NOUN', 'PRON', 'VERB', 'AUX', 'DET', 'PROPN']
+        """
+    tags_of_interest = ['ADJ', 'ADV', 'NOUN', 'PRON', 'VERB', 'AUX', 'DET', 'PROPN']
 
-out_file_path = os.path.basename(path_to_conllu_file)[:-7]+'_POS.csv'
+    out_file_path = os.path.basename(path_to_conllu_file)[:-7]+'_POS.csv'
 
-with open('data/'+out_file_path, 'w') as outfile:
-    writer = csv.writer(outfile)
-    writer.writerow(['{}|{} {}'.format('#' if i==0 else '', i, t) for i,t in enumerate(tags_of_interest)])
+    with open('data/'+out_file_path, 'w') as outfile:
+        writer = csv.writer(outfile)
+        writer.writerow(['{}|{} {}'.format('#' if i==0 else '', i, t) for i,t in enumerate(tags_of_interest)])
 
-    for sentence in parse_incr(open(path_to_conllu_file, "r", encoding="utf-8")):
-        token_forms = []
-        for token in sentence:
-            if token["upostag"] in tags_of_interest:
-                index = tags_of_interest.index(token["upostag"])
-                token_forms.append('|{} {} |'.format(index, token["form"].replace('|','')))
-            else:
-                token_forms.append(token["form"])
-        writer.writerow([' '.join(token_forms)])
+        for sentence in parse_incr(open(path_to_conllu_file, "r", encoding="utf-8")):
+            token_forms = []
+            for token in sentence:
+                if token["upostag"] in tags_of_interest:
+                    index = tags_of_interest.index(token["upostag"])
+                    token_forms.append('|{} {} |'.format(index, token["form"].replace('|','')))
+                else:
+                    token_forms.append(token["form"])
+            writer.writerow([' '.join(token_forms)])
+
+
