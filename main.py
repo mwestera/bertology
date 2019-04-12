@@ -81,11 +81,13 @@ def main():
         if os.path.exists(args.out):
             if input('Output directory {} already exists. Risk overwriting files? N/y'.format(args.out)) != 'y':
                 quit()
+
     if args.raw_out is None:
-        args.raw_out = 'data/auxiliary/{}_{}{}{}.pkl'.format(os.path.basename(args.data)[:-4],
+        args.raw_out = 'data/auxiliary/{}_{}{}{}{}.pkl'.format(os.path.basename(args.data)[:-4],
                                                          args.method,
                                                          '_'+args.combine if args.combine != 'no' else '',
-                                                         '_norm' if args.method == 'attention' and args.normalize_heads else '')
+                                                         '_norm' if args.method == 'attention' and args.normalize_heads else '',
+                                                         ('_'+args.n_items) if args.n_items is not None else '')
     need_BERT = True
     if os.path.exists(args.raw_out):
         if input('Raw output file exists. Overwrite? (N/y)') != "y":
