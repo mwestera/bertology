@@ -520,7 +520,7 @@ def compute_pMAT(all_attention_weights, layer_norm=True):
                     activations_per_head[:,j] = normalize(activations_per_head[:, j])       # TODO Check if this makes sense
             summed_activations += activations_per_head
         # normalize or things get out of hand
-        summed_activations = normalize(summed_activations)
+        summed_activations = normalize(summed_activations)  # TODO Check how this relates to layernorm
 
         # for the next layer, use summed_activations as the next input activations
         percolated_activations = summed_activations
