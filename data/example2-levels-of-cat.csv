@@ -1,46 +1,46 @@
 # original, level, |0 term, |1 rest
-super,super,"|2 He was arraigned Tuesday on nine charges -- two counts of aggravated murder, attempted aggravated murder, first-degree assault, two counts of intimidation and three counts of unlawful use of a |1 weapon |2 ."
-super,basic,"|2 He was arraigned Tuesday on nine charges -- two counts of aggravated murder, attempted aggravated murder, first-degree assault, two counts of intimidation and three counts of unlawful use of a |1 gun |2 ."
-super,sub,"|2 He was arraigned Tuesday on nine charges -- two counts of aggravated murder, attempted aggravated murder, first-degree assault, two counts of intimidation and three counts of unlawful use of a |1 shotgun |2 ."
-basic,basic,"|2 The other two roommates, William Calderon and Cory Lynch, each decided to ""prank"" Siela by pulling an unloaded |1 gun |2  on him and pretending to shoot when he returned to the living room."
-basic,super,"|2 The other two roommates, William Calderon and Cory Lynch, each decided to ""prank"" Siela by pulling an unloaded |1 weapon |2  on him and pretending to shoot when he returned to the living room."
-basic,sub,"|2 The other two roommates, William Calderon and Cory Lynch, each decided to ""prank"" Siela by pulling an unloaded |1 shotgun |2  on him and pretending to shoot when he returned to the living room."
-sub,sub,"|2 The door slowly creaked open, and Dan found himself nose to nose with the barrel of a |1 shotgun |2 ."
-sub,super,"|2 The door slowly creaked open, and Dan found himself nose to nose with the barrel of a |1 weapon |2 ."
-sub,basic,"|2 The door slowly creaked open, and Dan found himself nose to nose with the barrel of a |1 gun |2 ."
-super,super,|2 Her new head dress and modest |1 clothing |2  will convey to the world that she is an acceptably moral version of womanhood.
-super,basic,|2 Her new head dress and modest |1 pants |2  will convey to the world that she is an acceptably moral version of womanhood.
-super,sub,|2 Her new head dress and modest |1 jeans |2  will convey to the world that she is an acceptably moral version of womanhood.
-basic,basic,"|2 ""Everyone has a pair of black stretch |1 pants |2  or a black stretchy top,"" he said, referring to retailer offerings but applicable to consumers as well."
-basic,super,"|2 ""Everyone has a pair of black stretch |1 clothing |2  or a black stretchy top,"" he said, referring to retailer offerings but applicable to consumers as well."
-basic,sub,"|2 ""Everyone has a pair of black stretch |1 jeans |2  or a black stretchy top,"" he said, referring to retailer offerings but applicable to consumers as well."
-sub,sub,"|2 I pulled three creamers out of my apron pocket where I stashed them, mostly because keeping creamers in my |1 jeans |2  pocket never ended well."
-sub,super,"|2 I pulled three creamers out of my apron pocket where I stashed them, mostly because keeping creamers in my |1 clothing |2  pocket never ended well."
-sub,basic,"|2 I pulled three creamers out of my apron pocket where I stashed them, mostly because keeping creamers in my |1 pants |2  pocket never ended well."
-super,super,"|2 From the man's car, shirt, and |1 footgear |2 , the wife was deducible."
-super,basic,"|2 From the man's car, shirt, and |1 shoes |2 , the wife was deducible."
-super,sub,"|2 From the man's car, shirt, and |1 sandals |2 , the wife was deducible."
-basic,basic,|2 The ministry also said |1 shoes |2  and other items believed to be from the missing victims were found.
-basic,super,|2 The ministry also said |1 footgear |2  and other items believed to be from the missing victims were found.
-basic,sub,|2 The ministry also said |1 sandals |2  and other items believed to be from the missing victims were found.
-sub,sub,"|2 His feet are callused and bare, outlined with dirt from the |1 sandals |2  he wore the day before."
-sub,super,"|2 His feet are callused and bare, outlined with dirt from the |1 footgear |2  he wore the day before."
-sub,basic,"|2 His feet are callused and bare, outlined with dirt from the |1 shoes |2  he wore the day before."
-super,super,"|2 ""The dramatic change was they went from very little infrastructure and very little capacity to get work done, particularly in an organized manner, to having a well-honed |1 tool |2  that was shaped perfectly for the job."""
-super,basic,"|2 ""The dramatic change was they went from very little infrastructure and very little capacity to get work done, particularly in an organized manner, to having a well-honed |1 saw |2  that was shaped perfectly for the job."""
-super,sub,"|2 ""The dramatic change was they went from very little infrastructure and very little capacity to get work done, particularly in an organized manner, to having a well-honed |1 chainsaw |2  that was shaped perfectly for the job."""
-basic,basic,"|2 If the top shifts as the glue dries, trim it with a |1 saw |2 , using the breadboard ends as a guide."
-basic,super,"|2 If the top shifts as the glue dries, trim it with a |1 tool |2 , using the breadboard ends as a guide."
-basic,sub,"|2 If the top shifts as the glue dries, trim it with a |1 chainsaw |2 , using the breadboard ends as a guide."
-sub,sub,|2 Emma and I stood a safe distance away and watched him as he climbed his ladder and cut off branches with a |1 chainsaw |2 .
-sub,super,|2 Emma and I stood a safe distance away and watched him as he climbed his ladder and cut off branches with a |1 tool |2 .
-sub,basic,|2 Emma and I stood a safe distance away and watched him as he climbed his ladder and cut off branches with a |1 saw |2 .
-super,super,"|2 Station keeping occurs within an |1 animal |2 's home range and includes foraging, commuting and territorial behavior."
-super,basic,"|2 Station keeping occurs within an |1 dog |2 's home range and includes foraging, commuting and territorial behavior."
-super,sub,"|2 Station keeping occurs within an |1 poodle |2 's home range and includes foraging, commuting and territorial behavior."
-basic,basic,|2 Deputy Justin Williams found the kit in the woman's home and was able to locate her with the help of a |1 dog |2  in five minutes.
-basic,super,|2 Deputy Justin Williams found the kit in the woman's home and was able to locate her with the help of an |1 animal |2  in five minutes.
-basic,sub,|2 Deputy Justin Williams found the kit in the woman's home and was able to locate her with the help of a |1 poodle |2  in five minutes.
-sub,sub,"|2 Pollo, the tiny |1 poodle |2 , succumbed to a stroke just a month into his new lease on life."
-sub,super,"|2 Pollo, the tiny |1 animal |2 , succumbed to a stroke just a month into his new lease on life."
-sub,basic,"|2 Pollo, the tiny |1 dog |2 , succumbed to a stroke just a month into his new lease on life."
+super,super,"|1 He was arraigned Tuesday on nine charges -- two counts of aggravated murder, attempted aggravated murder, first-degree assault, two counts of intimidation and three counts of unlawful use of a |0 weapon |1 ."
+super,basic,"|1 He was arraigned Tuesday on nine charges -- two counts of aggravated murder, attempted aggravated murder, first-degree assault, two counts of intimidation and three counts of unlawful use of a |0 gun |1 ."
+super,sub,"|1 He was arraigned Tuesday on nine charges -- two counts of aggravated murder, attempted aggravated murder, first-degree assault, two counts of intimidation and three counts of unlawful use of a |0 shotgun |1 ."
+basic,basic,"|1 The other two roommates, William Calderon and Cory Lynch, each decided to ""prank"" Siela by pulling an unloaded |0 gun |1  on him and pretending to shoot when he returned to the living room."
+basic,super,"|1 The other two roommates, William Calderon and Cory Lynch, each decided to ""prank"" Siela by pulling an unloaded |0 weapon |1  on him and pretending to shoot when he returned to the living room."
+basic,sub,"|1 The other two roommates, William Calderon and Cory Lynch, each decided to ""prank"" Siela by pulling an unloaded |0 shotgun |1  on him and pretending to shoot when he returned to the living room."
+sub,sub,"|1 The door slowly creaked open, and Dan found himself nose to nose with the barrel of a |0 shotgun |1 ."
+sub,super,"|1 The door slowly creaked open, and Dan found himself nose to nose with the barrel of a |0 weapon |1 ."
+sub,basic,"|1 The door slowly creaked open, and Dan found himself nose to nose with the barrel of a |0 gun |1 ."
+super,super,|1 Her new head dress and modest |0 clothing |1  will convey to the world that she is an acceptably moral version of womanhood.
+super,basic,|1 Her new head dress and modest |0 pants |1  will convey to the world that she is an acceptably moral version of womanhood.
+super,sub,|1 Her new head dress and modest |0 jeans |1  will convey to the world that she is an acceptably moral version of womanhood.
+basic,basic,"|1 ""Everyone has a pair of black stretch |0 pants |1  or a black stretchy top,"" he said, referring to retailer offerings but applicable to consumers as well."
+basic,super,"|1 ""Everyone has a pair of black stretch |0 clothing |1  or a black stretchy top,"" he said, referring to retailer offerings but applicable to consumers as well."
+basic,sub,"|1 ""Everyone has a pair of black stretch |0 jeans |1  or a black stretchy top,"" he said, referring to retailer offerings but applicable to consumers as well."
+sub,sub,"|1 I pulled three creamers out of my apron pocket where I stashed them, mostly because keeping creamers in my |0 jeans |1  pocket never ended well."
+sub,super,"|1 I pulled three creamers out of my apron pocket where I stashed them, mostly because keeping creamers in my |0 clothing |1  pocket never ended well."
+sub,basic,"|1 I pulled three creamers out of my apron pocket where I stashed them, mostly because keeping creamers in my |0 pants |1  pocket never ended well."
+super,super,"|1 From the man's car, shirt, and |0 footgear |1 , the wife was deducible."
+super,basic,"|1 From the man's car, shirt, and |0 shoes |1 , the wife was deducible."
+super,sub,"|1 From the man's car, shirt, and |0 sandals |1 , the wife was deducible."
+basic,basic,|1 The ministry also said |0 shoes |1  and other items believed to be from the missing victims were found.
+basic,super,|1 The ministry also said |0 footgear |1  and other items believed to be from the missing victims were found.
+basic,sub,|1 The ministry also said |0 sandals |1  and other items believed to be from the missing victims were found.
+sub,sub,"|1 His feet are callused and bare, outlined with dirt from the |0 sandals |1  he wore the day before."
+sub,super,"|1 His feet are callused and bare, outlined with dirt from the |0 footgear |1  he wore the day before."
+sub,basic,"|1 His feet are callused and bare, outlined with dirt from the |0 shoes |1  he wore the day before."
+super,super,"|1 ""The dramatic change was they went from very little infrastructure and very little capacity to get work done, particularly in an organized manner, to having a well-honed |0 tool |1  that was shaped perfectly for the job."""
+super,basic,"|1 ""The dramatic change was they went from very little infrastructure and very little capacity to get work done, particularly in an organized manner, to having a well-honed |0 saw |1  that was shaped perfectly for the job."""
+super,sub,"|1 ""The dramatic change was they went from very little infrastructure and very little capacity to get work done, particularly in an organized manner, to having a well-honed |0 chainsaw |1  that was shaped perfectly for the job."""
+basic,basic,"|1 If the top shifts as the glue dries, trim it with a |0 saw |1 , using the breadboard ends as a guide."
+basic,super,"|1 If the top shifts as the glue dries, trim it with a |0 tool |1 , using the breadboard ends as a guide."
+basic,sub,"|1 If the top shifts as the glue dries, trim it with a |0 chainsaw |1 , using the breadboard ends as a guide."
+sub,sub,|1 Emma and I stood a safe distance away and watched him as he climbed his ladder and cut off branches with a |0 chainsaw |1 .
+sub,super,|1 Emma and I stood a safe distance away and watched him as he climbed his ladder and cut off branches with a |0 tool |1 .
+sub,basic,|1 Emma and I stood a safe distance away and watched him as he climbed his ladder and cut off branches with a |0 saw |1 .
+super,super,"|1 Station keeping occurs within an |0 animal |1 's home range and includes foraging, commuting and territorial behavior."
+super,basic,"|1 Station keeping occurs within an |0 dog |1 's home range and includes foraging, commuting and territorial behavior."
+super,sub,"|1 Station keeping occurs within an |0 poodle |1 's home range and includes foraging, commuting and territorial behavior."
+basic,basic,|1 Deputy Justin Williams found the kit in the woman's home and was able to locate her with the help of a |0 dog |1  in five minutes.
+basic,super,|1 Deputy Justin Williams found the kit in the woman's home and was able to locate her with the help of an |0 animal |1  in five minutes.
+basic,sub,|1 Deputy Justin Williams found the kit in the woman's home and was able to locate her with the help of a |0 poodle |1  in five minutes.
+sub,sub,"|1 Pollo, the tiny |0 poodle |1 , succumbed to a stroke just a month into his new lease on life."
+sub,super,"|1 Pollo, the tiny |0 animal |1 , succumbed to a stroke just a month into his new lease on life."
+sub,basic,"|1 Pollo, the tiny |0 dog |1 , succumbed to a stroke just a month into his new lease on life."
