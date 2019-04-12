@@ -405,6 +405,7 @@ def apply_bert(items, tokenizer, args):
             weights_per_layer = weights_per_layer.transpose(0,2,1)  # for uniformity with attention weights: (layer, input_token, output_token)
             # TODO IMPORTANT Not sure if this is right; the picture comes out all weird, almost the inverse of attention-based...
 
+        # TODO Move this outside this function; doesn't need to be generated/saved separately.
         if args.combine == "cumsum":
             weights_per_layer = np.cumsum(weights_per_layer, axis=0)
 
@@ -518,6 +519,9 @@ def compute_pMAT(all_attention_weights, layer_norm=True):
                 for j in range(0, len(activations_per_head)):
                     activations_per_head[:,j] = normalize(activations_per_head[:, j])       # TODO Check if this makes sense
             summed_activations += activations_per_head
+        # normalize or things get out of hand
+        summed_activations = normalize(summed_activations)
+
         # for the next layer, use summed_activations as the next input activations
         percolated_activations = summed_activations
         # I believe normalizing the activations (as a whole or per col) makes no difference.
