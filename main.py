@@ -77,20 +77,14 @@ def main():
             if input('Output directory {} already exists. Risk overwriting files? N/y'.format(args.out)) != 'y':
                 quit()
 
-    ## Set up tokenizer, data and model
+    ## Set up tokenizer, data
     tokenizer = BertTokenizer.from_pretrained(args.bert, do_lower_case=("uncased" in args.bert))
     items = parse_data(args.data, tokenizer, max_items=args.n_items)
-    model = BertModel.from_pretrained(args.bert)
-
-    if args.cuda:
-        model.cuda()
 
     print(len(items), 'items')
 
     ## Store for convenience
     args.factors = args.factors or items.factors[:2]    # by default use the first two factors from the data
-    n_layers = len(model.encoder.layer)
-
 
     ## Now that args.factors is known, finally choose output directory
     if args.out is None:
@@ -110,31 +104,21 @@ def main():
 
 
     ## Compute attention weights, one item at a time
-    data_for_all_items = []
-    for _, each_item in tqdm(items.iterrows(), total=len(items)):
+    # TODO Check if file already exists; if not, apply bert; otherwise read from file
+    data_for_all_items = apply_bert(items, tokenizer, args.method, args.combine)
 
-        if args.method == "attention":
-            tokens_a, tokens_b, attention = apply_bert_get_attention(model, tokenizer, each_item['sentence'])
-            attention = attention.squeeze()
-            if args.combine == "chain":
-                weights_per_layer = compute_pMAT(attention, layer_norm=args.normalize_heads)
-            else:
-                weights_per_layer = compute_MAT(attention, layer_norm=args.normalize_heads)
-            ## Nope, instead of the following, transpose the gradients: from input_token to output_token
-            # weights_per_layer = weights_per_layer.transpose(0,2,1)  # for uniformity with gradients: (layer, output_token, input_token)
-        elif args.method == "gradient":
-            tokens_a, tokens_b, weights_per_layer = apply_bert_get_gradients(model, tokenizer, each_item['sentence'], chain=args.combine=="chain")
-            weights_per_layer = weights_per_layer.transpose(0,2,1)  # for uniformity with attention weights: (layer, input_token, output_token)
-            # TODO IMPORTANT Not sure if this is right; the picture comes out all weird, almost the inverse of attention-based...
+    # weights_per_layer now contains: (n_layers, n_tokens, n_tokens)
 
-        if args.combine == "cumsum":
-            weights_per_layer = np.cumsum(weights_per_layer, axis=0)
+    ## Convenient to store this
+    n_layers = 12   # TODO obtain this from weights per layer
 
-        # weights_per_layer now contains: (n_layers, n_tokens, n_tokens)
+    # Take averages over groups of tokens
+    if not args.ignore_groups and not len(items.groups) == 0:
 
-        # TODO Put the following outside the current loop, inside its own (anticipating intermediary writing of results to disk)
-        # Take averages over groups of tokens
-        if not args.ignore_groups and not len(items.groups) == 0:
+        data_for_all_items2 = []
+
+        for _, each_item, weights_per_layer in zip(items.iterrows(), data_for_all_items):
+
             # TODO Ideally this would be done still on cuda
             data_per_layer = []
             for m in weights_per_layer:
@@ -157,13 +141,13 @@ def main():
 
                 # store
                 data_per_layer.append(each_item.to_list() + np.concatenate((grouped_weights, balance)).tolist())
-        else:
-            data_per_layer = weights_per_layer
 
             # stack and flatten for much easier handling with pandas, computing means etc.
             # weights_per_layer = np.stack(grouped_weights_per_layer).reshape(-1)
 
-        data_for_all_items.append(data_per_layer)
+            data_for_all_items2.append(data_per_layer)
+
+        data_for_all_items = data_for_all_items2
 
     # At this point weights_for_all_items is a list containing, for each item, a numpy array with (flattened) attention weights averaged for token groups, for all layers
 
@@ -184,7 +168,7 @@ def main():
     multi_columns = pd.MultiIndex.from_tuples([('weights', i) for i in range(len(items.groups)**2)] + [('balance', n) for n in items.groups])
     df_means = pd.DataFrame(means, index=multi_index, columns=multi_columns)
 
-    # TODO Now might be a good time to store intermediate results to disk?
+    # TODO Now might be a good time to store intermediate results to disk? Actually, do this earlier.
 
 
     ## Restrict attention to the factors of interest:
@@ -368,6 +352,37 @@ def apply_bert_get_attention(model, tokenizer, sequence):
     attn = attn_tensor.data.cpu().numpy()
 
     return tokens_a, tokens_b, attn
+
+
+def apply_bert(items, tokenizer, args):
+    model = BertModel.from_pretrained(args.bert)
+
+    if args.cuda:
+        model.cuda()
+
+    data_for_all_items = []
+    for _, each_item in tqdm(items.iterrows(), total=len(items)):
+
+        if args.method == "attention":
+            tokens_a, tokens_b, attention = apply_bert_get_attention(model, tokenizer, each_item['sentence'])
+            attention = attention.squeeze()
+            if args.combine == "chain":
+                weights_per_layer = compute_pMAT(attention, layer_norm=args.normalize_heads)
+            else:
+                weights_per_layer = compute_MAT(attention, layer_norm=args.normalize_heads)
+            ## Nope, instead of the following, transpose the gradients: from input_token to output_token
+            # weights_per_layer = weights_per_layer.transpose(0,2,1)  # for uniformity with gradients: (layer, output_token, input_token)
+        elif args.method == "gradient":
+            tokens_a, tokens_b, weights_per_layer = apply_bert_get_gradients(model, tokenizer, each_item['sentence'], chain=args.combine=="chain")
+            weights_per_layer = weights_per_layer.transpose(0,2,1)  # for uniformity with attention weights: (layer, input_token, output_token)
+            # TODO IMPORTANT Not sure if this is right; the picture comes out all weird, almost the inverse of attention-based...
+
+        if args.combine == "cumsum":
+            weights_per_layer = np.cumsum(weights_per_layer, axis=0)
+
+        data_for_all_items.append(weights_per_layer)
+
+    return data_for_all_items
 
 
 def apply_bert_get_gradients(model, tokenizer, sequence, chain):
