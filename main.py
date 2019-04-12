@@ -20,6 +20,7 @@ import warnings
 import argparse
 
 from tqdm import tqdm
+import pickle
 
 parser = argparse.ArgumentParser(description='e.g., main.py data/example.csv')
 parser.add_argument('data', type=str,
@@ -28,6 +29,8 @@ parser.add_argument('--n_items', type=int, default=None,
                     help='Max number of items from dataset to consider.')
 parser.add_argument('--out', type=str, default=None,
                     help='Output directory for plots (default: creates a new /temp## folder)')
+parser.add_argument('--raw_out', type=str, default=None,
+                    help='Output directory for raw BERT outputs, pickled for efficient reuse.')
 parser.add_argument('--method', type=str, default='gradient', choices=["gradient", "attention"],
                     help='attention or gradient (default)')
 parser.add_argument('--combine', type=str, default='no', choices=["chain", "cumsum", "no"],
@@ -78,6 +81,15 @@ def main():
         if os.path.exists(args.out):
             if input('Output directory {} already exists. Risk overwriting files? N/y'.format(args.out)) != 'y':
                 quit()
+    if args.raw_out is None:
+        args.raw_out = 'data/auxiliary/{}_{}{}{}.pkl'.format(os.path.basename(args.data)[:-4],
+                                                         args.method,
+                                                         '_'+args.combine if args.combine != 'no' else '',
+                                                         '_norm' if args.method == 'attention' and args.normalize_heads else '')
+    need_BERT = True
+    if os.path.exists(args.raw_out):
+        if input('Raw output file exists. Overwrite? (N/y)') != "y":
+            need_BERT = False
 
     ## Set up tokenizer, data
     tokenizer = BertTokenizer.from_pretrained(args.bert, do_lower_case=("uncased" in args.bert))
@@ -104,12 +116,18 @@ def main():
         args.out = os.path.join("output", dirname)
         os.mkdir(args.out)
 
+    if need_BERT:
+        data_for_all_items = apply_bert(items, tokenizer, args)
+        with open(args.raw_out, 'wb') as file:
+            pickle.dump(data_for_all_items, file)
+            print('BERTs raw outputs saved as',args.raw_out)
+    else:
+        with open(args.raw_out, 'rb') as file:
+            print('BERTs raw outputs loaded from', args.raw_out)
+            data_for_all_items = pickle.load(file)
 
-    ## Compute attention weights, one item at a time
-    # TODO Check if file already exists; if not, apply bert; otherwise read from file
-    data_for_all_items = apply_bert(items, tokenizer, args)
-
-    # weights_per_layer now contains: (n_layers, n_tokens, n_tokens)
+    # data_for_all_items contains, for each item, weights (n_layers, n_tokens, n_tokens)
+    # TODO store in pandas?
 
     ## Convenient to store this
     n_layers = 12   # TODO obtain this from weights per layer
