@@ -164,7 +164,7 @@ def read_categories_from_rosch_etal():
     Lazy sloppy code for selecting some categories.
     :return:
     """
-    path = 'data/auxiliary_data/categories.txt'
+    path = 'data/auxiliary/categories.txt'
     triples = []
 
     with open(path) as data:
@@ -231,7 +231,7 @@ def generate_sentences_from_categories():
     """
     sentences = []
     tuples = {}
-    with open('data/auxiliary_data/category-sentences.txt') as file:
+    with open('data/auxiliary/category-sentences.txt') as file:
         for line in file:
             if not line.startswith('#') and not line.strip() == '':
                 row = [s.strip() for s in line.split(';')]
@@ -256,7 +256,7 @@ def generate_sentences_from_categories():
                 all_items.append(new_item)
 
     # Write to csv including group tags right away
-    with open('data/category-sentences.csv', 'w') as file:
+    with open('data/auxiliary/category-sentences.csv', 'w') as file:
         file.write('# original, level, |0 term, |1 rest \n')
         writer = csv.writer(file)
         for item in all_items:
