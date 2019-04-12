@@ -230,7 +230,8 @@ def generate_sentences_from_categories():
     :return:
     """
     sentences = []
-    tuples = {}
+    tuples_dict = {}
+    tuples = []
     with open('data/auxiliary/category-sentences.txt') as file:
         for line in file:
             if not line.startswith('#') and not line.strip() == '':
@@ -240,28 +241,34 @@ def generate_sentences_from_categories():
         print("Something's wrong")
     for i in range(0, len(sentences), 3):
         tuple = [s[1] for s in sentences[i:i+3]]
-        tuples[tuple[0]] = tuples[tuple[1]] = tuples[tuple[2]] = tuple
+        tuples.append(tuple)
+        tuples_dict[tuple[0]] = tuples_dict[tuple[1]] = tuples_dict[tuple[2]] = tuple
 
     all_items = []
     for original in sentences:
-        all_items.append((original[0], original[0], original[1], original[2]))
+        all_items.append((original[0], original[0], 'natural', original[1], original[2]))
         for i, level in enumerate(['super', 'basic', 'sub']):
             if level != original[0]:
-                replacement = tuples[original[1]][i]
+                replacement = tuples_dict[original[1]][i]
                 new_sentence = original[2].replace(original[1], replacement)
                 # Quick dirty fix
                 for vowel in ['a', 'e', 'i', 'o', 'u']:
                     new_sentence = new_sentence.replace(' a {}'.format(vowel), ' an {}'.format(vowel))
-                new_item = (original[0], level, replacement, new_sentence)
+                new_item = (original[0], level, 'manipulated', replacement, new_sentence)
                 all_items.append(new_item)
+
+    artificial = 'I wonder if my sister will bring her {} to the meeting.'
+    for tuple in tuples:
+        for term, level in zip(tuple, ['super', 'basic', 'sub']):
+            all_items.append((level, level, 'artificial', term, artificial.format(term)))
 
     # Write to csv including group tags right away
     with open('data/auxiliary/category-sentences.csv', 'w') as file:
-        file.write('# original, level, |0 term, |1 rest \n')
+        file.write('# original, level, source, |0 term, |1 rest \n')
         writer = csv.writer(file)
         for item in all_items:
-            sent_with_groups = '|1 ' + item[3].replace(item[2], '|0 '+item[2] + ' |1 ')
-            row = [item[0], item[1], sent_with_groups]
+            sent_with_groups = '|1 ' + item[4].replace(item[3], '|0 '+item[3] + ' |1 ')
+            row = [item[0], item[1], item[2], sent_with_groups]
             writer.writerow(row)
 
     print('wrote {} items to {}'.format(len(all_items), 'data/category-sentences.csv'))
