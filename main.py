@@ -187,8 +187,10 @@ def main():
 
     ## Compute means over attention weights across all conditions (easy because they're flattened)
     means = df.groupby(items.factors + ['layer']).mean().values
+
     means = means.reshape(len(items.conditions) * n_layers, -1)
-    multi_index = pd.MultiIndex.from_product([items.levels[factor] for factor in items.factors] + [list(range(n_layers))], names=items.factors + ['layer'])
+    # multi_index = pd.MultiIndex.from_product([items.levels[factor] for factor in items.factors] + [list(range(n_layers))], names=items.factors + ['layer'])
+    multi_index = pd.MultiIndex.from_tuples([tuple([s for s in t] + [i]) for t in items.conditions for i in range(n_layers)], names=items.factors + ['layer'])
     multi_columns = pd.MultiIndex.from_tuples([('weights', i) for i in range(len(items.groups)**2)] + [('balance', n) for n in items.groups])
     df_means = pd.DataFrame(means, index=multi_index, columns=multi_columns)
 
@@ -330,7 +332,9 @@ def parse_data(data_path, tokenizer, max_items=None):
         items.num_groups = max_group_id + 1
         items.groups = group_names
         items.levels = {factor: items[factor].unique().tolist() for factor in items.factors}
-        items.conditions = list(itertools.product(*[items.levels[factor] for factor in items.factors]))
+        # # following is bugged: not all combination needs to exist in the data
+        # items.conditions = list(itertools.product(*[items.levels[factor] for factor in items.factors]))
+        items.conditions = list(set([tuple(l) for l in items[items.factors].values]))
 
     return items
 
