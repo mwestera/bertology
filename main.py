@@ -120,6 +120,8 @@ def main():
         args.out = os.path.join("output", dirname)
         os.mkdir(args.out)
 
+
+    ## Apply BERT or, if available, load results saved from previous run
     if need_BERT:
         data_for_all_items = apply_bert(items, tokenizer, args)
         with open(args.raw_out, 'wb') as file:
@@ -129,66 +131,58 @@ def main():
         with open(args.raw_out, 'rb') as file:
             print('BERTs raw outputs loaded from', args.raw_out)
             data_for_all_items = pickle.load(file)
+    n_layers = data_for_all_items[0].shape[0] # for convenience
+    # The list data_for_all_items now contains, for each item, weights (n_layers, n_tokens, n_tokens)
 
-    # data_for_all_items contains, for each item, weights (n_layers, n_tokens, n_tokens)
-    # TODO store in pandas?
 
-    ## Convenient to store this
-    n_layers = 12   # TODO obtain this from weights per layer
-
-    # Take averages over groups of tokens
+    ## Take averages over groups of tokens
     if not args.ignore_groups and not len(items.groups) == 0:
+        data_for_all_items = average_for_token_groups(items, data_for_all_items)
+        # list with, for each item, weights (n_layers, n_groups, n_groups)
 
-        data_for_all_items2 = []
 
-        for (_, each_item), weights_per_layer in zip(items.iterrows(), data_for_all_items):
+    ## Compute balances (though whether they will be plotted depends on args.balance)
+    # (Re)compute balance: how much token influences minus how much is influenced
+    balance_for_all_items = []
+    for data_for_item in data_for_all_items:
+        balance_for_item = []
+        for data_for_layer in data_for_item:
+            balance = np.nansum(data_for_layer - data_for_layer.transpose(), axis=1)
+            balance_for_item.append(balance)
+        balance_for_all_items.append(np.stack(balance_for_item))
+    # At this point we have two lists of numpy arrays: for each item, the weights & balance across layers.
 
-            # TODO Ideally this would be done still on cuda
-            data_per_layer = []
-            for m in weights_per_layer:
-                # Group horizontally
-                grouped_weights_horiz = []
-                for group in items.groups:
-                    grouped_weights_horiz.append(m[each_item[group]].mean(axis=0))
-                grouped_weights_horiz = np.stack(grouped_weights_horiz)
-
-                # Group the result also vertically
-                grouped_weights = []
-                for group in items.groups:
-                    grouped_weights.append(grouped_weights_horiz[:, each_item[group]].mean(axis=1))
-                grouped_weights = np.stack(grouped_weights).transpose()  # transpose to restore original order
-
-                # Compute balance: how much token influences minus how much is influenced
-                balance = np.nansum(grouped_weights - grouped_weights.transpose(), axis=1)
-
-                grouped_weights = grouped_weights.reshape(-1)
-
-                # store
-                data_per_layer.append(each_item.to_list() + np.concatenate((grouped_weights, balance)).tolist())
-
-            # stack and flatten for much easier handling with pandas, computing means etc.
-            # weights_per_layer = np.stack(grouped_weights_per_layer).reshape(-1)
-
-            data_for_all_items2.append(data_per_layer)
-
-        data_for_all_items = data_for_all_items2
-
-    # At this point weights_for_all_items is a list containing, for each item, a numpy array with (flattened) attention weights averaged for token groups, for all layers
 
     ## Store the weights in dataframe together with original data
-    # data_for_all_items = pd.DataFrame(data_for_all_items)
-    data_for_all_items = [layer for data_per_layer in data_for_all_items for layer in data_per_layer]
+    # TODO All of this feels terribly hacky...
+    # First flatten the numpy array per item per layer
+    data_for_all_items = [layer.reshape(-1) for data_per_layer in data_for_all_items for layer in data_per_layer]
+    balance_for_all_items = [layer.reshape(-1) for balance_per_layer in balance_for_all_items for layer in balance_per_layer]
+    # And then concatenate them (still per item per layer)
+    data_and_balance_for_all_items = [np.concatenate((array1, array2)).tolist() for array1, array2 in zip(data_for_all_items, balance_for_all_items)]
+    # Concatenate onto original data rows (with each row repeated n_layers times)
+    original_items_times_nlayers = [a for l in [[i.to_list()] * n_layers for (_, i) in items.iterrows()] for a in l]
+    data_for_dataframe = [a + b for a, b in zip(original_items_times_nlayers, data_and_balance_for_all_items)]
 
+    # Multi-index to represent each layer (per item) as a separate row
     multi_index = pd.MultiIndex.from_product([items.index, list(range(n_layers))], names=["item", "layer"])
-    multi_columns = pd.MultiIndex.from_tuples([(c, '') for c in items.columns] + [('weights', i) for i in range(len(items.groups)**2)] + [('balance', n) for n in items.groups])
+    # Multi-column to represent the (flattened) numpy arrays in a structured way
+    multi_columns = pd.MultiIndex.from_tuples([(c, '', '') for c in items.columns] + [('weights', g1, g2) for g1 in items.groups for g2 in items.groups] + [('balance', g, '') for g in items.groups])
 
-    df = pd.DataFrame(data_for_all_items, index=multi_index, columns=multi_columns)
+    df = pd.DataFrame(data_for_dataframe, index=multi_index, columns=multi_columns)
     # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT), and the balance computed from them
 
     ## Compute means over attention weights across all conditions (easy because they're flattened)
-    means = df.groupby(items.factors + ['layer']).mean().values
+    means = df.groupby(items.factors + ['layer']).mean()
 
-    means = means.reshape(len(items.conditions) * n_layers, -1)
+    print(df.groupby(items.factors).describe()) # TODO group columns?
+
+    # # produces Pandas Series
+    # data.groupby('month')['duration'].sum()
+    # # Produces Pandas DataFrame
+    # data.groupby('month')[['duration']].sum()
+
+    means = means.values.reshape(len(items.conditions) * n_layers, -1)
     # multi_index = pd.MultiIndex.from_product([items.levels[factor] for factor in items.factors] + [list(range(n_layers))], names=items.factors + ['layer'])
     multi_index = pd.MultiIndex.from_tuples([tuple([s for s in t] + [i]) for t in items.conditions for i in range(n_layers)], names=items.factors + ['layer'])
     multi_columns = pd.MultiIndex.from_tuples([('weights', i) for i in range(len(items.groups)**2)] + [('balance', n) for n in items.groups])
@@ -529,6 +523,40 @@ def compute_pMAT(all_attention_weights, layer_norm=True):
         percolated_activations_per_layer.append(percolated_activations)
 
     return np.stack(percolated_activations_per_layer)
+
+
+def average_for_token_groups(items, data_for_all_items):
+    """
+    Takes weights matrix per item per layer, and averages rows and columns based on desired token groups.
+    :param items: dataframe as read from example.csv
+    :param data_for_all_items: list of numpy arrays with attention/gradients extracted from BERT
+    :return: list of (for each item) a numpy array layer x num_groups x num_groups
+    """
+    data_for_all_items2 = []
+
+    for (_, each_item), weights_per_layer in zip(items.iterrows(), data_for_all_items):
+
+        # TODO Ideally this would be done still on cuda
+        data_per_layer = []
+        for m in weights_per_layer:
+            # Group horizontally
+            grouped_weights_horiz = []
+            for group in items.groups:
+                grouped_weights_horiz.append(m[each_item[group]].mean(axis=0))
+            grouped_weights_horiz = np.stack(grouped_weights_horiz)
+
+            # Group the result also vertically
+            grouped_weights = []
+            for group in items.groups:
+                grouped_weights.append(grouped_weights_horiz[:, each_item[group]].mean(axis=1))
+            grouped_weights = np.stack(grouped_weights).transpose()  # transpose to restore original order
+
+            # store
+            data_per_layer.append(grouped_weights)
+
+        data_for_all_items2.append(np.stack(data_per_layer))
+
+    return data_for_all_items2
 
 
 def create_dataframes_for_plotting(items, df_means, n_layers, args):
