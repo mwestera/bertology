@@ -90,6 +90,30 @@ function_non_core_dependents = ['aux', 'cop', 'mark']
 function_nominal_dependents = ['det', 'clf', 'case']
 
 
+def write_file_plain_sentences(n):
+    out_file_path = os.path.basename(path_to_conllu_file)[:-7] + '{}.csv'.format(n)
+
+    sentences = []
+
+    for s in parse_incr(open(path_to_conllu_file, "r", encoding="utf-8")):
+        sentences.append(s)
+
+    random.seed(12345)
+
+    indices = random.sample(list(range(len(sentences))), n)
+    sentences = [sentences[i] for i in indices]
+
+    with open('data/' + out_file_path, 'w') as outfile:
+        outfile.write('# index, id \n')
+
+        writer = csv.writer(outfile)
+
+        for row in [[str(i), s.metadata['sent_id'], s.metadata['text']] for i,s in zip(indices, sentences)]:
+            writer.writerow(row)
+
+write_file_plain_sentences(500)
+
+
 def write_file_for_nominal_core_args():
     """
     Extract just the 'nominal core args', i.e., subject and objects.
@@ -274,4 +298,4 @@ def generate_sentences_from_categories():
     print('wrote {} items to {}'.format(len(all_items), 'data/category-sentences.csv'))
 
 
-generate_sentences_from_categories()
+# generate_sentences_from_categories()
