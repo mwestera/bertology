@@ -108,6 +108,8 @@ def main():
         out_idx = 0
         if not os.path.exists("output"):
             os.mkdir('output')
+        if not os.path.exists("data/auxiliary/"):
+            os.mkdir('data/auxiliary')
         while any(x.startswith(dirname) for x in os.listdir('output')):
             out_idx += 1
             dirname = 'temp{}'.format(out_idx)
