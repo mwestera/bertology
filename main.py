@@ -155,45 +155,33 @@ def main():
 
     ## Store the weights in dataframe together with original data
     # TODO All of this feels terribly hacky...
-    # First flatten the numpy array per item per layer
-    data_for_all_items = [layer.reshape(-1) for data_per_layer in data_for_all_items for layer in data_per_layer]
-    balance_for_all_items = [layer.reshape(-1) for balance_per_layer in balance_for_all_items for layer in balance_per_layer]
+    # First flatten the numpy array per item
+    data_for_all_items = [data.reshape(-1).tolist() for data in data_for_all_items]
+    balance_for_all_items = [data.reshape(-1).tolist() for data in balance_for_all_items]
+
     # And then concatenate them (still per item per layer)
-    data_and_balance_for_all_items = [np.concatenate((array1, array2)).tolist() for array1, array2 in zip(data_for_all_items, balance_for_all_items)]
+    data_and_balance_for_all_items = [array1 + array2 for array1, array2 in zip(data_for_all_items, balance_for_all_items)]
     # Concatenate onto original data rows (with each row repeated n_layers times)
-    original_items_times_nlayers = [a for l in [[i.to_list()] * n_layers for (_, i) in items.iterrows()] for a in l]
-    data_for_dataframe = [a + b for a, b in zip(original_items_times_nlayers, data_and_balance_for_all_items)]
+    # original_items_times_nlayers = [a for l in [[i.to_list()] * n_layers for (_, i) in items.iterrows()] for a in l]
+    data_for_dataframe = [a + b for a, b in zip([i.to_list() for (_, i) in items.iterrows()], data_and_balance_for_all_items)]
 
     # Multi-index to represent each layer (per item) as a separate row
-    multi_index = pd.MultiIndex.from_product([items.index, list(range(n_layers))], names=["item", "layer"])
+    # multi_index = pd.MultiIndex.from_product([items.index, list(range(n_layers))], names=["item", "layer"])
     # Multi-column to represent the (flattened) numpy arrays in a structured way
-    multi_columns = pd.MultiIndex.from_tuples([(c, '', '') for c in items.columns] + [('weights', g1, g2) for g1 in items.groups for g2 in items.groups] + [('balance', g, '') for g in items.groups])
+    multi_columns = pd.MultiIndex.from_tuples([(c, '', '', '') for c in items.columns] + [('weights', l, g1, g2) for l in range(n_layers) for g1 in items.groups for g2 in items.groups] + [('balance', l, g, '') for l in range(n_layers) for g in items.groups])
 
-    df = pd.DataFrame(data_for_dataframe, index=multi_index, columns=multi_columns)
+    df = pd.DataFrame(data_for_dataframe, index=items.index, columns=multi_columns)
     # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT), and the balance computed from them
 
     ## Compute means over attention weights across all conditions (easy because they're flattened)
-    means = df.groupby(items.factors + ['layer']).mean()
-
-    print(df.groupby(items.factors).describe()) # TODO group columns?
-
-    # # produces Pandas Series
-    # data.groupby('month')['duration'].sum()
-    # # Produces Pandas DataFrame
-    # data.groupby('month')[['duration']].sum()
-
-    means = means.values.reshape(len(items.conditions) * n_layers, -1)
-    # multi_index = pd.MultiIndex.from_product([items.levels[factor] for factor in items.factors] + [list(range(n_layers))], names=items.factors + ['layer'])
-    multi_index = pd.MultiIndex.from_tuples([tuple([s for s in t] + [i]) for t in items.conditions for i in range(n_layers)], names=items.factors + ['layer'])
-    multi_columns = pd.MultiIndex.from_tuples([('weights', i) for i in range(len(items.groups)**2)] + [('balance', n) for n in items.groups])
-    df_means = pd.DataFrame(means, index=multi_index, columns=multi_columns)
-
-    # TODO Now might be a good time to store intermediate results to disk? Actually, do this earlier.
-
+    # df_means = df.groupby(items.factors).mean()
+    # print(df.groupby(items.factors).describe()) # TODO group columns?
 
     ## Restrict attention to the factors of interest:
-    df_means = df_means.groupby(args.factors + ['layer']).mean()
+    df_means = df.groupby(args.factors).mean()['weights',0]
 
+    print(df_means)
+    # TODO STUCK HERE; NEED TO ADAPT CREATE_DATAFRAMES_FOR_PLOTTING() TO NEW DF
 
     ## Print a quick text summary of main results, significance tests, etc.
     # TODO implement this here :)
