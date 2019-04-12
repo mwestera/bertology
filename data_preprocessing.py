@@ -2,6 +2,7 @@ from conllu import parse
 from conllu import parse_incr
 import os
 import csv
+import random
 
 """
 Mostly concerned with reading universal dependency format, connlu.
@@ -158,3 +159,112 @@ def write_file_for_main_POS():
             writer.writerow([' '.join(token_forms)])
 
 
+def read_categories_from_rosch_etal():
+    """
+    Lazy sloppy code for selecting some categories.
+    :return:
+    """
+    path = 'data/auxiliary_data/categories.txt'
+    triples = []
+
+    with open(path) as data:
+        for line in data:
+            if not line.startswith('#'):
+                line = line.split('|')
+                superordinate = None
+                if line[0] != '':
+                    superordinate = line[0].strip()
+                if line[1] != '':
+                    basics = [term.strip() for term in line[1].split(';')]
+                else:
+                    basics = [None]
+                subordinates_per_basic = [[None] for _ in basics]
+                if line[2] != '':
+                    termslists = [[term.strip() for term in seq.split(',')] for seq in line[2].split(';')]
+                    termslists = [[None if (a==[''] or a == [] or x == '') else x for x in a] for a in termslists]
+                    for i, terms in enumerate(termslists):
+                        subordinates_per_basic[i] = terms
+                for i, basic in enumerate(basics):
+                    triples.extend([(superordinate, basic, subordinate) for subordinate in subordinates_per_basic[i]])
+
+    triples = [t for t in triples if None not in t]
+
+
+    # At least add all single-word cases
+    random.seed(1235)
+
+    random.shuffle(triples)
+
+    length_one = [t for t in triples if all(len(w.split()) == 1 for w in t)]
+
+    selection = []
+    for tuple in length_one:
+        if not any(word in t for t in selection for word in tuple):
+            selection.append(tuple)
+
+    # Then keep adding 2-word cases until you have enough of 'em
+
+    length_two = [t for t in triples if (all(len(w.split()) == 1 or len(w.split()) == 2 for w in t) and not all(len(w.split()) == 1 for w in t))]
+    for tuple in length_two:
+        if not any(word in t for t in selection for word in tuple):
+            selection.append(tuple)
+
+    # Add up to 10
+    selection = selection[:10]
+
+    print('\n\n'.join(['\n'.join(t) for t in selection]))
+
+    return selection
+
+# read_categories_from_rosch_etal()
+
+
+def generate_sentences_from_categories():
+    """
+    Takes a file containing data like this:
+    > super; weapon; He was arraigned Tuesday on nine charges -- two counts of aggravated murder, attempted aggravated murder, first-degree assault, two counts of intimidation and three counts of unlawful use of a weapon.
+    > basic; gun; The other two roommates, William Calderon and Cory Lynch, each decided to "prank" Siela by pulling an unloaded gun on him and pretending to shoot when he returned to the living room.
+    > sub; shotgun;  The door slowly creaked open, and Dan found himself nose to nose with the barrel of a shotgun.
+    > [newline before next triple]
+    and generates sentences by replacing each term by terms of other levels of categorization, written in a format readable by main.py
+    :return:
+    """
+    sentences = []
+    tuples = {}
+    with open('data/auxiliary_data/category-sentences.txt') as file:
+        for line in file:
+            if not line.startswith('#') and not line.strip() == '':
+                row = [s.strip() for s in line.split(';')]
+                sentences.append(row)
+    if len(sentences) %3  != 0:
+        print("Something's wrong")
+    for i in range(0, len(sentences), 3):
+        tuple = [s[1] for s in sentences[i:i+3]]
+        tuples[tuple[0]] = tuples[tuple[1]] = tuples[tuple[2]] = tuple
+
+    all_items = []
+    for original in sentences:
+        all_items.append((original[0], original[0], original[1], original[2]))
+        for i, level in enumerate(['super', 'basic', 'sub']):
+            if level != original[0]:
+                replacement = tuples[original[1]][i]
+                new_sentence = original[2].replace(original[1], replacement)
+                # Quick dirty fix
+                for vowel in ['a', 'e', 'i', 'o', 'u']:
+                    new_sentence = new_sentence.replace(' a {}'.format(vowel), ' an {}'.format(vowel))
+                new_item = (original[0], level, replacement, new_sentence)
+                all_items.append(new_item)
+
+    # Write to csv including group tags right away
+    with open('data/category-sentences.csv', 'w') as file:
+        file.write('# original, level, |0 term, |1 rest \n')
+        writer = csv.writer(file)
+        for item in all_items:
+            sent_with_groups = '|2 ' + item[3].replace(item[2], '|1 '+item[2] + ' |2 ')
+            row = [item[0], item[1], sent_with_groups]
+            writer.writerow(row)
+
+    print('wrote {} items to {}'.format(len(all_items), 'data/category-sentences.csv'))
+
+
+generate_sentences_from_categories()
