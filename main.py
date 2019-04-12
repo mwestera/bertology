@@ -59,6 +59,8 @@ parser.add_argument('--cuda', action="store_true",
 # TODO: Should I take sum influence per group of tokens, or mean? E.g., with averaging, "a boy" will be dragged down by uninformative "a"...
 # TODO: Check why attention-chain doesn't yield good pictures; does normalization even make sense? What about normalizing the whole matrix just for the sake of comparability across layers?
 
+# TODO: I got an error when running on example.csv with --n_items 1 or even 2.
+
 def main():
     """
     To run this code with default settings and example data, do
@@ -105,7 +107,7 @@ def main():
 
     ## Compute attention weights, one item at a time
     # TODO Check if file already exists; if not, apply bert; otherwise read from file
-    data_for_all_items = apply_bert(items, tokenizer, args.method, args.combine)
+    data_for_all_items = apply_bert(items, tokenizer, args)
 
     # weights_per_layer now contains: (n_layers, n_tokens, n_tokens)
 
@@ -117,7 +119,7 @@ def main():
 
         data_for_all_items2 = []
 
-        for _, each_item, weights_per_layer in zip(items.iterrows(), data_for_all_items):
+        for (_, each_item), weights_per_layer in zip(items.iterrows(), data_for_all_items):
 
             # TODO Ideally this would be done still on cuda
             data_per_layer = []
