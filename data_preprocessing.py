@@ -267,7 +267,7 @@ def generate_sentences_from_categories():
         file.write('# original, level, source, |0 term, |1 rest \n')
         writer = csv.writer(file)
         for item in all_items:
-            sent_with_groups = '|1 ' + item[4].replace(item[3], '|0 '+item[3] + ' |1 ')
+            sent_with_groups = '|1 ' + item[4].replace(item[3], '|0 '+item[3] + ' |1')
             row = [item[0], item[1], item[2], sent_with_groups]
             writer.writerow(row)
 
