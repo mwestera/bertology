@@ -153,6 +153,9 @@ def main():
     # At this point we have two lists of numpy arrays: for each item, the weights & balance across layers.
 
 
+    ## TODO The following applies only if there are groups of tokens.
+    ## TODO Otherwise, perhaps have option of plotting individual sentences + balance, but no comparison?
+
     ## Store the weights in dataframe together with original data
     # TODO All of this feels terribly hacky...
     # First flatten the numpy array per item
@@ -177,7 +180,6 @@ def main():
     df_means = df.groupby(args.factors).mean()
 
     print(df_means)
-    # TODO STUCK HERE; NEED TO ADAPT CREATE_DATAFRAMES_FOR_PLOTTING() TO NEW DF
 
     ## Print a quick text summary of main results, significance tests, etc.
     # TODO implement this here :)
