@@ -114,9 +114,6 @@ def write_file_plain_sentences(n):
         for row in [[str(i), s.metadata['sent_id'], s.metadata['text']] for i,s in zip(indices, sentences)]:
             writer.writerow(row)
 
-write_file_plain_sentences(500)
-# TODO Write similar sentences but with dependency structure.
-
 def write_file_for_nominal_core_args():
     """
     Extract just the 'nominal core args', i.e., subject and objects.
@@ -444,3 +441,9 @@ def average_for_token_groups(items, data_for_all_items):
         data_for_all_items2.append(np.stack(data_per_layer))
 
     return data_for_all_items2
+
+if __name__ == "__main__":
+    pass
+
+    # write_file_plain_sentences(500)
+    # TODO Write similar sentences but with dependency structure.
