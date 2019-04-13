@@ -158,15 +158,11 @@ def main():
     # First flatten the numpy array per item
     data_for_all_items = [data.reshape(-1).tolist() for data in data_for_all_items]
     balance_for_all_items = [data.reshape(-1).tolist() for data in balance_for_all_items]
-
     # And then concatenate them (still per item per layer)
     data_and_balance_for_all_items = [array1 + array2 for array1, array2 in zip(data_for_all_items, balance_for_all_items)]
     # Concatenate onto original data rows (with each row repeated n_layers times)
     # original_items_times_nlayers = [a for l in [[i.to_list()] * n_layers for (_, i) in items.iterrows()] for a in l]
     data_for_dataframe = [a + b for a, b in zip([i.to_list() for (_, i) in items.iterrows()], data_and_balance_for_all_items)]
-
-    # Multi-index to represent each layer (per item) as a separate row
-    # multi_index = pd.MultiIndex.from_product([items.index, list(range(n_layers))], names=["item", "layer"])
     # Multi-column to represent the (flattened) numpy arrays in a structured way
     multi_columns = pd.MultiIndex.from_tuples([(c, '', '', '') for c in items.columns] + [('weights', l, g1, g2) for l in range(n_layers) for g1 in items.groups for g2 in items.groups] + [('balance', l, g, '') for l in range(n_layers) for g in items.groups])
 
@@ -178,7 +174,7 @@ def main():
     # print(df.groupby(items.factors).describe()) # TODO group columns?
 
     ## Restrict attention to the factors of interest:
-    df_means = df.groupby(args.factors).mean()['weights',0]
+    df_means = df.groupby(args.factors).mean()
 
     print(df_means)
     # TODO STUCK HERE; NEED TO ADAPT CREATE_DATAFRAMES_FOR_PLOTTING() TO NEW DF
@@ -569,41 +565,41 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
     for l in range(n_layers):
 
         # For each layer, there will be multiple weights matrices due to different levels per factor
-        weights_to_plot = [[[] for _ in levels_vert] for _ in levels_horiz]
+        data_to_plot = [[[] for _ in levels_vert] for _ in levels_horiz]
 
         # Loop through rows and columns of the multiplot-to-be:
         for h, level_horiz in enumerate(levels_horiz):
             for v, level_vert in enumerate(levels_vert):
                 # Things are easy if it's a difference plot of plots we've already computed before:
                 if level_horiz != "<DIFF>" and level_vert == "<DIFF>":
-                    weights = weights_to_plot[h][0] - weights_to_plot[h][1]
-                    weights.difference = True
+                    data = data_to_plot[h][0] - data_to_plot[h][1]
+                    data.difference = True
                 elif level_horiz == "<DIFF>" and level_vert != "<DIFF>":
-                    weights = weights_to_plot[0][v] - weights_to_plot[1][v]
-                    weights.difference = True
+                    data = data_to_plot[0][v] - data_to_plot[1][v]
+                    data.difference = True
                 elif level_horiz == "<DIFF>" and level_vert == "<DIFF>":
-                    weights = weights_to_plot[0][0] - weights_to_plot[1][1]
-                    weights.difference = True
+                    data = data_to_plot[0][0] - data_to_plot[1][1]
+                    data.difference = True
                 # More work if it's an actual weights plot:
                 else:
-                    weights = df_means.loc[(level_horiz, level_vert, l)] if level_vert is not None else (df_means.loc[(level_horiz, l)] if level_horiz is not None else df_means.loc[l])
-                    weights.difference = False
+                    data = df_means.loc[(level_horiz, level_vert),(slice(None),l)] if level_vert is not None else (df_means.loc[level_horiz,(slice(None),l)] if level_horiz is not None else df_means[(slice(None),l)])
+                    data.difference = False
 
                 # Some convenient metadata (used mostly when creating plots)
                 # It's a lot safer that each dataframe carries its own details with it in this way.
-                weights.level_horiz = level_horiz
-                weights.level_vert = level_vert
-                weights.max_for_colormap = weights['weights'].max().max()
-                weights.min_for_colormap = weights['weights'].min().min()
-                weights.balance_max_for_colormap = weights['balance'].max().max()
-                weights.balance_min_for_colormap = weights['balance'].min().min()
-                weights.layer = l
+                data.level_horiz = level_horiz
+                data.level_vert = level_vert
+                data.max_for_colormap = data['weights'].max().max()
+                data.min_for_colormap = data['weights'].min().min()
+                data.balance_max_for_colormap = data['balance'].max().max()
+                data.balance_min_for_colormap = data['balance'].min().min()
+                data.layer = l
 
                 # Add dataframe to designated position
-                weights_to_plot[h][v] = weights
+                data_to_plot[h][v] = data
 
         # Save the weights to plot for this particular layer
-        weights_to_plot_per_layer.append(weights_to_plot)
+        weights_to_plot_per_layer.append(data_to_plot)
 
     # The list weights_to_plot_per_layer now contains, for each layer, a list of lists of weights matrices.
     return weights_to_plot_per_layer
