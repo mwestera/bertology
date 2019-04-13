@@ -605,26 +605,26 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
     return weights_to_plot_per_layer
 
 
-def plot(weights_to_plot, args):
+def plot(data, args):
     """
     Output a single image file, typically containing several plots, depending on which factors to cross
     and whether to include a difference plot.
-    :param weights_to_plot: list of lists of weights dataframes; each DF will be plotted as a single heatmap.
+    :param data: list of lists of weights dataframes; each DF will be plotted as a single heatmap.
     :param args: the command line arguments; they contain some further settings.
     :return: output file path
     """
     # Let's plot!
-    f = plt.figure(figsize=(4 * len(weights_to_plot) + 1, 4 * len(weights_to_plot[0])))
-    gs0 = gridspec.GridSpec(len(weights_to_plot[0]), len(weights_to_plot), figure=f, hspace=.6, wspace=.6)
+    f = plt.figure(figsize=(4 * len(data) + 1, 4 * len(data[0])))
+    gs0 = gridspec.GridSpec(len(data[0]), len(data), figure=f, hspace=.6, wspace=.6)
 
     # plt.subplots_adjust(wspace=.6, top=.9)
-    f.suptitle("{}{} {}layer {}".format(args.method, " ("+args.combine+")" if args.combine != "no" else "", "up to " if args.combine != "no" else "", weights_to_plot[0][0].layer), size=16)
+    f.suptitle("{}{} {}layer {}".format(args.method, " ("+args.combine+")" if args.combine != "no" else "", "up to " if args.combine != "no" else "", data[0][0].layer), size=16)
 
-    for c, col in enumerate(weights_to_plot):
+    for c, col in enumerate(data):
 
         for r, weights in enumerate(col):
 
-            tokens = weights['balance'].index
+            tokens = weights['balance'].index.get_level_values(1)
 
             axis = gs0[c, r] if weights.level_vert is not None else gs0[c] if weights.level_horiz is not None else gs0[0]
 
@@ -697,7 +697,7 @@ def plot(weights_to_plot, args):
     out_filepath = "{}/{}{}{}{}_layer{}.png".format(args.out, args.method,
                                                      "-"+args.combine if args.combine != "no" else "",
                                                      "_normalized" if (args.method == "attention" and args.normalize_heads) else "",
-                                                     '_'+'-x-'.join(args.factors) if len(args.factors) > 0 else '', weights_to_plot[0][0].layer)
+                                                     '_'+'-x-'.join(args.factors) if len(args.factors) > 0 else '', data[0][0].layer)
     print("Saving figure:", out_filepath)
     pylab.savefig(out_filepath)
     # pylab.show()
