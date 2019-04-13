@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+# large parts from David Eisenstat's answer at https://stackoverflow.com/a/34407749/11056813
 from collections import defaultdict, namedtuple
 
 
@@ -67,7 +67,9 @@ def matrix_to_arcs(matrix):
     for i,row in enumerate(matrix):
         for j,value in enumerate(row):
             arcs.append(Arc(i,value,j))
+    return arcs
 
 
-print(min_spanning_arborescence([Arc(1, 17, 0), Arc(2, 16, 0), Arc(3, 19, 0), Arc(4, 16, 0), Arc(5, 16, 0), Arc(6, 18, 0), Arc(2, 3, 1), Arc(3, 3, 1), Arc(4, 11, 1), Arc(5, 10, 1), Arc(6, 12, 1), Arc(1, 3, 2), Arc(3, 4, 2), Arc(4, 8, 2), Arc(5, 8, 2), Arc(6, 11, 2), Arc(1, 3, 3), Arc(2, 4, 3), Arc(4, 12, 3), Arc(5, 11, 3), Arc(6, 14, 3), Arc(1, 11, 4), Arc(2, 8, 4), Arc(3, 12, 4), Arc(5, 6, 4), Arc(6, 10, 4), Arc(1, 10, 5), Arc(2, 8, 5), Arc(3, 11, 5), Arc(4, 6, 5), Arc(6, 4, 5), Arc(1, 12, 6), Arc(2, 11, 6), Arc(3, 14, 6), Arc(4, 10, 6), Arc(5, 4, 6)], 0))
 
+# arcs = matrix_to_arcs([[1,2,3,4,5],[6,5,4,3,2],[9,8,7,6,5],[1,2,3,6,4],[2,4,7,4,2]])
+# print(min_spanning_arborescence(arcs, 0))
