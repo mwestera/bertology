@@ -93,6 +93,7 @@ function_non_core_dependents = ['aux', 'cop', 'mark']
 function_nominal_dependents = ['det', 'clf', 'case']
 
 
+# TODO Write to single file and adapt parse_data instead.
 def write_file_plain_sentences(n):
     out_file_path = os.path.basename(path_to_conllu_file)[:-7] + '{}TEMP.csv'.format(n)
     out_file_path_dep = os.path.basename(path_to_conllu_file)[:-7] + '{}-{}.csv'.format(n, 'dep')
