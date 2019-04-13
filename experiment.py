@@ -20,7 +20,7 @@ import pickle
 
 import interface_BERT
 
-parser = argparse.ArgumentParser(description='e.g., main.py data/example.csv')
+parser = argparse.ArgumentParser(description='e.g., experiment.py data/example.csv')
 parser.add_argument('data', type=str,
                     help='Path to data file (typically .csv).')
 parser.add_argument('--n_items', type=int, default=None,
@@ -65,7 +65,7 @@ parser.add_argument('--cuda', action="store_true",
 def main():
     """
     To run this code with default settings and example data, do
-       $ python main.py data/example.csv
+       $ python experiment.py data/example.csv
     """
 
     ## Argument parsing
