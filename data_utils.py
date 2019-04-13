@@ -94,7 +94,8 @@ function_nominal_dependents = ['det', 'clf', 'case']
 
 
 def write_file_plain_sentences(n):
-    out_file_path = os.path.basename(path_to_conllu_file)[:-7] + '{}.csv'.format(n)
+    out_file_path = os.path.basename(path_to_conllu_file)[:-7] + '{}TEMP.csv'.format(n)
+    out_file_path_dep = os.path.basename(path_to_conllu_file)[:-7] + '{}-{}.csv'.format(n, 'dep')
 
     sentences = []
 
@@ -111,8 +112,23 @@ def write_file_plain_sentences(n):
 
         writer = csv.writer(outfile)
 
-        for row in [[str(i), s.metadata['sent_id'], s.metadata['text']] for i,s in zip(indices, sentences)]:
+        for i, s in zip(indices, sentences):
+            row = [str(i), s.metadata['sent_id'], s.metadata['text']]
             writer.writerow(row)
+
+    with open('data/' + out_file_path_dep, 'w') as outfile:
+        writer = csv.writer(outfile)
+
+        for i, s in zip(indices, sentences):
+            nodes_to_explore = [s.to_tree()]
+            row = [str(i), s.metadata['sent_id']]
+            while len(nodes_to_explore) > 0:
+                node = nodes_to_explore.pop()
+                for c in node.children:
+                    nodes_to_explore.append(c)
+                    row.extend([node.token['id'], c.token['id']])
+            writer.writerow(row)
+
 
 def write_file_for_nominal_core_args():
     """
@@ -443,7 +459,5 @@ def average_for_token_groups(items, data_for_all_items):
     return data_for_all_items2
 
 if __name__ == "__main__":
-    pass
-
-    # write_file_plain_sentences(500)
+    write_file_plain_sentences(500)
     # TODO Write similar sentences but with dependency structure.
