@@ -20,6 +20,8 @@ import pickle
 
 import interface_BERT
 
+from data_utils import parse_data, average_for_token_groups
+
 parser = argparse.ArgumentParser(description='e.g., experiment.py data/example.csv')
 parser.add_argument('data', type=str,
                     help='Path to data file (typically .csv).')
@@ -208,147 +210,6 @@ def main():
             images.append(imageio.imread(filename))
         imageio.mimsave(out_filepath, images, format='GIF', duration=.5)
         print("Saving movie:", out_filepath)
-
-
-def parse_data(data_path, tokenizer, max_items=None):
-    """
-    Turns a .csv file with some special markup of 'token groups' into a dataframe.
-    :param data_path:
-    :param tokenizer: BERT's own tokenizer
-    :return: pandas DataFrame with different factors, the sentence, tokenized sentence, and token group indices as columns
-    """
-
-    items = []
-    num_factors = None
-    max_group_id = 0
-
-    # Manual checking and parsing of first line (legend)
-    with open(data_path) as f:
-        legend = f.readline()
-        if not legend.startswith("#"):
-            print("WARNING: Legend is missing from the data. Using boring group and factor labels instead.")
-            group_legend = None
-            factor_legend = None
-        else:
-            legend = [l.strip() for l in legend.strip('#').split(',')]
-            group_legend = {}
-            factor_legend = {}
-            for term in legend:
-                if term.startswith('|'):
-                    ind, term = term.strip('|').split(' ')
-                    group_legend[int(ind)] = term
-                else:
-                    factor_legend[len(factor_legend)] = term
-
-    # Now read the actual data
-    reader = csv.reader(open(data_path), skipinitialspace=True)
-    for row in filter(lambda row: not row[0].startswith('#'), reader):
-        num_factors = len(row)-1    # Num rows minus the sentence itself
-        group_to_token_ids = {}  # Map token-group numbers to token positions
-        sentence = ""
-        total_len = 1   # Take mandatory CLS symbol into account
-
-        # go through the sentence group by group (separated by | )
-        for each_part in (' '+row[-1]).strip('|').split('|'):   # Cheap fix to avoid unintended groups for sentence starting with number
-            first_char = each_part[0]
-            if first_char.isdigit():
-                group_id = int(first_char)
-                each_part = each_part[1:].strip()
-                max_group_id = max(max_group_id, group_id)
-            tokens = tokenizer.tokenize(each_part)
-            # If group has a number, remember this group for plotting etc.
-            if first_char.isdigit():
-                if group_id in group_to_token_ids:
-                    group_to_token_ids[group_id].extend(list(range(total_len, total_len + len(tokens))))
-                else:
-                    group_to_token_ids[group_id] = list(range(total_len, total_len + len(tokens)))
-            total_len += len(tokens)
-            sentence += each_part.strip() + ' '
-
-        # collect token group ids in a list instead of dict, for inclusion in the final DataFrame
-
-        if len(group_to_token_ids) == 0:
-            token_ids_list = []
-        else:
-            token_ids_list = [[] for _ in range(max(group_to_token_ids)+1)]
-            for key in group_to_token_ids:
-                token_ids_list[key] = group_to_token_ids[key]
-
-        # create data row
-        items.append(row[:-1] + [sentence.strip()] + [' '.join(['[CLS]'] + tokenizer.tokenize(sentence) + ['[SEP]'])] + token_ids_list)
-
-        if max_items is not None and len(items) >= max_items:
-            break
-
-    # Make all rows the same length
-    row_length = num_factors + 2 + max_group_id + 1
-    items = [item + [[] for _ in range(row_length - len(item))] for item in items]
-
-    # If no legend was given, infer legends with boring names from the data itself
-    if group_legend is None:
-        group_names = ['g{}'.format(i) for i in range(max_group_id + 1)]
-    else:
-        group_names = [group_legend[key] for key in group_legend]
-    if factor_legend is None:
-        factor_names = ['f{}'.format(i) for i in range(num_factors)]
-    else:
-        factor_names = [factor_legend[key] for key in factor_legend]
-
-    # Remove empty list of groups if there are no groups
-    if len(group_names) == 0:
-        items = [item[:-1] for item in items]
-
-    # Create dataframe with nice column names
-    columns = factor_names + ['sentence'] + ['tokenized'] + group_names
-    items = pd.DataFrame(items, columns=columns)
-
-    # Add a bunch of useful metadata to the DataFrame
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore')
-        items.num_factors = num_factors
-        items.factors = factor_names
-        items.num_groups = max_group_id + 1
-        items.groups = group_names
-        items.levels = {factor: items[factor].unique().tolist() for factor in items.factors}
-        # # following is bugged: not all combination needs to exist in the data
-        # items.conditions = list(itertools.product(*[items.levels[factor] for factor in items.factors]))
-        items.conditions = list(set([tuple(l) for l in items[items.factors].values]))
-
-    return items
-
-
-def average_for_token_groups(items, data_for_all_items):
-    """
-    Takes weights matrix per item per layer, and averages rows and columns based on desired token groups.
-    :param items: dataframe as read from example.csv
-    :param data_for_all_items: list of numpy arrays with attention/gradients extracted from BERT
-    :return: list of (for each item) a numpy array layer x num_groups x num_groups
-    """
-    data_for_all_items2 = []
-
-    for (_, each_item), weights_per_layer in zip(items.iterrows(), data_for_all_items):
-
-        # TODO Ideally this would be done still on cuda
-        data_per_layer = []
-        for m in weights_per_layer:
-            # Group horizontally
-            grouped_weights_horiz = []
-            for group in items.groups:
-                grouped_weights_horiz.append(m[each_item[group]].mean(axis=0))
-            grouped_weights_horiz = np.stack(grouped_weights_horiz)
-
-            # Group the result also vertically
-            grouped_weights = []
-            for group in items.groups:
-                grouped_weights.append(grouped_weights_horiz[:, each_item[group]].mean(axis=1))
-            grouped_weights = np.stack(grouped_weights).transpose()  # transpose to restore original order
-
-            # store
-            data_per_layer.append(grouped_weights)
-
-        data_for_all_items2.append(np.stack(data_per_layer))
-
-    return data_for_all_items2
 
 
 def create_dataframes_for_plotting(items, df_means, n_layers, args):
