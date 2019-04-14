@@ -223,17 +223,13 @@ def main():
 
     print('overall mean', scores_df.groupby("layer").mean().mean())
 
-    # In mathematics, Cayley's formula is a result in graph theory named after Arthur Cayley. It states that for every positive integer n, the number of trees on n labeled vertices is n n − 2 {\displaystyle n^{n-2}} n^{n-2}.
-
-    # TODO replace by actual number of tokens
-    print('chance for 7 tokens:', 1.0 / (7**(7-2)))
+    # TODO Add sanity check
+    # TODO Write trees to file for future error analysis.
 
     sns.lineplot(x="layer", y="score", data=scores_df)
 
 
     plt.show()
-
-    # TODO Compare to probability of random tree being correct?
 
 
 if __name__ == "__main__":
