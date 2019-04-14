@@ -1,11 +1,34 @@
 # large parts from David Eisenstat's answer at https://stackoverflow.com/a/34407749/11056813
 from collections import defaultdict, namedtuple
 
+from numpy import argmax
 
 Arc = namedtuple('Arc', ('head', 'weight', 'tail'))
 
 
+def max_sa_from_nodes(arcs, nodes):
+
+    trees = []
+    values = []
+
+    for source in nodes:
+        tree = max_spanning_arborescence(arcs, source)
+        if not len(tree) == 0:
+            trees.append(tree)
+            values.append(sum([arc[1] for arc in tree.values()]))
+
+    maxidx = argmax(values)
+
+    return trees[maxidx], values[maxidx]
+
+
+def max_spanning_arborescence(arcs, source):
+    arcs = [Arc(arc[0], -arc[1], arc[2]) for arc in arcs]
+    result = min_spanning_arborescence(arcs, source)
+    return {key:Arc(arc[0], -arc[1], arc[2]) for key,arc in result.items()}
+
 def min_spanning_arborescence(arcs, source):
+
     good_arcs = []
     quotient_map = {arc.tail: arc.tail for arc in arcs}
     quotient_map[source] = source
@@ -66,10 +89,26 @@ def matrix_to_arcs(matrix):
     arcs = []
     for i,row in enumerate(matrix):
         for j,value in enumerate(row):
-            arcs.append(Arc(i,value,j))
+            if value == value:      # fails if NaN
+                arcs.append(Arc(i,value,j))
     return arcs
 
 
+def arcs_to_tuples(arcs):
+    tuples = []
+    sum = 0
+    for arc in arcs:
+        tuples.append((arc[0],arc[2]))
+        sum += arc[1]
+    return tuples, sum
+
+
+def tree_value_from_matrix(arcs, matrix):
+    sum = 0
+    for arc in arcs:
+        sum += matrix[arc[0],arc[-1]]
+    return sum
+
 
 # arcs = matrix_to_arcs([[1,2,3,4,5],[6,5,4,3,2],[9,8,7,6,5],[1,2,3,6,4],[2,4,7,4,2]])
-# print(min_spanning_arborescence(arcs, 0))
+# print(arcs_to_tuples(min_spanning_arborescence(arcs, 0).values()))

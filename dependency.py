@@ -178,46 +178,22 @@ def main():
     df = pd.DataFrame(data_for_dataframe, index=items.index, columns=multi_columns)
     # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT), and the balance computed from them
 
-    ## Compute means over attention weights across all conditions (easy because they're flattened)
-    # df_means = df.groupby(items.factors).mean()
-    # print(df.groupby(items.factors).describe()) # TODO group columns?
+    for _, item in df.iterrows():
+        dtree = [(a-1, b-1) for (a,b) in item['dependencies'][0]]   # TODO temporary fix; already decrement in original data.
+        n_tokens = len(item['balance'][0])
+        for layer in range(n_layers):
+            # TODO more efficient to immediately remove all nan rows and columns...
+            matrix = item['weights'][layer].values.reshape(n_tokens,n_tokens)
+            arcs = tree_utils.matrix_to_arcs(matrix)
+            wtree, wtree_value = tree_utils.max_sa_from_nodes(arcs, list(range(n_tokens)))
+            wtree, wtree_value = tree_utils.arcs_to_tuples(wtree.values())
+            dtree_value = tree_utils.tree_value_from_matrix(dtree, matrix)
+            print(wtree_value, wtree)
+            print(dtree_value, dtree)
 
-    print(df)
-
-    ## Restrict attention to the factors of interest:
-    df_means = df.groupby(args.factors).mean()
-
-    print(df_means)
 
     ## Print a quick text summary of main results, significance tests, etc.
     # TODO implement this here :)
-
-
-    ## Time to create some plots!
-
-    # Compute a list that contains, for each layer, a list of lists of matrices to be plotted.
-    weights_to_plot_per_layer = create_dataframes_for_plotting(items, df_means, n_layers, args)
-
-    # Compute and set global min/max to have same colormap extremes within or even across layers
-    calibrate_for_colormap(weights_to_plot_per_layer, not args.no_global_colormap)
-
-    # Create a plot for each layer (collect file paths)
-    out_filepaths = []
-    for weights_to_plot in weights_to_plot_per_layer:
-        out_filepaths.append(plot(weights_to_plot, args))
-
-    # Optionally, an animated gif :)
-    if args.gif:
-        out_filepath = "{}/{}{}{}{}.gif".format(args.out, args.method,
-                                                        "-" + args.combine if args.combine != "no" else "",
-                                                        "_normalized" if (
-                                                                args.method == "attention" and args.normalize_heads) else "",
-                                                        '_' + '-x-'.join(args.factors) if len(args.factors) > 0 else '')
-        images = []
-        for filename in out_filepaths:
-            images.append(imageio.imread(filename))
-        imageio.mimsave(out_filepath, images, format='GIF', duration=.5)
-        print("Saving movie:", out_filepath)
 
 
 
