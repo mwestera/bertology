@@ -402,7 +402,10 @@ def parse_data(data_path, tokenizer, max_items=None, words_as_groups=False, as_d
 
         # read dependency tree if necessary
         if as_dependency is not None:   # TODO replace rigid -2 by index depending on column label
-            row[-2] = [tuple([int(a) for a in s.split('-')]) for s in row[-2].split(';')]
+            if row[-2] != '':
+                row[-2] = [tuple([int(a) for a in s.split('-')]) for s in row[-2].split(';')]
+            else:
+                row[-2] = []
 
         # create data row
         items.append(row[:-1] + [sentence.strip()] + [' '.join(['[CLS]'] + tokenizer.tokenize(sentence) + ['[SEP]'])] + token_ids_list)
