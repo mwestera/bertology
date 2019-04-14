@@ -442,6 +442,8 @@ def parse_data(data_path, tokenizer, max_items=None, words_as_groups=False, as_d
             items.factors.remove(as_dependency) # This is not a factor proper
         if 'index' in items.factors:
             items.factors.remove('index')  # This is not a factor proper either
+        if 'id' in items.factors:
+            items.factors.remove('id')  # This is not a factor proper either
         items.num_groups = max_group_id + 1
         items.groups = group_names
         items.levels = {factor: items[factor].unique().tolist() for factor in items.factors}
