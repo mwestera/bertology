@@ -9,7 +9,7 @@ import numpy as np
 
 import regex
 
-from nltk.tokenize import word_tokenize
+from tqdm import tqdm
 
 """
 Mostly concerned with reading universal dependency format, connlu.
@@ -466,11 +466,11 @@ def merge_grouped_tokens(items, data_for_all_items, method="mean"):
     :param method: mean or sum
     :return: list of (for each item) a numpy array layer x num_groups x num_groups
     """
+    # TODO Ideally this would be done still on cuda
     data_for_all_items2 = []
 
-    for (_, each_item), weights_per_layer in zip(items.iterrows(), data_for_all_items):
+    for (_, each_item), weights_per_layer in tqdm(zip(items.iterrows(), data_for_all_items), total=len(items)):
 
-        # TODO Ideally this would be done still on cuda
         data_per_layer = []
         for m in weights_per_layer:
             # Group horizontally
