@@ -95,10 +95,11 @@ def main():
 
     ## Set up tokenizer, data
     tokenizer = BertTokenizer.from_pretrained(args.bert, do_lower_case=("uncased" in args.bert))
-    items = parse_data(args.data, tokenizer, max_items=args.n_items)
+    items = parse_data(args.data, tokenizer, max_items=args.n_items, words_as_groups=True, as_dependency='dependencies')
 
-    print(len(items), 'items')
-    print(items)
+    # print(len(items), 'items')
+    # with pd.option_context('display.max_rows', 10, 'display.max_columns', None):
+    #     print(items)
 
     ## Store for convenience
     args.factors = args.factors or items.factors[:2]    # by default use the first two factors from the data
@@ -176,6 +177,8 @@ def main():
     ## Compute means over attention weights across all conditions (easy because they're flattened)
     # df_means = df.groupby(items.factors).mean()
     # print(df.groupby(items.factors).describe()) # TODO group columns?
+
+    print(df)
 
     ## Restrict attention to the factors of interest:
     df_means = df.groupby(args.factors).mean()
