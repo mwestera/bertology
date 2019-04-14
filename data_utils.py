@@ -455,11 +455,12 @@ def parse_data(data_path, tokenizer, max_items=None, words_as_groups=False, as_d
 
 
 
-def average_for_token_groups(items, data_for_all_items):
+def merge_grouped_tokens(items, data_for_all_items, method="mean"):
     """
     Takes weights matrix per item per layer, and averages rows and columns based on desired token groups.
     :param items: dataframe as read from example.csv
     :param data_for_all_items: list of numpy arrays with attention/gradients extracted from BERT
+    :param method: mean or sum
     :return: list of (for each item) a numpy array layer x num_groups x num_groups
     """
     data_for_all_items2 = []
@@ -472,13 +473,19 @@ def average_for_token_groups(items, data_for_all_items):
             # Group horizontally
             grouped_weights_horiz = []
             for group in items.groups:
-                grouped_weights_horiz.append(m[each_item[group]].mean(axis=0))
+                if method == "mean":
+                    grouped_weights_horiz.append(m[each_item[group]].mean(axis=0))
+                elif method == "sum":
+                    grouped_weights_horiz.append(m[each_item[group]].sum(axis=0))
             grouped_weights_horiz = np.stack(grouped_weights_horiz)
 
             # Group the result also vertically
             grouped_weights = []
             for group in items.groups:
-                grouped_weights.append(grouped_weights_horiz[:, each_item[group]].mean(axis=1))
+                if method == "mean":
+                    grouped_weights.append(grouped_weights_horiz[:, each_item[group]].mean(axis=1))
+                if method == "sum":
+                    grouped_weights.append(grouped_weights_horiz[:, each_item[group]].sum(axis=1))
             grouped_weights = np.stack(grouped_weights).transpose()  # transpose to restore original order
 
             # store

@@ -39,6 +39,8 @@ parser.add_argument('--normalize_heads', action="store_true",
                     help='To apply normalization per attention head (only used for "attention" method).')
 parser.add_argument('--ignore_groups', action="store_true",
                     help='To ignore groupings of tokens in the input data, and compute/plot per token. NOTE: POTENTIALLY BUGGY.')
+parser.add_argument('--group_merger', type=str, default='mean', choices=["mean", "sum"],
+                    help='how to combine the weights of tokens (and token pieces) within a token group: sum or mean (default)')
 ## Disabled, as axis labels etc. would be incorrect:
 # parser.add_argument('--transpose', action="store_true",
 #                     help='To transpose the plots; by default they read like "rows influenced by cols" (otherwise: rows influencing cols).')
@@ -137,7 +139,7 @@ def main():
 
     ## Take averages over groups of tokens
     if not args.ignore_groups and not len(items.groups) == 0:
-        data_for_all_items = data_utils.average_for_token_groups(items, data_for_all_items)
+        data_for_all_items = data_utils.merge_grouped_tokens(items, data_for_all_items, method=args.group_merger)
         # list with, for each item, weights (n_layers, n_groups, n_groups)
 
 

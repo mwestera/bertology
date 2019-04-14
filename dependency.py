@@ -39,6 +39,8 @@ parser.add_argument('--normalize_heads', action="store_true",
                     help='To apply normalization per attention head (only used for "attention" method).')
 parser.add_argument('--ignore_groups', action="store_true",
                     help='To ignore groupings of tokens in the input data, and compute/plot per token. NOTE: POTENTIALLY BUGGY.')
+parser.add_argument('--group_merger', type=str, default='mean', choices=["mean", "sum"],
+                    help='how to combine the weights of tokens (and token pieces) within a token group: sum or mean (default)')
 ## Disabled, as axis labels etc. would be incorrect:
 # parser.add_argument('--transpose', action="store_true",
 #                     help='To transpose the plots; by default they read like "rows influenced by cols" (otherwise: rows influencing cols).')
@@ -56,6 +58,8 @@ parser.add_argument('--balance', action="store_true",
                     help='To compute and plot balances, i.e., how much a token influences minus how much it is influenced.')
 parser.add_argument('--cuda', action="store_true",
                     help='To use cuda.')
+
+# TODO Make sure to try merging token pieces with summing...
 
 # TODO: perhaps it's useful to allow plotting means over layers; sliding window-style? or chaining but with different starting points?
 # TODO: Is attention-chain bugged? Plots are uninterpretable; without normalization super high values only at layer 10-11... with normalization... big gray mess.
@@ -137,9 +141,9 @@ def main():
     # The list data_for_all_items now contains, for each item, weights (n_layers, n_tokens, n_tokens)
 
 
-    ## Take averages over groups of tokens # TODO shouldn't this be a sum?
+    ## Take averages over groups of tokens
     if not args.ignore_groups and not len(items.groups) == 0:
-        data_for_all_items = data_utils.average_for_token_groups(items, data_for_all_items)
+        data_for_all_items = data_utils.merge_grouped_tokens(items, data_for_all_items, method=args.group_merger)
         # list with, for each item, weights (n_layers, n_groups, n_groups)
 
 
