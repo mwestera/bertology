@@ -120,7 +120,9 @@ def head_attachment_score(tree1, tree2):
     if nodes1 != nodes2:
         print("Something's wrong.")
 
-    return len(set(tree1).intersection(set(tree2))) / len(nodes1)
+    score = len(set(tree1).intersection(set(tree2))) / (len(nodes1) - 1.0)
+
+    return score
 
 
 # The recall metric is ignored when evaluating syntactic trees because all tokens are being labeled in one way or another. There are 5 most common metrics for the evaluation of syntactic dependency parsing:
