@@ -22,6 +22,8 @@ import interface_BERT
 import data_utils
 import tree_utils
 
+from tqdm import tqdm
+
 parser = argparse.ArgumentParser(description='e.g., experiment.py data/example.csv')
 parser.add_argument('data', type=str,
                     help='Path to data file (typically .csv).')
@@ -181,22 +183,26 @@ def main():
     scores = []
     trees = []
 
-    for i, item in df.iterrows():
+    for i, item in tqdm(df.iterrows(), total=len(df)):
         dtree = item['dependencies'][0]
         n_tokens = len(item['balance'][0])
         scores.append([])
         trees.append([])
         for layer in range(n_layers):
-            # TODO more efficient to immediately remove all nan rows and columns...
             matrix = item['weights'][layer].values.reshape(n_tokens,n_tokens)
+            # TODO cut the matrix to size
             arcs = tree_utils.matrix_to_arcs(matrix)
-            wtree, wtree_value = tree_utils.max_sa_from_nodes(arcs, list(range(n_tokens)))
-            wtree, wtree_value = tree_utils.arcs_to_tuples(wtree.values())
-            dtree_value = tree_utils.tree_value_from_matrix(dtree, matrix)
-            score = tree_utils.head_attachment_score(dtree, wtree)
-            scores[i].append(score)
-            trees[i].append(wtree)
-            # TODO More fine-grained error analysis, e.g., root correct? order correct? (Idea: find max_sa given actual root; compute order-invariant score)
+            if len(arcs) <= 1:
+                scores[i].append(np.nan)
+                trees[i].append([])
+            else:
+                wtree, wtree_value = tree_utils.max_sa_from_nodes(arcs, list(range(n_tokens)))
+                wtree, wtree_value = tree_utils.arcs_to_tuples(wtree.values())
+                # dtree_value = tree_utils.tree_value_from_matrix(dtree, matrix)
+                score = tree_utils.head_attachment_score(dtree, wtree)
+                scores[i].append(score)
+                trees[i].append(wtree)
+                # TODO More fine-grained error analysis, e.g., root correct? order correct? (Idea: find max_sa given actual root; compute order-invariant score)
 
     scores_df = pd.DataFrame([s + t for s,t in zip(scores, trees)], index=items.index, columns=[('score', l, '', '') for l in range(n_layers)] + [('best_tree', l, '', '') for
                                                                                             l in range(n_layers)])
