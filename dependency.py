@@ -173,14 +173,19 @@ def main():
     # original_items_times_nlayers = [a for l in [[i.to_list()] * n_layers for (_, i) in items.iterrows()] for a in l]
     data_for_dataframe = [a + b for a, b in zip([i.to_list() for (_, i) in items.iterrows()], data_and_balance_for_all_items)]
     # Multi-column to represent the (flattened) numpy arrays in a structured way
-    multi_columns = pd.MultiIndex.from_tuples([(c, '', '', '') for c in items.columns] + [('weights', l, g1, g2) for l in range(n_layers) for g1 in items.groups for g2 in items.groups] + [('balance', l, g, '') for l in range(n_layers) for g in items.groups])
+    multi_columns = pd.MultiIndex.from_tuples([(c, '', '', '') for c in items.columns] + [('weights', l, g1, g2) for l in range(n_layers) for g1 in items.groups for g2 in items.groups] + [('balance', l, g, '') for l in range(n_layers) for g in items.groups], names=['', 'layer', 'in', 'out'])
 
     df = pd.DataFrame(data_for_dataframe, index=items.index, columns=multi_columns)
     # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT), and the balance computed from them
 
-    for _, item in df.iterrows():
+    scores = []
+    trees = []
+
+    for i, item in df.iterrows():
         dtree = item['dependencies'][0]
         n_tokens = len(item['balance'][0])
+        scores.append([])
+        trees.append([])
         for layer in range(n_layers):
             # TODO more efficient to immediately remove all nan rows and columns...
             matrix = item['weights'][layer].values.reshape(n_tokens,n_tokens)
@@ -188,15 +193,41 @@ def main():
             wtree, wtree_value = tree_utils.max_sa_from_nodes(arcs, list(range(n_tokens)))
             wtree, wtree_value = tree_utils.arcs_to_tuples(wtree.values())
             dtree_value = tree_utils.tree_value_from_matrix(dtree, matrix)
-            print(wtree_value, wtree)
-            print(dtree_value, dtree)
-            print(tree_utils.head_attachment_score(dtree, wtree))
+            score = tree_utils.head_attachment_score(dtree, wtree)
+            scores[i].append(score)
+            trees[i].append(wtree)
+            # TODO More fine-grained error analysis, e.g., root correct? order correct? (Idea: find max_sa given actual root; compute order-invariant score)
 
+    scores_df = pd.DataFrame([s + t for s,t in zip(scores, trees)], index=items.index, columns=[('score', l, '', '') for l in range(n_layers)] + [('best_tree', l, '', '') for
+                                                                                            l in range(n_layers)])
+
+    # Add to original df
+    df = pd.concat((df, scores_df), axis=1)
 
     ## Print a quick text summary of main results, significance tests, etc.
     # TODO implement this here :)
 
+    # TODO This feels rather hacky... manual conversion from multiindex.
+    scores = df['score'].values.reshape(-1)
+    layers = [l for l in range(n_layers)] * len(items)
+    scores_df = pd.DataFrame(zip(layers,scores), columns=['layer', 'score'])
+    # scores.columns = range(n_layers)
 
+    print('means per layer:\n', scores_df.groupby("layer").mean())
+
+    print('overall mean', scores_df.groupby("layer").mean().mean())
+
+    # In mathematics, Cayley's formula is a result in graph theory named after Arthur Cayley. It states that for every positive integer n, the number of trees on n labeled vertices is n n − 2 {\displaystyle n^{n-2}} n^{n-2}.
+
+    # TODO replace by actual number of tokens
+    print('chance for 7 tokens:', 1.0 / (7**(7-2)))
+
+    sns.lineplot(x="layer", y="score", data=scores_df)
+
+
+    plt.show()
+
+    # TODO Compare to probability of random tree being correct?
 
 
 if __name__ == "__main__":
