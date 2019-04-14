@@ -7,6 +7,8 @@ import warnings
 import pandas as pd
 import numpy as np
 
+import tree_utils
+
 import regex
 
 from tqdm import tqdm
@@ -142,6 +144,52 @@ def write_file_plain_sentences(n, with_dependencies=False):
                 sentence = ' '.join([t["form"] for t in s])
                 row = [str(i), s.metadata['sent_id'], ';'.join(['{}-{}'.format(a,b) for (a,b) in arcs]), sentence]
                 writer.writerow(row)
+
+
+def dependency_baseline(n):
+    # TODO Better read this from one of the generated data files...
+
+    sentences = []
+
+    for s in parse_incr(open(path_to_conllu_file, "r", encoding="utf-8")):
+        sentences.append(s)
+
+    random.seed(12345)
+
+    indices = random.sample(list(range(len(sentences))), n)
+    sentences = [sentences[i] for i in indices]
+
+    baseline_left_score = 0.0
+    baseline_right_score = 0.0
+    gold_score = 0.0
+    total = 0.0
+
+    for i, s in zip(indices, sentences):
+        nodes_to_explore = [s.to_tree()]
+        arcs = []
+        while len(nodes_to_explore) > 0:
+            node = nodes_to_explore.pop()
+            for c in node.children:
+                nodes_to_explore.append(c)
+                arcs.append((node.token['id']-1, c.token['id']-1))
+
+        nodes = list(set([a[j] for j in [0,1] for a in arcs]))
+        nodes.sort()
+
+        baseline_left = [(nodes[i],nodes[i-1]) for i in range(len(nodes)-1)]
+        baseline_right = [(nodes[i+1], nodes[i]) for i in range(len(nodes) - 1)]
+
+        if len(arcs) > 0:
+            baseline_left_score += tree_utils.head_attachment_score(baseline_left, arcs)
+            baseline_right_score += tree_utils.head_attachment_score(baseline_right, arcs)
+            gold_score += tree_utils.head_attachment_score(arcs, arcs) # sanity check
+            total += 1.0
+
+    baseline_left_score /= total
+    baseline_right_score /= total
+    gold_score /= total
+
+    print("BASELINE LEFT:", baseline_left_score, "RIGHT:", baseline_right_score, "(gold: {})".format(gold_score))
 
 
 def write_file_for_nominal_core_args():
@@ -499,5 +547,5 @@ def merge_grouped_tokens(items, data_for_all_items, method="mean"):
     return data_for_all_items2
 
 if __name__ == "__main__":
-    write_file_plain_sentences(500, with_dependencies=True)
-    # TODO Write similar sentences but with dependency structure.
+    dependency_baseline(500)
+    # write_file_plain_sentences(500, with_dependencies=True)
