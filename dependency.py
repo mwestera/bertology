@@ -190,6 +190,7 @@ def main():
             dtree_value = tree_utils.tree_value_from_matrix(dtree, matrix)
             print(wtree_value, wtree)
             print(dtree_value, dtree)
+            print(tree_utils.head_attachment_score(dtree, wtree))
 
 
     ## Print a quick text summary of main results, significance tests, etc.
