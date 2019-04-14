@@ -462,5 +462,5 @@ def average_for_token_groups(items, data_for_all_items):
     return data_for_all_items2
 
 if __name__ == "__main__":
-    write_file_plain_sentences(500)
+    write_file_plain_sentences(500, with_dependencies=True)
     # TODO Write similar sentences but with dependency structure.
