@@ -138,7 +138,7 @@ def write_file_plain_sentences(n, with_dependencies=False):
                     node = nodes_to_explore.pop()
                     for c in node.children:
                         nodes_to_explore.append(c)
-                        arcs.append((node.token['id'], c.token['id']))
+                        arcs.append((node.token['id']-1, c.token['id']-1))
                 sentence = ' '.join([t["form"] for t in s])
                 row = [str(i), s.metadata['sent_id'], ';'.join(['{}-{}'.format(a,b) for (a,b) in arcs]), sentence]
                 writer.writerow(row)
