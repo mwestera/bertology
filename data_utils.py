@@ -7,6 +7,10 @@ import warnings
 import pandas as pd
 import numpy as np
 
+import regex
+
+from nltk.tokenize import word_tokenize
+
 """
 Mostly concerned with reading universal dependency format, connlu.
 """
@@ -320,7 +324,7 @@ def generate_sentences_from_categories():
 # generate_sentences_from_categories()
 
 
-def parse_data(data_path, tokenizer, max_items=None):
+def parse_data(data_path, tokenizer, max_items=None, words_as_groups=False, as_dependency=None):
     """
     Turns a .csv file with some special markup of 'token groups' into a dataframe.
     :param data_path:
@@ -331,6 +335,8 @@ def parse_data(data_path, tokenizer, max_items=None):
     items = []
     num_factors = None
     max_group_id = 0
+
+    group_regex = regex.compile('\|(\d*) ([^\|]*)')
 
     # Manual checking and parsing of first line (legend)
     with open(data_path) as f:
@@ -349,6 +355,8 @@ def parse_data(data_path, tokenizer, max_items=None):
                     group_legend[int(ind)] = term
                 else:
                     factor_legend[len(factor_legend)] = term
+            if len(group_legend) == 0:
+                group_legend = None
 
     # Now read the actual data
     reader = csv.reader(open(data_path), skipinitialspace=True)
@@ -358,16 +366,18 @@ def parse_data(data_path, tokenizer, max_items=None):
         sentence = ""
         total_len = 1   # Take mandatory CLS symbol into account
 
-        # go through the sentence group by group (separated by | )
-        for each_part in (' '+row[-1]).strip('|').split('|'):   # Cheap fix to avoid unintended groups for sentence starting with number
-            first_char = each_part[0]
-            if first_char.isdigit():
-                group_id = int(first_char)
-                each_part = each_part[1:].strip()
+        if words_as_groups:
+            words = row[-1].split(' ') # WARNING This presumes tokenized lists from UD...
+            row[-1] = ' '.join(['|{} {}'.format(i,w) for i,w in enumerate(words)])
+
+        for digit, each_part in regex.findall(group_regex, row[-1]):   # Cheap fix to avoid unintended groups for sentence starting with number
+            if digit != '':
+                group_id = int(digit)
+                each_part = each_part.strip()
                 max_group_id = max(max_group_id, group_id)
             tokens = tokenizer.tokenize(each_part)
             # If group has a number, remember this group for plotting etc.
-            if first_char.isdigit():
+            if digit != '':
                 if group_id in group_to_token_ids:
                     group_to_token_ids[group_id].extend(list(range(total_len, total_len + len(tokens))))
                 else:
@@ -376,13 +386,16 @@ def parse_data(data_path, tokenizer, max_items=None):
             sentence += each_part.strip() + ' '
 
         # collect token group ids in a list instead of dict, for inclusion in the final DataFrame
-
         if len(group_to_token_ids) == 0:
             token_ids_list = []
         else:
             token_ids_list = [[] for _ in range(max(group_to_token_ids)+1)]
             for key in group_to_token_ids:
                 token_ids_list[key] = group_to_token_ids[key]
+
+        # read dependency tree if necessary
+        if as_dependency is not None:   # TODO replace rigid -2 by index depending on column label
+            row[-2] = [tuple([int(a) for a in s.split('-')]) for s in row[-2].split(';')]
 
         # create data row
         items.append(row[:-1] + [sentence.strip()] + [' '.join(['[CLS]'] + tokenizer.tokenize(sentence) + ['[SEP]'])] + token_ids_list)
@@ -410,6 +423,7 @@ def parse_data(data_path, tokenizer, max_items=None):
 
     # Create dataframe with nice column names
     columns = factor_names + ['sentence'] + ['tokenized'] + group_names
+
     items = pd.DataFrame(items, columns=columns)
 
     # Add a bunch of useful metadata to the DataFrame
@@ -417,6 +431,10 @@ def parse_data(data_path, tokenizer, max_items=None):
         warnings.simplefilter('ignore')
         items.num_factors = num_factors
         items.factors = factor_names
+        if as_dependency in items.factors:
+            items.factors.remove(as_dependency) # This is not a factor proper
+        if 'index' in items.factors:
+            items.factors.remove('index')  # This is not a factor proper either
         items.num_groups = max_group_id + 1
         items.groups = group_names
         items.levels = {factor: items[factor].unique().tolist() for factor in items.factors}
