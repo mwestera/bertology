@@ -179,7 +179,7 @@ def main():
     # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT), and the balance computed from them
 
     for _, item in df.iterrows():
-        dtree = [(a-1, b-1) for (a,b) in item['dependencies'][0]]   # TODO temporary fix; already decrement in original data.
+        dtree = item['dependencies'][0]
         n_tokens = len(item['balance'][0])
         for layer in range(n_layers):
             # TODO more efficient to immediately remove all nan rows and columns...
