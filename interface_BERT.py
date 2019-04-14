@@ -2,7 +2,7 @@ import torch
 from pytorch_pretrained_bert import BertModel, BertTokenizer
 
 import numpy as np
-import tqdm
+from tqdm import tqdm
 
 def tokenize_sequence(tokenizer, sequence):
     sequence = sequence.split(" \|\|\| ")
