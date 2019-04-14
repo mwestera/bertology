@@ -87,7 +87,7 @@ def main():
                                                          args.method,
                                                          '_'+args.combine if args.combine != 'no' else '',
                                                          '_norm' if args.method == 'attention' and args.normalize_heads else '',
-                                                         ('_'+args.n_items) if args.n_items is not None else '')
+                                                         ('_'+str(args.n_items)) if args.n_items is not None else '')
     need_BERT = True
     if os.path.exists(args.raw_out):
         if input('Raw output file exists. Overwrite? (N/y)') != "y":
@@ -98,6 +98,7 @@ def main():
     items = parse_data(args.data, tokenizer, max_items=args.n_items)
 
     print(len(items), 'items')
+    print(items)
 
     ## Store for convenience
     args.factors = args.factors or items.factors[:2]    # by default use the first two factors from the data
