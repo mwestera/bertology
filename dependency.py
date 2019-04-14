@@ -19,7 +19,7 @@ import argparse
 import pickle
 
 import interface_BERT
-from data_utils import parse_data, average_for_token_groups
+import data_utils
 import tree_utils
 
 parser = argparse.ArgumentParser(description='e.g., experiment.py data/example.csv')
@@ -95,7 +95,7 @@ def main():
 
     ## Set up tokenizer, data
     tokenizer = BertTokenizer.from_pretrained(args.bert, do_lower_case=("uncased" in args.bert))
-    items = parse_data(args.data, tokenizer, max_items=args.n_items, words_as_groups=True, as_dependency='dependencies')
+    items = data_utils.parse_data(args.data, tokenizer, max_items=args.n_items, words_as_groups=True, as_dependency='dependencies')
 
     # print(len(items), 'items')
     # with pd.option_context('display.max_rows', 10, 'display.max_columns', None):
@@ -137,9 +137,9 @@ def main():
     # The list data_for_all_items now contains, for each item, weights (n_layers, n_tokens, n_tokens)
 
 
-    ## Take averages over groups of tokens
+    ## Take averages over groups of tokens # TODO shouldn't this be a sum?
     if not args.ignore_groups and not len(items.groups) == 0:
-        data_for_all_items = average_for_token_groups(items, data_for_all_items)
+        data_for_all_items = data_utils.average_for_token_groups(items, data_for_all_items)
         # list with, for each item, weights (n_layers, n_groups, n_groups)
 
 

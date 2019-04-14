@@ -20,7 +20,7 @@ import pickle
 
 import interface_BERT
 
-from data_utils import parse_data, average_for_token_groups
+import data_utils
 
 parser = argparse.ArgumentParser(description='e.g., experiment.py data/example.csv')
 parser.add_argument('data', type=str,
@@ -95,7 +95,7 @@ def main():
 
     ## Set up tokenizer, data
     tokenizer = BertTokenizer.from_pretrained(args.bert, do_lower_case=("uncased" in args.bert))
-    items = parse_data(args.data, tokenizer, max_items=args.n_items)
+    items = data_utils.parse_data(args.data, tokenizer, max_items=args.n_items)
 
     print(len(items), 'items')
 
@@ -137,7 +137,7 @@ def main():
 
     ## Take averages over groups of tokens
     if not args.ignore_groups and not len(items.groups) == 0:
-        data_for_all_items = average_for_token_groups(items, data_for_all_items)
+        data_for_all_items = data_utils.average_for_token_groups(items, data_for_all_items)
         # list with, for each item, weights (n_layers, n_groups, n_groups)
 
 
