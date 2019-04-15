@@ -191,6 +191,10 @@ def main():
         for layer in range(n_layers):
             matrix = item['weights'][layer].values.reshape(n_tokens,n_tokens)
             if args.transpose:
+                # Without transpose, the matrix[i,j] represents how much i influences j.
+                # In a dependency tree arrows flow away from the root.
+                # Hence, a maximum spanning tree on the matrix maximizes information flowing away from the root (= head).
+                # Use args.transpose to hypothesize that info flows towards the root instead.
                 matrix = matrix.transpose()
             # TODO cut the matrix to size
             arcs = tree_utils.matrix_to_arcs(matrix)
@@ -206,15 +210,18 @@ def main():
                 trees[i].append(wtree)
                 # TODO More fine-grained error analysis, e.g., root correct? order correct? (Idea: find max_sa given actual root; compute order-invariant score)
 
-    scores_df = pd.DataFrame([s + t for s,t in zip(scores, trees)], index=items.index, columns=[('score', l, '', '') for l in range(n_layers)] + [('best_tree', l, '', '') for
-                                                                                            l in range(n_layers)])
+
+    columns = pd.MultiIndex.from_tuples([('score', l, '', '') for l in range(n_layers)] + [('best_tree', l, '', '') for l in range(n_layers)])
+    scores_df = pd.DataFrame([s + t for s,t in zip(scores, trees)], index=items.index, columns=columns)
 
     # Add to original df
     df = pd.concat((df, scores_df), axis=1)
+    print(df)
 
     ## Print a quick text summary of main results, significance tests, etc.
     # TODO implement this here :)
 
+    ## Line plot of dependency tree scores
     # TODO This feels rather hacky... manual conversion from multiindex.
     scores = df['score'].values.reshape(-1)
     layers = [l for l in range(n_layers)] * len(items)
