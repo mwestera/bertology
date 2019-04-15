@@ -44,8 +44,8 @@ parser.add_argument('--ignore_groups', action="store_true",
 parser.add_argument('--group_merger', type=str, default='mean', choices=["mean", "sum"],
                     help='how to combine the weights of tokens (and token pieces) within a token group: sum or mean (default)')
 ## Disabled, as axis labels etc. would be incorrect:
-# parser.add_argument('--transpose', action="store_true",
-#                     help='To transpose the plots; by default they read like "rows influenced by cols" (otherwise: rows influencing cols).')
+parser.add_argument('--transpose', action="store_true",
+                    help='To transpose the matrix before computing spaning trees, i.e., assume info flows from children to head.')
 parser.add_argument('--no_diff_plots', action="store_true",
                     help='To NOT plot the differences between levels of a given factor.')
 parser.add_argument('--gif', action="store_true",
@@ -190,6 +190,8 @@ def main():
         trees.append([])
         for layer in range(n_layers):
             matrix = item['weights'][layer].values.reshape(n_tokens,n_tokens)
+            if args.transpose:
+                matrix = matrix.transpose()
             # TODO cut the matrix to size
             arcs = tree_utils.matrix_to_arcs(matrix)
             if len(arcs) <= 1:
