@@ -184,8 +184,7 @@ def dependency_baseline(n):
             baseline_left_score += tree_utils.head_attachment_score(baseline_left, arcs)
             baseline_right_score += tree_utils.head_attachment_score(baseline_right, arcs)
             gold_score += tree_utils.head_attachment_score(arcs, arcs) # sanity check
-            # In mathematics, Cayley's formula is a result in graph theory named after Arthur Cayley. It states that for every positive integer n, the number of trees on n labeled vertices is n n − 2 {\displaystyle n^{n-2}} n^{n-2}.
-            baseline_random_score += 1.0 / (len(nodes) ** (len(nodes) - 2))
+            baseline_random_score += 1.0 / (len(nodes) ** (len(nodes) - 2)) # Cayley's formula
 
             total += 1.0
 
