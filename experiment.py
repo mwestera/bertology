@@ -52,6 +52,8 @@ parser.add_argument('--bert', type=str, default='bert-base-cased',
                     help='Which BERT model to use (default bert-base-cased; not sure which are available)')
 parser.add_argument('--factors', type=str, default=None,
                     help='Which factors to plot, comma separated like "--factors reflexivity,gender"; default: first 2 factors in the data')
+parser.add_argument('--track', type=str, default=None,
+                    help='[NOT YET IMPLEMENTED] Which tokens/token groups to track; single tokens to track balance; pairs to track their weight.')
 parser.add_argument('--no_global_colormap', action="store_true",
                     help='Whether to standardize plot coloring across plots ("global"); otherwise only per plot (i.e., per layer)')
 parser.add_argument('--balance', action="store_true",
@@ -154,7 +156,6 @@ def main():
         balance_for_all_items.append(np.stack(balance_for_item))
     # At this point we have two lists of numpy arrays: for each item, the weights & balance across layers.
 
-
     ## TODO The following applies only if there are groups of tokens.
     ## TODO Otherwise, perhaps have option of plotting individual sentences + balance, but no comparison?
 
@@ -173,6 +174,9 @@ def main():
 
     df = pd.DataFrame(data_for_dataframe, index=items.index, columns=multi_columns)
     # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT), and the balance computed from them
+
+    if args.track is not None:  # TODO instead, do this for tokens and token pairs given in args
+        line_plot(df, args, n_layers, 'term')
 
     ## Compute means over attention weights across all conditions (easy because they're flattened)
     # df_means = df.groupby(items.factors).mean()
@@ -274,6 +278,27 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
 
     # The list weights_to_plot_per_layer now contains, for each layer, a list of lists of weights matrices.
     return weights_to_plot_per_layer
+
+
+def line_plot(df, args, n_layers, to_track):
+
+    # TODO This manual reshaping from multiindex feels terribly hacky
+    balance = df.loc[:,('balance', slice(None), to_track)].values.reshape(-1)
+
+    layers = [l for l in range(n_layers)] * len(df)
+
+    factors_series = []
+
+    for factor in args.factors:
+        factors_series.append([x for y in [[l]*n_layers for l in df[factor]] for x in y])
+
+    balance_df = pd.DataFrame(zip(*factors_series, layers, balance), columns=[*args.factors, 'layer', 'balance'])
+
+    # TODO plot title, axis labels
+    sns.lineplot(x="layer", y="balance", style='source', hue='level', data=balance_df)
+
+    plt.show()
+    # TODO save plot
 
 
 def plot(data, args):
