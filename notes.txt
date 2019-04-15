@@ -1,0 +1,104 @@
+Perhaps first quick check of levels of categorization, to see if it holds promise. Then dive into dependencies.
+
+
+CONDITIONS TO TRY
+- attention vs. gradient.
+- chain vs cumsum vs no.
+- mean vs sum of token groups
+    https://nlp.stanford.edu/pubs/hewitt2019structural.pdf  use mean.
+- info flow from heads to tails or vice versa? currently: tails to heads.
+- normalization on vs. off? :s Nah, better not.
+- evaluate trees just wrt. the main dependencies (e.g., verb arguments only).
+
+And that's just for dependencies... I also want to check levels of categorization (takes less time...), and coreference?
+
+
+TODO:
+- also traina simple linear transformation on the weights matrix to get a tree?
+
+
+BASELINE LEFT: 0.3549140191095338 RIGHT: 0.3070679434214699 RANDOM: 0.07333368175732503 (gold: 1.0)
+
+
+dependency.py data/en_ewt-ud-train500-dep.csv --method attention --combine no
+
+means per layer:
+           score
+layer
+0      0.286651
+1      0.287415
+2      0.283809
+3      0.132412
+4      0.290958
+5      0.187168
+6      0.377085 *
+7      0.203115
+8      0.253033
+9      0.208904
+10     0.084350
+11     0.128464
+overall mean score    0.226947
+dtype: float64
+
+
+--method gradient --combine no
+means per layer:
+           score
+layer
+0      0.211937
+1      0.233302
+2      0.258022
+3      0.207144
+4      0.248748
+5      0.208334
+6      0.366791 *
+7      0.200915
+8      0.202067
+9      0.184901
+10     0.085124
+11     0.116490
+overall mean score    0.210315
+dtype: float64
+
+
+--method gradient --combine chain
+
+means per layer:
+           score
+layer
+0      0.207557
+1      0.282815
+2      0.289693
+3      0.310495
+4      0.342212
+5      0.331970
+6      0.396149 *
+7      0.384308
+8      0.378029
+9      0.355377
+10     0.345758
+11     0.309029
+overall mean score    0.327783
+dtype: float64
+
+
+
+en_ewt-ud-train500-dep.csv --method gradient --combine chain --cuda --transpose
+
+means per layer:
+           score
+layer
+0      0.229576
+1      0.200970
+2      0.201804
+3      0.229830
+4      0.231623
+5      0.226885
+6      0.148046
+7      0.157394
+8      0.128557
+9      0.155978
+10     0.147003
+11     0.117146
+overall mean score    0.181234
+dtype: float64
