@@ -110,7 +110,7 @@ class CONLLU_tags:
     function_nominal_dependents = ['det', 'clf', 'case']
 
 
-# TODO Write to single file and adapt parse_data instead.
+# TODO filter out uninteresting cases (e.g., 1 token, or no dependency rels)
 def write_file_plain_sentences(n, with_dependencies=False):
     """
     :param n: how many (random sample; fixed seed!)
@@ -674,6 +674,8 @@ def parse_data(data_path, tokenizer, max_items=None, words_as_groups=False, depe
     dependencies = []
     for sentence in parse_incr(open(dependency_path, "r", encoding="utf-8")):
         dependencies.append(sentence)
+        if len(dependencies) == len(items):
+            break
 
     if len(dependencies) != len(items):
         print("WARNING: Something's wrong.")
