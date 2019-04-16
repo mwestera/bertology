@@ -285,8 +285,6 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
 
 def line_plot(df, args, n_layers, to_track):
 
-    print(to_track)
-
     if len(to_track) == 1:
         score = "balance"
         data = df.loc[:,('balance', slice(None), to_track[0])]
@@ -302,14 +300,20 @@ def line_plot(df, args, n_layers, to_track):
         factors_series.append([x for y in [[l]*n_layers for l in df[factor]] for x in y])
     data_df = pd.DataFrame(zip(*factors_series, layers, data), columns=[*args.factors, 'layer', score])
 
-
-    # TODO plot title, axis labels
     sns.lineplot(x="layer", y=score, hue=args.factors[0] if len(args.factors) > 0 else None, style=args.factors[1] if len(args.factors) > 1 else None, data=data_df)
+    plt.suptitle("Tracking " + ','.join(to_track) + " across layers ({})".format(args.method + ((", " + args.combine) if args.combine is not "no" else "")))
 
     # TODO Also an overall mean plot on the side
 
-    plt.show()
-    # TODO save plot
+    out_filepath = "{}/track_{}{}{}_{}.png".format(args.out,
+                                                  args.method,
+                                                 "-"+args.combine if args.combine != "no" else "",
+                                                 "_normalized" if (args.method == "attention" and args.normalize_heads) else "",
+                                                 ','.join(to_track))
+    print("Saving figure:", out_filepath)
+    pylab.savefig(out_filepath)
+
+    return out_filepath
 
 
 def plot(data, args):
