@@ -183,7 +183,6 @@ def main():
     scores = []
     trees = []
 
-    # TODO Don't save the trees; write to disk; only save the scores.
     for i, item in tqdm(df.iterrows(), total=len(df)):
         dtree = dependency_trees[i]
         n_tokens = len(item['balance'][0])
@@ -199,46 +198,48 @@ def main():
                 matrix = matrix.transpose()
             # TODO cut the matrix to size
             arcs = tree_utils.matrix_to_arcs(matrix)
-            if len(arcs) <= 1:
-                scores[i].append([np.nan]*tree_utils.NUM_SCORES)
-                trees[i].append([])
-            else:
-                wtree, wtree_value = tree_utils.max_sa_from_nodes(arcs, list(range(n_tokens)))
-                wtree, wtree_value = tree_utils.arcs_to_tuples(wtree.values())
-                # dtree_value = tree_utils.tree_value_from_matrix(dtree, matrix)
-                scores[i].append(tree_utils.get_scores(wtree, dtree))
-                trees[i].append(wtree)
 
+            # Obtain tree and compute scores
+            wtree, wtree_value = tree_utils.max_sa_from_nodes(arcs, list(range(n_tokens)))
+            wtree, wtree_value = tree_utils.arcs_to_tuples(wtree.values())
+            # dtree_value = tree_utils.tree_value_from_matrix(dtree, matrix)
+            scores[i].append(tree_utils.get_scores(wtree, dtree))
+            trees[i].append(wtree)
 
-    columns = pd.MultiIndex.from_tuples([('score', l, '', '') for l in range(n_layers)] + [('best_tree', l, '', '') for l in range(n_layers)])
-    scores_df = pd.DataFrame([s + t for s,t in zip(scores, trees)], index=items.index, columns=columns)
-
-    # TODO Unfold scores dictionary into separate columns
-    print(scores_df)
+    ## Put results into a new dataframe
+    rows = []
+    columns = [s for scorelist in [[('score', l, cat, measure) for cat in score_for_layer for measure in score_for_layer[cat]] for l, score_for_layer in enumerate(scores[0])] for s in scorelist]
+    columns.extend([('tree', l, '', '') for l in range(0, n_layers)])
+    for i, score in enumerate(scores):
+        row = [s for scorelist in [[score_for_layer[cat][measure] for cat in score_for_layer for measure in score_for_layer[cat]] for score_for_layer in score] for s in scorelist]
+        row.extend(trees[i])
+        rows.append(row)
+    columns = pd.MultiIndex.from_tuples(columns, names=['result', 'layer', 'relations', 'measure'])
+    scores_df = pd.DataFrame(rows, index=items.index, columns=columns)
 
     # Add to original df
-    df = pd.concat((df, scores_df), axis=1)
-
+    # df = pd.concat((df, scores_df), axis=1)   # Nah, no need for this.
 
     ## Print a quick text summary of main results, significance tests, etc.
     # TODO implement this here :)
 
+    # print('means per layer:\n', stacked_df.groupby("layer").mean())
+    # print('overall mean', stacked_df.groupby("layer").mean().mean())
+
     ## Line plot of dependency tree scores
-    # TODO This feels rather hacky... manual conversion from multiindex.
-    scores = df['score'].values.reshape(-1)
-    layers = [l for l in range(n_layers)] * len(items)
-    scores_df = pd.DataFrame(zip(layers,scores), columns=['layer', 'score'])
-    # scores.columns = range(n_layers)
-
-    print('means per layer:\n', scores_df.groupby("layer").mean())
-
-    print('overall mean', scores_df.groupby("layer").mean().mean())
 
     # TODO Add sanity check
     # TODO Write trees to file for future error analysis.
 
-    sns.lineplot(x="layer", y="score", data=scores_df)
+    # print(stacked_df[('all', 'head_attachment_score')])
 
+    ## Stack for plotting
+    scores_df = scores_df[['score']].stack().stack().stack().reset_index(level=[1,2,3])
+    scores_df = scores_df[scores_df.measure != 'num_rels']
+
+    sns.lineplot(x='layer', y='score', style='measure', hue='relations', data=scores_df)
+
+# [(x,i) for i in ['head_attachment_score', 'undirected_attachment_score'] for x in ['all', 'open', 'closed']]
 
     plt.show()
 
