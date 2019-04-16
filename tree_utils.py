@@ -1,6 +1,6 @@
 from collections import defaultdict, namedtuple
 
-from numpy import argmax
+from numpy import argmax, nan
 
 import data_utils
 
@@ -135,7 +135,11 @@ def head_attachment_score(tree1, tree2):
     nodes1 = set([a[i] for i in [0,1] for a in tree1])
     nodes2 = set([a[i] for i in [0,1] for a in tree2])
 
-    score = len(set(tree1).intersection(set(tree2))) / (len(nodes2) - 1.0)  # Take nodes from tree 2 as true
+    if len(tree2) == 0:
+        return nan
+
+    # This -1 works only if it is indeed a tree. But what if it's tree fragments...
+    score = len(set(tree1).intersection(set(tree2))) / (len(tree2))  # Take nodes from tree 2 as true
 
     return score
 
@@ -179,14 +183,16 @@ def filtered_scores(tree1, conllu_rep):
 
             if feature == "upostag":
                 tree1_filtered = [arc for arc in tree1 if (arc[0] in token_ids and arc[1] in token_ids)] # only arcs connecting such tags
+                tree1_filtered_undirected = tree1_filtered  # In this case we don't want to look in both directions
                 tree2_filtered = [arc for arc in tree2 if (arc[0] in token_ids and arc[1] in token_ids)]
             elif feature == "deprel":
-                tree1_filtered = [arc for arc in tree1 if (arc[1] in token_ids or arc[0] in token_ids)] # allow for getting direction wrong
+                tree1_filtered = [arc for arc in tree1 if arc[1] in token_ids]
+                tree1_filtered_undirected = [arc for arc in tree1 if (arc[1] in token_ids or arc[0] in token_ids)]  # look in both directions for relevant relations
                 tree2_filtered = [arc for arc in tree2 if arc[1] in token_ids]
 
             scores[tags] = {
                 'head_attachment_score': head_attachment_score(tree1_filtered, tree2_filtered),
-                'undirected_attachment_score': undirected_attachment_score(tree1_filtered, tree2_filtered),
+                'undirected_attachment_score': undirected_attachment_score(tree1_filtered_undirected, tree2_filtered),
                 'num_rels': len(tree2_filtered),
             }
 

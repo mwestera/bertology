@@ -169,8 +169,6 @@ def dependency_baseline(path):
     baseline_right_score = None
     gold_score = None
 
-    total = 0.0
-
     for i, s in enumerate(sentences):
         arcs = tree_utils.conllu_to_arcs(s.to_tree())
 
@@ -188,23 +186,28 @@ def dependency_baseline(path):
             baseline_left_score = scores_left
             baseline_right_score = scores_right
             gold_score = gold_scores
+            for dict in [baseline_left_score, baseline_right_score, gold_score]:
+                for key1 in dict:
+                    for key2 in dict[key1]:
+                        dict[key1][key2] = [dict[key1][key2]]
         else:
             for dict1, dict2 in zip([scores_left, scores_right, gold_scores], [baseline_left_score, baseline_right_score, gold_score]):
                 for key1 in dict1:
                     for key2 in dict1[key1]:
-                        dict2[key1][key2] += dict1[key1][key2]
-
-        total += 1.0
+                        dict2[key1][key2].append(dict1[key1][key2])
 
     for dict in [baseline_left_score, baseline_right_score, gold_score]:
         for key1 in dict:
             for key2 in dict[key1]:
-                dict[key1][key2] /= total
+                dict[key1][key2] = np.nanmean(dict[key1][key2])
 
-    print("BASELINE LEFT:", baseline_left_score)
-    print("BASELINE RIGHT:", baseline_right_score)
-    print("GOLD:", gold_score)
 
+    print("BASELINES:")
+    for label, dict in zip(["LEFT", "RIGHT", "GOLD"], [baseline_left_score, baseline_right_score, gold_score]):
+        print("  " + label)
+        for key1 in dict:
+            for key2 in dict[key1]:
+                print("    "+key1, key2 + ":", dict[key1][key2])
 
 
 def write_file_for_nominal_core_args():
@@ -736,5 +739,5 @@ if __name__ == "__main__":
     # colorless_sentences_from_categories(500)
     # generate_sentences_from_categories_and_conllu(100, 20)
 
-    # dependency_baseline("data/en_gum-ud-dev500-dep.conllu")
+    dependency_baseline("data/en_gum-ud-dev500-dep.conllu")
     # write_file_plain_sentences(500, with_dependencies=True)
