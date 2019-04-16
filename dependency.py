@@ -33,6 +33,8 @@ parser.add_argument('--out', type=str, default=None,
                     help='Output directory for plots (default: creates a new /temp## folder)')
 parser.add_argument('--raw_out', type=str, default=None,
                     help='Output directory for raw BERT outputs, pickled for efficient reuse.')
+parser.add_argument('--trees_out', type=str, default=None,
+                    help='Output directory for constructed spanning trees, pickled for efficient reuse.')
 parser.add_argument('--method', type=str, default='gradient', choices=["gradient", "attention"],
                     help='attention or gradient (default)')
 parser.add_argument('--combine', type=str, default='no', choices=["chain", "cumsum", "no"],
@@ -105,6 +107,23 @@ def main():
         elif input('Raw output file exists. Overwrite? (N/y)') != "y":
             need_BERT = False
 
+
+    if args.trees_out is None:
+        args.trees_out = 'data/auxiliary/{}_{}{}{}{}-trees{}{}.pkl'.format(os.path.basename(args.data)[:-4],
+                                                         args.method,
+                                                         "_chain" if args.combine == "chain" else "", # cumsum can use same as no
+                                                         '_norm' if args.method == 'attention' and args.normalize_heads else '',
+                                                         ('_'+str(args.n_items)) if args.n_items is not None else '',
+                                                          '_'+args.group_merger,
+                                                           '_' + 'transpose' if args.transpose else '',
+                                                          )
+    need_trees = True
+    if os.path.exists(args.raw_out):
+        if args.no_overwrite:
+            need_trees = False
+        elif input('Trees output file exists. Overwrite? (N/y)') != "y":
+            need_trees = False
+
     ## Set up tokenizer, data
     tokenizer = BertTokenizer.from_pretrained(args.bert, do_lower_case=("uncased" in args.bert))
     items, dependency_trees = data_utils.parse_data(args.data, tokenizer, max_items=args.n_items, words_as_groups=True, dependencies=True)
@@ -156,6 +175,7 @@ def main():
 
 
     ## Take averages over groups of tokens
+    # TODO This can be skipped too, if I go straight to the tree outputs; but that's not my current concern.
     if not args.ignore_groups and not len(items.groups) == 0:
         data_for_all_items = data_utils.merge_grouped_tokens(items, data_for_all_items, method=args.group_merger)
 
@@ -191,6 +211,46 @@ def main():
     df = pd.DataFrame(data_for_dataframe, index=items.index, columns=multi_columns)
     # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT & grouped), and the balance computed from them
 
+    ## Apply BERT or, if available, load results saved from previous run
+    if need_trees:
+        scores_df = compute_spanning_trees(df, items, dependency_trees, n_layers, args)
+        with open(args.trees_out, 'wb') as file:
+            pickle.dump(scores_df, file)
+            print('Trees and scores saved as', args.trees_out)
+    else:
+        with open(args.trees_out, 'rb') as file:
+            print('Trees and scores loaded from', args.trees_out)
+            scores_df = pickle.load(file)
+
+    # Add to original df
+    # df = pd.concat((df, scores_df), axis=1)   # Nah, no need for this.
+
+    ## Print a quick text summary of main results, significance tests, etc.
+    # TODO implement this here :)
+
+    # print('means per layer:\n', stacked_df.groupby("layer").mean())
+    # print('overall mean', stacked_df.groupby("layer").mean().mean())
+
+    ## Line plot of dependency tree scores
+
+    # TODO Add sanity check
+    # TODO Write trees to file for future error analysis.
+
+    # print(stacked_df[('all', 'head_attachment_score')])
+
+    ## Stack for plotting
+    scores_df = scores_df[['score']].stack().stack().stack().reset_index(level=[1,2,3])
+    scores_df = scores_df[scores_df.measure != 'num_rels']
+
+    sns.lineplot(x='layer', y='score', style='measure', hue='relations', data=scores_df)
+
+# [(x,i) for i in ['head_attachment_score', 'undirected_attachment_score'] for x in ['all', 'open', 'closed']]
+
+    plt.show()
+
+
+
+def compute_spanning_trees(df, items, dependency_trees, n_layers, args):
     scores = []
     trees = []
 
@@ -228,35 +288,7 @@ def main():
     columns = pd.MultiIndex.from_tuples(columns, names=['result', 'layer', 'relations', 'measure'])
     scores_df = pd.DataFrame(rows, index=items.index, columns=columns)
 
-
-
-
-    # Add to original df
-    # df = pd.concat((df, scores_df), axis=1)   # Nah, no need for this.
-
-    ## Print a quick text summary of main results, significance tests, etc.
-    # TODO implement this here :)
-
-    # print('means per layer:\n', stacked_df.groupby("layer").mean())
-    # print('overall mean', stacked_df.groupby("layer").mean().mean())
-
-    ## Line plot of dependency tree scores
-
-    # TODO Add sanity check
-    # TODO Write trees to file for future error analysis.
-
-    # print(stacked_df[('all', 'head_attachment_score')])
-
-    ## Stack for plotting
-    scores_df = scores_df[['score']].stack().stack().stack().reset_index(level=[1,2,3])
-    scores_df = scores_df[scores_df.measure != 'num_rels']
-
-    sns.lineplot(x='layer', y='score', style='measure', hue='relations', data=scores_df)
-
-# [(x,i) for i in ['head_attachment_score', 'undirected_attachment_score'] for x in ['all', 'open', 'closed']]
-
-    plt.show()
-
+    return scores_df
 
 if __name__ == "__main__":
     main()
