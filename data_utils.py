@@ -727,7 +727,7 @@ def merge_grouped_tokens(items, data_for_all_items, method="mean"):
 
 
 if __name__ == "__main__":
-    write_file_plain_sentences(10, with_dependencies=True)
+    # write_file_plain_sentences(500, with_dependencies=True)
 
     pass
     # colorless_sentences_from_categories(500)
