@@ -157,33 +157,22 @@ def write_file_plain_sentences(n, with_dependencies=False):
                 outfile.writelines(s.serialize())
 
 
-def dependency_baseline(n):
-    # TODO Better read this from one of the generated data files...
+def dependency_baseline(path):
 
     sentences = []
 
-    for s in parse_incr(open(path_to_conllu_file, "r", encoding="utf-8")):
+    for s in parse_incr(open(path, "r", encoding="utf-8")):
         sentences.append(s)
 
-    random.seed(12345)
 
-    indices = random.sample(list(range(len(sentences))), n)
-    sentences = [sentences[i] for i in indices]
+    baseline_left_score = None
+    baseline_right_score = None
+    gold_score = None
 
-    baseline_left_score = 0.0
-    baseline_right_score = 0.0
-    baseline_random_score = 0.0
-    gold_score = 0.0
     total = 0.0
 
-    for i, s in zip(indices, sentences):
-        nodes_to_explore = [s.to_tree()]
-        arcs = []
-        while len(nodes_to_explore) > 0:
-            node = nodes_to_explore.pop()
-            for c in node.children:
-                nodes_to_explore.append(c)
-                arcs.append((node.token['id']-1, c.token['id']-1))
+    for i, s in enumerate(sentences):
+        arcs = tree_utils.conllu_to_arcs(s.to_tree())
 
         nodes = list(set([a[j] for j in [0,1] for a in arcs]))
         nodes.sort()
@@ -191,28 +180,30 @@ def dependency_baseline(n):
         baseline_left = [(nodes[i],nodes[i-1]) for i in range(len(nodes)-1)]
         baseline_right = [(nodes[i+1], nodes[i]) for i in range(len(nodes) - 1)]
 
-        # TODO use get_scores() for different types of scores.
+        scores_left = tree_utils.get_scores(baseline_left, s)
+        scores_right = tree_utils.get_scores(baseline_right, s)
+        gold_scores = tree_utils.get_scores(arcs, s)
 
-        if len(arcs) > 0:
-            baseline_left_score += tree_utils.head_attachment_score(baseline_left, arcs)
-            baseline_right_score += tree_utils.head_attachment_score(baseline_right, arcs)
-            gold_score += tree_utils.head_attachment_score(arcs, arcs) # sanity check
-            baseline_random_score += 1.0 / (len(nodes) ** (len(nodes) - 2)) # Cayley's formula
+        if i == 0:
+            baseline_left_score = scores_left
+            baseline_right_score = scores_right
+            gold_score = gold_scores
+        else:
+            for dict1, dict2 in zip([scores_left, scores_right, gold_scores], [baseline_left_score, baseline_right_score, gold_score]):
+                for key1 in dict1:
+                    for key2 in dict1[key1]:
+                        dict2[key1][key2] += dict1[key1][key2]
 
-            total += 1.0
+        total += 1.0
 
-    baseline_left_score /= total
-    baseline_right_score /= total
-    baseline_random_score /= total
+    for dict in [baseline_left_score, baseline_right_score, gold_score]:
+        for key1 in dict:
+            for key2 in dict[key1]:
+                dict[key1][key2] /= total
 
-    gold_score /= total
-
-    print("BASELINE LEFT:", baseline_left_score, "RIGHT:", baseline_right_score, "RANDOM:", baseline_random_score, "(gold: {})".format(gold_score))
-
-
-
-
-
+    print("BASELINE LEFT:", baseline_left_score)
+    print("BASELINE RIGHT:", baseline_right_score)
+    print("GOLD:", gold_score)
 
 
 
@@ -745,5 +736,5 @@ if __name__ == "__main__":
     # colorless_sentences_from_categories(500)
     # generate_sentences_from_categories_and_conllu(100, 20)
 
-    # dependency_baseline(500)
+    # dependency_baseline("data/en_gum-ud-dev500-dep.conllu")
     # write_file_plain_sentences(500, with_dependencies=True)
