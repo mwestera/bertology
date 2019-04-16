@@ -242,11 +242,22 @@ def main():
     scores_df = scores_df[['score']].stack().stack().stack().reset_index(level=[1,2,3])
     scores_df = scores_df[scores_df.measure != 'num_rels']
 
+    plt.figure(figsize=(10, 8))
     sns.lineplot(x='layer', y='score', style='measure', hue='relations', data=scores_df)
 
 # [(x,i) for i in ['head_attachment_score', 'undirected_attachment_score'] for x in ['all', 'open', 'closed']]
 
-    plt.show()
+    out_filepath = '{}/treescores_{}_{}{}{}{}-{}.png'.format(args.out,
+                                                           args.method,
+                                                           "_chain" if args.combine == "chain" else "", # cumsum can use same as no
+                                                           '_norm' if args.method == 'attention' and args.normalize_heads else '',
+                                                           ('_' + str(args.n_items)) if args.n_items is not None else '',
+                                                           '_' + args.group_merger,
+                                                           '_transpose' if args.transpose else '',
+                                                           )
+
+    print("Saving figure:", out_filepath)
+    pylab.savefig(out_filepath)
 
 
 
