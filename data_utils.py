@@ -17,87 +17,97 @@ from tqdm import tqdm
 Mostly concerned with reading universal dependency format, connlu.
 """
 
-path_to_conllu_file = "/home/u148187/datasets/Universal dependencies/ud-treebanks-v2.3/UD_English-EWT/en_ewt-ud-train.conllu"
+path_to_conllu_file = "/home/u148187/datasets/Universal dependencies/ud-treebanks-v2.3/UD_English-GUM/en_gum-ud-dev.conllu"
+# path_to_conllu_file = "/home/u148187/datasets/Universal dependencies/ud-treebanks-v2.3/UD_English-EWT/en_ewt-ud-train.conllu"
 # path_to_conllu_file = "/home/matthijs/Dropbox/en_ewt-ud-train.conllu"
 
-UPOS_tags = {
-    'ADJ': 'adjective',
-    'ADP': 'adposition',
-    'ADV': 'adverb',
-    'AUX': 'auxiliary',
-    'CCONJ': 'coordinating conjunction',
-    'DET': 'determiner',
-    'INTJ': 'interjection',
-    'NOUN': 'noun',
-    'NUM': 'numeral',
-    'PART': 'particle',
-    'PRON': 'pronoun',
-    'PROPN': 'proper noun',
-    'PUNCT': 'punctuation',
-    'SCONJ': 'subordinating conjunction',
-    'SYM': 'symbol',
-    'VERB': 'verb',
-    'X': 'other',
-}
 
-open_class_tags = ['ADJ', 'ADV', 'INTJ', 'NOUN', 'PROPN', 'VERB']
-closed_class_tags = ['ADP', 'AUX', 'CCONJ', 'DET', 'NUM']
+class CONLLU_tags:
 
-all_dependency_relations = {
-    'acl': 'clausal modifier of noun(adjectival clause)',
-    'advcl': 'adverbial clause modifier',
-    'advmod': 'adverbial modifier',
-    'amod': 'adjectival modifier',
-    'appos': 'appositional modifier',
-    'aux': 'auxiliary',
-    'case': 'case marking',
-    'cc': 'coordinating conjunction',
-    'ccomp': 'clausal complement',
-    'clf': 'classifier',
-    'compound': 'compound',
-    'conj': 'conjunct',
-    'cop': 'copula',
-    'csubj': 'clausal subject',
-    'dep': 'unspecified dependency',
-    'det': 'determiner',
-    'discourse': 'discourse element',
-    'dislocated': 'dislocated elements',
-    'expl': 'expletive',
-    'fixed': 'fixed multiword expression',
-    'flat': 'flat multiword expression',
-    'goeswith': 'goes with',
-    'iobj': 'indirect object',
-    'list': 'list',
-    'mark': 'marker',
-    'nmod': 'nominal modifier',
-    'nsubj': 'nominal subject',
-    'nummod': 'numeric modifier',
-    'obj': 'object',
-    'obl': 'oblique nominal',
-    'orphan': 'orphan',
-    'parataxis': 'parataxis',
-    'punct': 'punctuation',
-    'reparandum': 'overridden disfluency',
-    'root': 'root',
-    'vocative': 'vocative',
-    'xcomp': 'open clausal complement'
-}
+    UPOS_tags = {
+        'ADJ': 'adjective',
+        'ADP': 'adposition',
+        'ADV': 'adverb',
+        'AUX': 'auxiliary',
+        'CCONJ': 'coordinating conjunction',
+        'DET': 'determiner',
+        'INTJ': 'interjection',
+        'NOUN': 'noun',
+        'NUM': 'numeral',
+        'PART': 'particle',
+        'PRON': 'pronoun',
+        'PROPN': 'proper noun',
+        'PUNCT': 'punctuation',
+        'SCONJ': 'subordinating conjunction',
+        'SYM': 'symbol',
+        'VERB': 'verb',
+        'X': 'other',
+    }
 
-nominal_core_arguments = ['nsubj', 'obj', 'iobj']
-nominal_non_core_dependents = ['obl', 'vocative', 'expl', 'dislocated']
-nominal_nominal_dependents = ['nmod', 'appos', 'nummod']
+    open_class_tags = ['ADJ', 'ADV', 'INTJ', 'NOUN', 'PROPN', 'VERB']
+    closed_class_tags = ['ADP', 'AUX', 'CCONJ', 'DET', 'NUM']
 
-modifier_core_arguments = []
-modifier_non_core_dependents = ['advmod', 'discourse']
-modifier_nominal_dependents = ['amod']
+    all_dependency_relations = {
+        'acl': 'clausal modifier of noun(adjectival clause)',
+        'advcl': 'adverbial clause modifier',
+        'advmod': 'adverbial modifier',
+        'amod': 'adjectival modifier',
+        'appos': 'appositional modifier',
+        'aux': 'auxiliary',
+        'case': 'case marking',
+        'cc': 'coordinating conjunction',
+        'ccomp': 'clausal complement',
+        'clf': 'classifier',
+        'compound': 'compound',
+        'conj': 'conjunct',
+        'cop': 'copula',
+        'csubj': 'clausal subject',
+        'dep': 'unspecified dependency',
+        'det': 'determiner',
+        'discourse': 'discourse element',
+        'dislocated': 'dislocated elements',
+        'expl': 'expletive',
+        'fixed': 'fixed multiword expression',
+        'flat': 'flat multiword expression',
+        'goeswith': 'goes with',
+        'iobj': 'indirect object',
+        'list': 'list',
+        'mark': 'marker',
+        'nmod': 'nominal modifier',
+        'nsubj': 'nominal subject',
+        'nummod': 'numeric modifier',
+        'obj': 'object',
+        'obl': 'oblique nominal',
+        'orphan': 'orphan',
+        'parataxis': 'parataxis',
+        'punct': 'punctuation',
+        'reparandum': 'overridden disfluency',
+        'root': 'root',
+        'vocative': 'vocative',
+        'xcomp': 'open clausal complement'
+    }
 
-clause_core_arguments = ['csubj', 'ccomp', 'xcomp']
-clause_non_core_dependents = ['advcl']
-clauser_nominal_dependents = ['acl']
+    nominal_core_arguments = ['nsubj', 'obj', 'iobj']
+    nominal_non_core_dependents = ['obl', 'vocative', 'expl', 'dislocated']
+    nominal_nominal_dependents = ['nmod', 'appos', 'nummod']
 
-function_core_arguments = []
-function_non_core_dependents = ['aux', 'cop', 'mark']
-function_nominal_dependents = ['det', 'clf', 'case']
+    nominal_dependents = nominal_core_arguments + nominal_non_core_dependents + nominal_nominal_dependents
+
+    modifier_core_arguments = []
+    modifier_non_core_dependents = ['advmod', 'discourse']
+    modifier_nominal_dependents = ['amod']
+
+    modifier_dependents = modifier_core_arguments + modifier_non_core_dependents + modifier_nominal_dependents
+
+    clause_core_arguments = ['csubj', 'ccomp', 'xcomp']
+    clause_non_core_dependents = ['advcl']
+    clause_nominal_dependents = ['acl']
+
+    clause_dependents = clause_core_arguments + clause_non_core_dependents + clause_nominal_dependents
+
+    function_core_arguments = []
+    function_non_core_dependents = ['aux', 'cop', 'mark']
+    function_nominal_dependents = ['det', 'clf', 'case']
 
 
 # TODO Write to single file and adapt parse_data instead.
@@ -109,7 +119,6 @@ def write_file_plain_sentences(n, with_dependencies=False):
     :return:
     """
     out_file_path = os.path.basename(path_to_conllu_file)[:-7] + '{}.csv'.format(n)
-    out_file_path_dep = os.path.basename(path_to_conllu_file)[:-7] + '{}-{}.csv'.format(n, 'dep')
 
     sentences = []
 
@@ -121,30 +130,19 @@ def write_file_plain_sentences(n, with_dependencies=False):
     indices = random.sample(list(range(len(sentences))), n)
     sentences = [sentences[i] for i in indices]
 
-    if not with_dependencies:
-        with open('data/' + out_file_path, 'w') as outfile:
-            outfile.write('# index, id \n')
-            writer = csv.writer(outfile)
-            for i, s in zip(indices, sentences):
-                row = [str(i), s.metadata['sent_id'], s.metadata['text']]
-                writer.writerow(row)
+    with open('data/' + out_file_path, 'w') as outfile:
+        outfile.write('# index, id \n')
+        writer = csv.writer(outfile)
+        for i, s in zip(indices, sentences):
+            row = [str(i), s.metadata['sent_id'], s.metadata['text']]
+            writer.writerow(row)
 
-    else:
+    if with_dependencies:
+        out_file_path_dep = out_file_path[:-4] + '-dep.conllu'
         with open('data/' + out_file_path_dep, 'w') as outfile:
-            outfile.write('# index, id, dependencies \n')
-            writer = csv.writer(outfile)
 
-            for i, s in zip(indices, sentences):
-                nodes_to_explore = [s.to_tree()]
-                arcs = []
-                while len(nodes_to_explore) > 0:
-                    node = nodes_to_explore.pop()
-                    for c in node.children:
-                        nodes_to_explore.append(c)
-                        arcs.append((node.token['id']-1, c.token['id']-1))
-                sentence = ' '.join([t["form"] for t in s])
-                row = [str(i), s.metadata['sent_id'], ';'.join(['{}-{}'.format(a,b) for (a,b) in arcs]), sentence]
-                writer.writerow(row)
+            for s in sentences:
+                outfile.writelines(s.serialize())
 
 
 def dependency_baseline(n):
@@ -181,6 +179,8 @@ def dependency_baseline(n):
         baseline_left = [(nodes[i],nodes[i-1]) for i in range(len(nodes)-1)]
         baseline_right = [(nodes[i+1], nodes[i]) for i in range(len(nodes) - 1)]
 
+        # TODO use get_scores() for different types of scores.
+
         if len(arcs) > 0:
             baseline_left_score += tree_utils.head_attachment_score(baseline_left, arcs)
             baseline_right_score += tree_utils.head_attachment_score(baseline_right, arcs)
@@ -213,13 +213,13 @@ def write_file_for_nominal_core_args():
 
     with open('data/'+out_file_path, 'w') as outfile:
         writer = csv.writer(outfile)
-        writer.writerow(['{}|{} {}'.format('#' if i==0 else '', i, t) for i,t in enumerate(nominal_core_arguments)])
+        writer.writerow(['{}|{} {}'.format('#' if i==0 else '', i, t) for i,t in enumerate(CONLLU_tags.nominal_core_arguments)])
 
         for sentence in parse_incr(open(path_to_conllu_file, "r", encoding="utf-8")):
             token_forms = []
             for token in sentence:
-                if token["deprel"] in nominal_core_arguments:
-                    index = nominal_core_arguments.index(token["deprel"])
+                if token["deprel"] in CONLLU_tags.nominal_core_arguments:
+                    index = CONLLU_tags.nominal_core_arguments.index(token["deprel"])
                     token_forms.append('|{} {} |'.format(index, token["form"].replace('|','')))
                 else:
                     token_forms.append(token["form"])
@@ -240,9 +240,9 @@ def write_file_for_open_vs_closed_POS():
         for sentence in parse_incr(open(path_to_conllu_file, "r", encoding="utf-8")):
             token_forms = []
             for token in sentence:
-                if token["upostag"] in open_class_tags:
+                if token["upostag"] in CONLLU_tags.open_class_tags:
                     token_forms.append('|{} {} |'.format(0, token["form"].replace('|', '')))
-                elif token["upostag"] in closed_class_tags:
+                elif token["upostag"] in CONLLU_tags.closed_class_tags:
                     token_forms.append('|{} {} |'.format(1, token["form"].replace('|', '')))
                 else:
                     token_forms.append(token["form"])
@@ -550,14 +550,13 @@ def colorless_sentences_from_categories(n):
 #                 all_items.append((level, level, 'artificial', term, artificial.format(term)))
 
 
-def parse_data(data_path, tokenizer, max_items=None, words_as_groups=False, as_dependency=None):
+def parse_data(data_path, tokenizer, max_items=None, words_as_groups=False, dependencies=False):
     """
     Turns a .csv file with some special markup of 'token groups' into a dataframe.
     :param data_path:
     :param tokenizer: BERT's own tokenizer
     :return: pandas DataFrame with different factors, the sentence, tokenized sentence, and token group indices as columns
     """
-
     items = []
     num_factors = None
     max_group_id = 0
@@ -619,13 +618,6 @@ def parse_data(data_path, tokenizer, max_items=None, words_as_groups=False, as_d
             for key in group_to_token_ids:
                 token_ids_list[key] = group_to_token_ids[key]
 
-        # read dependency tree if necessary
-        if as_dependency is not None:   # TODO replace rigid -2 by index depending on column label
-            if row[-2] != '':
-                row[-2] = [tuple([int(a) for a in s.split('-')]) for s in row[-2].split(';')]
-            else:
-                row[-2] = []
-
         # create data row
         items.append(row[:-1] + [sentence.strip()] + [' '.join(['[CLS]'] + tokenizer.tokenize(sentence) + ['[SEP]'])] + token_ids_list)
 
@@ -650,6 +642,8 @@ def parse_data(data_path, tokenizer, max_items=None, words_as_groups=False, as_d
     if len(group_names) == 0:
         items = [item[:-1] for item in items]
 
+    # TODO change the way groups are represented, just a single 'groups' column containing lists.
+
     # Create dataframe with nice column names
     columns = factor_names + ['sentence'] + ['tokenized'] + group_names
 
@@ -660,8 +654,6 @@ def parse_data(data_path, tokenizer, max_items=None, words_as_groups=False, as_d
         warnings.simplefilter('ignore')
         items.num_factors = num_factors
         items.factors = factor_names
-        if as_dependency in items.factors:
-            items.factors.remove(as_dependency) # This is not a factor proper
         if 'index' in items.factors:
             items.factors.remove('index')  # This is not a factor proper either
         if 'id' in items.factors:
@@ -673,7 +665,20 @@ def parse_data(data_path, tokenizer, max_items=None, words_as_groups=False, as_d
         # items.conditions = list(itertools.product(*[items.levels[factor] for factor in items.factors]))
         items.conditions = list(set([tuple(l) for l in items[items.factors].values]))
 
-    return items
+    ## If no dependencies requested, you're done.
+    if not dependencies:
+        return items
+
+    ## Otherwise read dependencies
+    dependency_path = data_path[:-4] + "-dep.conllu"
+    dependencies = []
+    for sentence in parse_incr(open(dependency_path, "r", encoding="utf-8")):
+        dependencies.append(sentence)
+
+    if len(dependencies) != len(items):
+        print("WARNING: Something's wrong.")
+
+    return items, dependencies
 
 
 
@@ -720,6 +725,8 @@ def merge_grouped_tokens(items, data_for_all_items, method="mean"):
 
 
 if __name__ == "__main__":
+    write_file_plain_sentences(10, with_dependencies=True)
+
     pass
     # colorless_sentences_from_categories(500)
     # generate_sentences_from_categories_and_conllu(100, 20)
