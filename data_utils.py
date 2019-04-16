@@ -175,7 +175,7 @@ def dependency_baseline(path):
         nodes = list(set([a[j] for j in [0,1] for a in arcs]))
         nodes.sort()
 
-        baseline_left = [(nodes[i],nodes[i-1]) for i in range(len(nodes)-1)]
+        baseline_left = [(nodes[i],nodes[i-1]) for i in range(1, len(nodes))]
         baseline_right = [(nodes[i+1], nodes[i]) for i in range(len(nodes) - 1)]
 
         scores_left = tree_utils.get_scores(baseline_left, s)
@@ -206,8 +206,8 @@ def dependency_baseline(path):
     for label, dict in zip(["LEFT", "RIGHT", "GOLD"], [baseline_left_score, baseline_right_score, gold_score]):
         print("  " + label)
         for key1 in dict:
-            for key2 in dict[key1]:
-                print("    "+key1, key2 + ":", dict[key1][key2])
+            print("    " + key1)
+            print("      " + '  '.join([(key2 + ":" + str(dict[key1][key2])) for key2 in dict[key1]]))
 
 
 def write_file_for_nominal_core_args():
