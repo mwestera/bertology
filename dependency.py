@@ -247,7 +247,7 @@ def main():
 
 # [(x,i) for i in ['head_attachment_score', 'undirected_attachment_score'] for x in ['all', 'open', 'closed']]
 
-    out_filepath = '{}/treescores_{}_{}{}{}{}-{}.png'.format(args.out,
+    out_filepath = '{}/treescores_{}_{}{}{}{}{}.png'.format(args.out,
                                                            args.method,
                                                            "_chain" if args.combine == "chain" else "", # cumsum can use same as no
                                                            '_norm' if args.method == 'attention' and args.normalize_heads else '',
