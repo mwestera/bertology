@@ -2,6 +2,8 @@ from collections import defaultdict, namedtuple
 
 from numpy import argmax
 
+import data_utils
+
 Arc = namedtuple('Arc', ('head', 'weight', 'tail'))
 
 
@@ -89,7 +91,7 @@ def matrix_to_arcs(matrix):
     arcs = []
     for i,row in enumerate(matrix):
         for j,value in enumerate(row):
-            if value == value:      # fails if NaN
+            if i != j and value == value:      # fails if NaN
                 arcs.append(Arc(i,value,j))
     return arcs
 
@@ -101,6 +103,22 @@ def arcs_to_tuples(arcs):
         tuples.append((arc[0],arc[2]))
         sum += arc[1]
     return tuples, sum
+
+
+def conllu_to_arcs(tree):
+
+    nodes_to_explore = [tree]
+    arcs = []
+    while len(nodes_to_explore) > 0:
+        node = nodes_to_explore.pop()
+        for c in node.children:
+            nodes_to_explore.append(c)
+            arcs.append((node.token['id'] - 1, c.token['id'] - 1))  # make zero-based
+
+    # nodes = list(set([a[j] for j in [0, 1] for a in arcs]))
+    # nodes.sort()
+
+    return arcs
 
 
 def tree_value_from_matrix(arcs, matrix):
@@ -117,12 +135,81 @@ def head_attachment_score(tree1, tree2):
     nodes1 = set([a[i] for i in [0,1] for a in tree1])
     nodes2 = set([a[i] for i in [0,1] for a in tree2])
 
-    if nodes1 != nodes2:
-        print("Something's wrong.")
-
-    score = len(set(tree1).intersection(set(tree2))) / (len(nodes1) - 1.0)
+    score = len(set(tree1).intersection(set(tree2))) / (len(nodes2) - 1.0)  # Take nodes from tree 2 as true
 
     return score
+
+
+def undirected_attachment_score(tree1, tree2):
+    tree1 = [(a, b) if a < b else (b,a) for (a,b) in tree1]
+    tree2 = [(a, b) if a < b else (b,a) for (a,b) in tree2]
+
+    return head_attachment_score(tree1, tree2)
+
+
+def filtered_scores(tree1, conllu_rep):
+
+    categories = {
+
+        # some based on token["upostag"]
+        "upostag" : { 'open': data_utils.CONLLU_tags.open_class_tags,
+                        'closed': data_utils.CONLLU_tags.closed_class_tags,
+                      },
+
+        # and some based on token["deprel"]
+        "deprel": {'core': data_utils.CONLLU_tags.nominal_core_arguments,
+                    'non-core': data_utils.CONLLU_tags.nominal_non_core_dependents + data_utils.CONLLU_tags.nominal_nominal_dependents,
+
+                    'nominal': data_utils.CONLLU_tags.nominal_dependents,
+                    'non-nominal': data_utils.CONLLU_tags.modifier_dependents + data_utils.CONLLU_tags.clause_dependents,
+                   },
+        }
+
+    tree2 = conllu_to_arcs(conllu_rep.to_tree())
+
+    scores = {}
+    for feature in categories:
+        for tags in categories[feature]:
+
+            token_ids = []
+
+            for token in conllu_rep:
+                if token[feature] in categories[feature][tags]:
+                    token_ids.append(token["id"]-1) # zero-based
+
+            if feature == "upostag":
+                tree1_filtered = [arc for arc in tree1 if (arc[0] in token_ids and arc[1] in token_ids)] # only arcs connecting such tags
+                tree2_filtered = [arc for arc in tree2 if (arc[0] in token_ids and arc[1] in token_ids)]
+            elif feature == "deprel":
+                tree1_filtered = [arc for arc in tree1 if (arc[1] in token_ids or arc[0] in token_ids)] # allow for getting direction wrong
+                tree2_filtered = [arc for arc in tree2 if arc[1] in token_ids]
+
+            scores[tags] = {
+                'head_attachment_score': head_attachment_score(tree1_filtered, tree2_filtered),
+                'undirected_attachment_score': undirected_attachment_score(tree1_filtered, tree2_filtered),
+                'num_rels': len(tree2_filtered),
+            }
+
+    return scores
+
+
+def get_scores(tree1, tree2):
+    """
+    :param tree1: list of pairs
+    :param tree2: conllu-type tree
+    :return: scores dictionary
+    """
+    tree2_arcs = conllu_to_arcs(tree2.to_tree())
+
+    scores = filtered_scores(tree1, tree2)
+
+    scores['all'] = {
+        'head_attachment_score': head_attachment_score(tree1, tree2_arcs),
+        'undirected_attachment_score': undirected_attachment_score(tree1, tree2_arcs),
+        'num_rels': len(tree2_arcs)
+    }
+
+    return scores
 
 
 # The recall metric is ignored when evaluating syntactic trees because all tokens are being labeled in one way or another. There are 5 most common metrics for the evaluation of syntactic dependency parsing:
