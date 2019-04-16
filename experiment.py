@@ -177,7 +177,7 @@ def main():
     df = pd.DataFrame(data_for_dataframe, index=items.index, columns=multi_columns)
     # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT), and the balance computed from them
 
-    if args.track is not None:  # TODO instead, do this for tokens and token pairs given in args
+    if args.track is not None:
         for to_track in args.track:
             line_plot(df, args, n_layers, to_track)
 
