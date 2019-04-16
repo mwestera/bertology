@@ -101,7 +101,7 @@ def main():
 
     ## Set up tokenizer, data
     tokenizer = BertTokenizer.from_pretrained(args.bert, do_lower_case=("uncased" in args.bert))
-    items = data_utils.parse_data(args.data, tokenizer, max_items=args.n_items, words_as_groups=True, as_dependency='dependencies')
+    items, dependency_trees = data_utils.parse_data(args.data, tokenizer, max_items=args.n_items, words_as_groups=True, dependencies=True)
 
     # print(len(items), 'items')
     # with pd.option_context('display.max_rows', 10, 'display.max_columns', None):
@@ -178,13 +178,14 @@ def main():
     multi_columns = pd.MultiIndex.from_tuples([(c, '', '', '') for c in items.columns] + [('weights', l, g1, g2) for l in range(n_layers) for g1 in items.groups for g2 in items.groups] + [('balance', l, g, '') for l in range(n_layers) for g in items.groups], names=['', 'layer', 'in', 'out'])
 
     df = pd.DataFrame(data_for_dataframe, index=items.index, columns=multi_columns)
-    # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT), and the balance computed from them
+    # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT & grouped), and the balance computed from them
 
     scores = []
     trees = []
 
+    # TODO Don't save the trees; write to disk; only save the scores.
     for i, item in tqdm(df.iterrows(), total=len(df)):
-        dtree = item['dependencies'][0]
+        dtree = dependency_trees[i]
         n_tokens = len(item['balance'][0])
         scores.append([])
         trees.append([])
@@ -199,24 +200,25 @@ def main():
             # TODO cut the matrix to size
             arcs = tree_utils.matrix_to_arcs(matrix)
             if len(arcs) <= 1:
-                scores[i].append(np.nan)
+                scores[i].append([np.nan]*tree_utils.NUM_SCORES)
                 trees[i].append([])
             else:
                 wtree, wtree_value = tree_utils.max_sa_from_nodes(arcs, list(range(n_tokens)))
                 wtree, wtree_value = tree_utils.arcs_to_tuples(wtree.values())
                 # dtree_value = tree_utils.tree_value_from_matrix(dtree, matrix)
-                score = tree_utils.head_attachment_score(dtree, wtree)
-                scores[i].append(score)
+                scores[i].append(tree_utils.get_scores(wtree, dtree))
                 trees[i].append(wtree)
-                # TODO More fine-grained error analysis, e.g., root correct? order correct? (Idea: find max_sa given actual root; compute order-invariant score)
 
 
     columns = pd.MultiIndex.from_tuples([('score', l, '', '') for l in range(n_layers)] + [('best_tree', l, '', '') for l in range(n_layers)])
     scores_df = pd.DataFrame([s + t for s,t in zip(scores, trees)], index=items.index, columns=columns)
 
+    # TODO Unfold scores dictionary into separate columns
+    print(scores_df)
+
     # Add to original df
     df = pd.concat((df, scores_df), axis=1)
-    print(df)
+
 
     ## Print a quick text summary of main results, significance tests, etc.
     # TODO implement this here :)
