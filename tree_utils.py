@@ -160,8 +160,8 @@ def filtered_scores(tree1, conllu_rep):
         "deprel": {'core': data_utils.CONLLU_tags.nominal_core_arguments,
                     'non-core': data_utils.CONLLU_tags.nominal_non_core_dependents + data_utils.CONLLU_tags.nominal_nominal_dependents,
 
-                    'nominal': data_utils.CONLLU_tags.nominal_dependents,
-                    'non-nominal': data_utils.CONLLU_tags.modifier_dependents + data_utils.CONLLU_tags.clause_dependents,
+                    # 'nominal': data_utils.CONLLU_tags.nominal_dependents,
+                    # 'non-nominal': data_utils.CONLLU_tags.modifier_dependents + data_utils.CONLLU_tags.clause_dependents,
                    },
         }
 
