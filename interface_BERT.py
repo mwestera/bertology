@@ -48,6 +48,8 @@ def apply_bert_get_attention(model, tokenizer, sequence):
 
 
 def apply_bert(items, tokenizer, args):
+    print("Applying BERT.")
+
     model = BertModel.from_pretrained(args.bert)
 
     if args.cuda:
@@ -69,10 +71,6 @@ def apply_bert(items, tokenizer, args):
             tokens_a, tokens_b, weights_per_layer = apply_bert_get_gradients(model, tokenizer, each_item['sentence'], chain=args.combine=="chain")
             weights_per_layer = weights_per_layer.transpose(0,2,1)  # for uniformity with attention weights: (layer, input_token, output_token)
             # TODO IMPORTANT Not sure if this is right; the picture comes out all weird, almost the inverse of attention-based...
-
-        # TODO Move this outside this function; doesn't need to be generated/saved separately.
-        if args.combine == "cumsum":
-            weights_per_layer = np.cumsum(weights_per_layer, axis=0)
 
         data_for_all_items.append(weights_per_layer)
 
