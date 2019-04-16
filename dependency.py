@@ -118,7 +118,7 @@ def main():
                                                            '_' + 'transpose' if args.transpose else '',
                                                           )
     need_trees = True
-    if os.path.exists(args.raw_out):
+    if os.path.exists(args.trees_out):
         if args.no_overwrite:
             need_trees = False
         elif input('Trees output file exists. Overwrite? (N/y)') != "y":
