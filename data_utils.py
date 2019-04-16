@@ -128,6 +128,18 @@ def write_file_plain_sentences(n, with_dependencies=False):
     random.seed(12345)
 
     indices = random.sample(list(range(len(sentences))), n)
+    proper_indices = []
+    for i in indices:
+        arcs = tree_utils.conllu_to_arcs(sentences[i].to_tree())
+        print(i, arcs)
+        if len(arcs) >= 2:
+            proper_indices.append(i)
+    while len(proper_indices) < n:
+        i = random.choice(range(len(sentences)))
+        if i not in proper_indices and len(tree_utils.conllu_to_arcs(sentences[i].to_tree())) >= 2:
+            proper_indices.append(i)
+
+    indices = proper_indices
     sentences = [sentences[i] for i in indices]
 
     with open('data/' + out_file_path, 'w') as outfile:
