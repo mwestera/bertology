@@ -91,7 +91,7 @@ def main():
     if args.raw_out is None:
         args.raw_out = 'data/auxiliary/{}_{}{}{}{}.pkl'.format(os.path.basename(args.data)[:-4],
                                                          args.method,
-                                                         '_'+args.combine if args.combine != 'no' else '',
+                                                         "_chain" if args.combine == "chain" else "", # cumsum can use same as no
                                                          '_norm' if args.method == 'attention' and args.normalize_heads else '',
                                                          ('_'+str(args.n_items)) if args.n_items is not None else '')
     need_BERT = True
@@ -143,10 +143,15 @@ def main():
     # The list data_for_all_items now contains, for each item, weights (n_layers, n_tokens, n_tokens)
 
 
+    ## Take cumsum if needed (placed outside the foregoing, to avoid having to save/load separate file for this
+    if args.combine == "cumsum":
+        for i in range(len(data_for_all_items)):
+            data_for_all_items[i] = np.cumsum(data_for_all_items[i], axis=0)
+
+
     ## Take averages over groups of tokens
     if not args.ignore_groups and not len(items.groups) == 0:
         data_for_all_items = data_utils.merge_grouped_tokens(items, data_for_all_items, method=args.group_merger)
-        # list with, for each item, weights (n_layers, n_groups, n_groups)
 
 
     ## Compute balances (though whether they will be plotted depends on args.balance)
