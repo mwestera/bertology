@@ -720,6 +720,7 @@ def merge_grouped_tokens(items, data_for_all_items, method="mean"):
 
 
 if __name__ == "__main__":
+    pass
     # colorless_sentences_from_categories(500)
     # generate_sentences_from_categories_and_conllu(100, 20)
 
