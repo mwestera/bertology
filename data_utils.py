@@ -371,11 +371,6 @@ def generate_sentences_from_categories():
                 new_item = (original[0], level, 'manipulated', replacement, new_sentence)
                 all_items.append(new_item)
 
-    artificial = 'I wonder if my sister will bring her {} to the meeting.'
-    for tuple in tuples:
-        for term, level in zip(tuple, ['super', 'basic', 'sub']):
-            all_items.append((level, level, 'artificial', term, artificial.format(term)))
-
     # Write to csv including group tags right away
     with open('data/auxiliary/category-sentences.csv', 'w') as file:
         file.write('# original, level, source, |0 term, |1 rest \n')
@@ -392,115 +387,167 @@ def generate_sentences_from_categories():
 
 
 
-def generate_sentences_from_categories_and_conllu(n, n_templates):
+def colorless_sentences_from_categories(n):
 
-    ## Read dictioary with replacements
-    dictionary = {
-        'NOUN': {"sing": ['apple', 'pear']},
-        'VERB': {"sing": ['sees', 'runs']},
-        'ADJ': ["funny", "stupid"]
-    }
+    tuples = [('weapon', 'gun', 'shotgun'), ('clothing', 'pants', 'jeans'), ('footgear', 'shoes', 'sandals'),
+              ('tool', 'saw', 'chainsaw'), ('animal', 'dog', 'poodle')]
 
-    ## Get sentences from conllu
-    out_file_path = os.path.basename('category-sentences-colorless.csv')
+    templates = [  # {0} noun; {1} noun, {2} noun, {3} verb, {4} adjective; {5} adverb
+        'The {0} {5} {3} some {2} from the {4} {1}.',
+        'The {4} {2} {5} {3} some {1} the {0}.',
+        '{5} every {2}, the {4} {1} {3} some {0}.',
+        'My {4} {2} {5} {3} the {0} or the {1}.',
+        'When his {1} {3}, every {1} {3} {5} and his {4} {0} too.',
+        'Given the {4} {1} in the {2}, the {0} {5} {3}.',
+        'Because the {0} and the {4} {1} {3}, my {2} {5} {3} it.',
+    ]
+    # TODO Add more templates
+    # TODO Add larger vocabularies
+    nouns = ["apple", "economy", "book", "cover"]
+    verbs = ["bought", "sold", "saw", "witnessed", "liked"]
+    adjectives = ["horrible", "fun", "tall", "old"]
+    adverbs = ["gently", "always", "probably"]
 
-    sentences = []
-
-    for s in parse_incr(open(path_to_conllu_file, "r", encoding="utf-8")):
-        sentences.append(s)
-
-    random.seed(12345)
-
-    ## Get only a sample, and only those containing singular nouns
-    def has_singular_noun(s):
-        for token in s:
-            if token["upostag"] == "NOUN" and token["feats"] is not None and "Number" in token["feats"] and token["feats"]["Number"] == "Sing":
-                return True
-        return False
-
-    indices = []
-    examples = []
-    while len(examples) < n_templates:
-        i = random.choice(list(range(len(sentences))))
-        if i not in indices and has_singular_noun(sentences[i]) and len(sentences[i]) > 8:
-            indices.append(i)
-            examples.append(sentences[i])
-
-    ## Generate templates from the sample
-    templates = []
-    for ex in examples:
-        template = []
-        for token in ex:
-            replace = False
-            if token["upostag"] in dictionary:
-                replace = True
-            template.append((token["upostag"], token["feats"]) if replace else token["form"])
-        templates.append(template)
-
-    for t in templates:
-        print(t)
-        print('---------')
-
-    quit()
-
-    random.choice(dictionary[token["upostag"]][token["feats"]["Number"]])
+    colorless = []
+    while len(colorless) < n:
+        for template in templates:
+            noun1 = random.choice(nouns)
+            noun2 = random.choice(nouns)
+            nounchoice = ["{0}", noun1, noun2]
+            random.shuffle(nounchoice)
+            verb = random.choice(verbs)
+            adjective = random.choice(adjectives)
+            adverb = random.choice(adverbs)
+            filled = template.format(*nounchoice, verb, adjective, adverb)
+            for tuple in tuples:
+                for term, level in zip(tuple, ['super', 'basic', 'sub']):
+                    sentence = filled.format(term)
+                    # Quick dirty fix
+                    for vowel in ['a', 'e', 'i', 'o', 'u']:
+                        sentence = sentence.replace(' a {}'.format(vowel), ' an {}'.format(vowel))
+                        sentence = sentence.replace('A {}'.format(vowel), 'An {}'.format(vowel))
+                    colorless.append([level, term, sentence.capitalize()])
 
 
-    ## Read tuples of categories
-    rows = []
-    tuples_dict = {}
-    tuples = []
-    with open('data/auxiliary/category-sentences.txt') as file:
-        for line in file:
-            if not line.startswith('#') and not line.strip() == '':
-                row = [s.strip() for s in line.split(';')]
-                rows.append(row)
-    if len(rows) %3  != 0:
-        print("Something's wrong")
-    for i in range(0, len(rows), 3):
-        tuple = [s[1] for s in rows[i:i+3]]
-        tuples.append(tuple)
-        tuples_dict[tuple[0]] = tuples_dict[tuple[1]] = tuples_dict[tuple[2]] = tuple
-
-
-    ## Combine and write
     # Write to csv including group tags right away
-    with open(out_file_path, 'w') as file:
-        file.write('# original, level, source, |0 term, |1 rest \n')
+    with open('data/category-sentences-colorless.csv', 'w') as file:
+        file.write('# level, |0 term, |1 rest \n')
         writer = csv.writer(file)
-        for sentence in sentences:
-            tokens = []
-            noun_ids = []
-
-            for i, token in enumerate(sentence):
-                if token["upostag"] == "NOUN" and token["feats"]["Number"] == "sing":
-                    noun_ids.append(i)
-                tokens.append(token)
-            to_be_replaced_idx = random.choice(noun_ids)
-
-            sent_with_groups = '|1 ' + item[4].replace(item[3], '|0 ' + item[3] + ' |1')
-            row = [item[0], item[1], item[2], sent_with_groups]
+        for item in colorless:
+            sent_with_groups = '|1 ' + item[2].replace(item[1], '|0 '+item[1] + ' |1')
+            row = [item[0], sent_with_groups]
             writer.writerow(row)
+    print('wrote {} items to {}'.format(len(colorless), 'data/category-sentences-colorless.csv'))
 
-    with open('data/'+out_file_path, 'w') as outfile:
-        writer = csv.writer(outfile)
-        writer.writerow(['{}|{} {}'.format('#' if i==0 else '', i, t) for i,t in enumerate(tags_of_interest)])
-
-        for sentence in parse_incr(open(path_to_conllu_file, "r", encoding="utf-8")):
-            token_forms = []
-            for token in sentence:
-                print(token("feats"))
-                if token["upostag"] == "NOUN" and token["feats"]["Number"] == "sing":
-                    token_forms.append('|{} {} |'.format(index, token["form"].replace('|','')))
-                else:
-                    token_forms.append(token["form"])
-            writer.writerow([' '.join(token_forms)])
-
-
-        artificial = 'I wonder if my sister will bring her {} to the meeting.'
-        for tuple in tuples:
-            for term, level in zip(tuple, ['super', 'basic', 'sub']):
-                all_items.append((level, level, 'artificial', term, artificial.format(term)))
+# def generate_sentences_from_categories_and_conllu(n, n_templates):
+#
+#     ## Read dictioary with replacements
+#     dictionary = {
+#         'NOUN': {"sing": ['apple', 'pear']},
+#         'VERB': {"sing": ['sees', 'runs']},
+#         'ADJ': ["funny", "stupid"]
+#     }
+#
+#     ## Get sentences from conllu
+#     out_file_path = os.path.basename('category-sentences-colorless.csv')
+#
+#     sentences = []
+#
+#     for s in parse_incr(open(path_to_conllu_file, "r", encoding="utf-8")):
+#         sentences.append(s)
+#
+#     random.seed(12345)
+#
+#     ## Get only a sample, and only those containing singular nouns
+#     def has_singular_noun(s):
+#         for token in s:
+#             if token["upostag"] == "NOUN" and token["feats"] is not None and "Number" in token["feats"] and token["feats"]["Number"] == "Sing":
+#                 return True
+#         return False
+#
+#     indices = []
+#     examples = []
+#     while len(examples) < n_templates:
+#         i = random.choice(list(range(len(sentences))))
+#         if i not in indices and has_singular_noun(sentences[i]) and len(sentences[i]) > 8:
+#             indices.append(i)
+#             examples.append(sentences[i])
+#
+#     ## Generate templates from the sample
+#     templates = []
+#     for ex in examples:
+#         template = []
+#         for token in ex:
+#             replace = False
+#             if token["upostag"] in dictionary:
+#                 replace = True
+#             template.append((token["upostag"], token["feats"]) if replace else token["form"])
+#         templates.append(template)
+#
+#     for t in templates:
+#         print(t)
+#         print('---------')
+#
+#     quit()
+#
+#     random.choice(dictionary[token["upostag"]][token["feats"]["Number"]])
+#
+#
+#     ## Read tuples of categories
+#     rows = []
+#     tuples_dict = {}
+#     tuples = []
+#     with open('data/auxiliary/category-sentences.txt') as file:
+#         for line in file:
+#             if not line.startswith('#') and not line.strip() == '':
+#                 row = [s.strip() for s in line.split(';')]
+#                 rows.append(row)
+#     if len(rows) %3  != 0:
+#         print("Something's wrong")
+#     for i in range(0, len(rows), 3):
+#         tuple = [s[1] for s in rows[i:i+3]]
+#         tuples.append(tuple)
+#         tuples_dict[tuple[0]] = tuples_dict[tuple[1]] = tuples_dict[tuple[2]] = tuple
+#
+#
+#     ## Combine and write
+#     # Write to csv including group tags right away
+#     with open(out_file_path, 'w') as file:
+#         file.write('# original, level, source, |0 term, |1 rest \n')
+#         writer = csv.writer(file)
+#         for sentence in sentences:
+#             tokens = []
+#             noun_ids = []
+#
+#             for i, token in enumerate(sentence):
+#                 if token["upostag"] == "NOUN" and token["feats"]["Number"] == "sing":
+#                     noun_ids.append(i)
+#                 tokens.append(token)
+#             to_be_replaced_idx = random.choice(noun_ids)
+#
+#             sent_with_groups = '|1 ' + item[4].replace(item[3], '|0 ' + item[3] + ' |1')
+#             row = [item[0], item[1], item[2], sent_with_groups]
+#             writer.writerow(row)
+#
+#     with open('data/'+out_file_path, 'w') as outfile:
+#         writer = csv.writer(outfile)
+#         writer.writerow(['{}|{} {}'.format('#' if i==0 else '', i, t) for i,t in enumerate(tags_of_interest)])
+#
+#         for sentence in parse_incr(open(path_to_conllu_file, "r", encoding="utf-8")):
+#             token_forms = []
+#             for token in sentence:
+#                 print(token("feats"))
+#                 if token["upostag"] == "NOUN" and token["feats"]["Number"] == "sing":
+#                     token_forms.append('|{} {} |'.format(index, token["form"].replace('|','')))
+#                 else:
+#                     token_forms.append(token["form"])
+#             writer.writerow([' '.join(token_forms)])
+#
+#
+#         artificial = 'I wonder if my sister will bring her {} to the meeting.'
+#         for tuple in tuples:
+#             for term, level in zip(tuple, ['super', 'basic', 'sub']):
+#                 all_items.append((level, level, 'artificial', term, artificial.format(term)))
 
 
 def parse_data(data_path, tokenizer, max_items=None, words_as_groups=False, as_dependency=None):
@@ -673,7 +720,8 @@ def merge_grouped_tokens(items, data_for_all_items, method="mean"):
 
 
 if __name__ == "__main__":
-    generate_sentences_from_categories_and_conllu(100, 20)
+    # colorless_sentences_from_categories(500)
+    # generate_sentences_from_categories_and_conllu(100, 20)
 
     # dependency_baseline(500)
     # write_file_plain_sentences(500, with_dependencies=True)
