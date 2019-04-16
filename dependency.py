@@ -60,6 +60,8 @@ parser.add_argument('--balance', action="store_true",
                     help='To compute and plot balances, i.e., how much a token influences minus how much it is influenced.')
 parser.add_argument('--cuda', action="store_true",
                     help='To use cuda.')
+parser.add_argument('--no_overwrite', action="store_true",
+                    help='To not overwrite existing files.')
 
 # TODO Make sure to try merging token pieces with summing...
 
@@ -85,6 +87,8 @@ def main():
             args.factors = args.factors[:2]
     if args.out is not None:
         if os.path.exists(args.out):
+            if args.no_overwrite:
+                quit()
             if input('Output directory {} already exists. Risk overwriting files? N/y'.format(args.out)) != 'y':
                 quit()
 
@@ -96,7 +100,9 @@ def main():
                                                          ('_'+str(args.n_items)) if args.n_items is not None else '')
     need_BERT = True
     if os.path.exists(args.raw_out):
-        if input('Raw output file exists. Overwrite? (N/y)') != "y":
+        if args.no_overwrite:
+            need_BERT = False
+        elif input('Raw output file exists. Overwrite? (N/y)') != "y":
             need_BERT = False
 
     ## Set up tokenizer, data
@@ -221,6 +227,9 @@ def main():
         rows.append(row)
     columns = pd.MultiIndex.from_tuples(columns, names=['result', 'layer', 'relations', 'measure'])
     scores_df = pd.DataFrame(rows, index=items.index, columns=columns)
+
+
+
 
     # Add to original df
     # df = pd.concat((df, scores_df), axis=1)   # Nah, no need for this.
