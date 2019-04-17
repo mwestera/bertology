@@ -24,6 +24,9 @@ import tree_utils
 
 from tqdm import tqdm
 
+from scipy.stats.stats import pearsonr
+from scipy.stats import combine_pvalues
+
 parser = argparse.ArgumentParser(description='e.g., experiment.py data/example.csv')
 parser.add_argument('data', type=str,
                     help='Path to data file (typically .csv).')
@@ -35,6 +38,8 @@ parser.add_argument('--raw_out', type=str, default=None,
                     help='Output directory for raw BERT outputs, pickled for efficient reuse.')
 parser.add_argument('--trees_out', type=str, default=None,
                     help='Output directory for constructed spanning trees, pickled for efficient reuse.')
+parser.add_argument('--pearson_out', type=str, default=None,
+                    help='Output directory for computed pearson coefficients and p-values, pickled for efficient reuse.')
 parser.add_argument('--method', type=str, default='gradient', choices=["gradient", "attention"],
                     help='attention or gradient (default)')
 parser.add_argument('--combine', type=str, default='no', choices=["chain", "cumsum", "no"],
@@ -59,6 +64,7 @@ parser.add_argument('--cuda', action="store_true",
 parser.add_argument('--no_overwrite', action="store_true",
                     help='To not overwrite existing files.')
 
+# TODO Move all intermediate auxiliary files to output/aux/ directory.
 # TODO Make sure to try merging token pieces with summing...
 
 # TODO: perhaps it's useful to allow plotting means over layers; sliding window-style? or chaining but with different starting points?
@@ -97,29 +103,51 @@ def main():
                                                          "_chain" if args.combine == "chain" else "", # cumsum can use same as no
                                                          '_norm' if args.method == 'attention' and args.normalize_heads else '',
                                                          ('_'+str(args.n_items)) if args.n_items is not None else '')
-    need_BERT = True
-    if os.path.exists(args.raw_out):
-        if args.no_overwrite:
-            need_BERT = False
-        elif input('Raw output file exists. Overwrite? (N/y)') != "y":
-            need_BERT = False
-
 
     if args.trees_out is None:
-        args.trees_out = 'data/auxiliary/{}_{}{}{}{}-trees{}{}.pkl'.format(os.path.basename(args.data)[:-4],
+        args.trees_out = 'data/auxiliary/{}_SPANNING_{}{}{}{}{}{}.pkl'.format(os.path.basename(args.data)[:-4],
                                                          args.method,
-                                                         "_chain" if args.combine == "chain" else "", # cumsum can use same as no
+                                                         '_' + args.combine if args.combine != "no" else "",
                                                          '_norm' if args.method == 'attention' and args.normalize_heads else '',
                                                          ('_'+str(args.n_items)) if args.n_items is not None else '',
                                                           '_'+args.group_merger,
                                                            '_' + 'transpose' if args.transpose else '',
                                                           )
-    need_trees = True
+
+    if args.pearson_out is None:
+        args.pearson_out = 'data/auxiliary/{}_PEARSON_{}{}{}{}-{}{}.pkl'.format(os.path.basename(args.data)[:-4],
+                                                                           args.method,
+                                                                           '_' + args.combine if args.combine != "no" else "",
+                                                                           '_norm' if args.method == 'attention' and args.normalize_heads else '',
+                                                                           ('_' + str(args.n_items)) if args.n_items is not None else '',
+                                                                           '_' + args.group_merger,
+                                                                           '_' + 'transpose' if args.transpose else '',
+                                                                           )
+
+    ## Do we need to apply BERT (anew)?
+    apply_BERT = True
+    if os.path.exists(args.raw_out):
+        if args.no_overwrite:
+            apply_BERT = False
+        elif input('Raw output file exists. Overwrite? (N/y)') != "y":
+            apply_BERT = False
+
+    ## Do we need to compute spanning trees (anew)?
+    compute_trees = True
     if os.path.exists(args.trees_out):
         if args.no_overwrite:
-            need_trees = False
+            compute_trees = False
         elif input('Trees output file exists. Overwrite? (N/y)') != "y":
-            need_trees = False
+            compute_trees = False
+
+    ## Do we need to compute pearson coefficients (anew)?
+    compute_pearson = True
+    if os.path.exists(args.pearson_out):
+        if args.no_overwrite:
+            compute_pearson = False
+        elif input('Pearson output file exists. Overwrite? (N/y)') != "y":
+            compute_pearson = False
+
 
     ## Set up tokenizer, data
     tokenizer = BertTokenizer.from_pretrained(args.bert, do_lower_case=("uncased" in args.bert))
@@ -153,7 +181,7 @@ def main():
 
 
     ## Apply BERT or, if available, load results saved from previous run
-    if need_BERT:
+    if apply_BERT:
         data_for_all_items = interface_BERT.apply_bert(items, tokenizer, args)
         with open(args.raw_out, 'wb') as file:
             pickle.dump(data_for_all_items, file)
@@ -163,20 +191,21 @@ def main():
             print('BERTs raw outputs loaded from', args.raw_out)
             data_for_all_items = pickle.load(file)
     n_layers = data_for_all_items[0].shape[0] # for convenience
+
     # The list data_for_all_items now contains, for each item, weights (n_layers, n_tokens, n_tokens)
 
-    ## See if some computation needs to be done
-    if need_trees:
+
+    ## If some computation needs to be done, we need to process the BERT outputs a bit
+    if compute_trees or compute_pearson:
+
         ## Take cumsum if needed (placed outside the foregoing, to avoid having to save/load separate file for this
         if args.combine == "cumsum":
             for i in range(len(data_for_all_items)):
                 data_for_all_items[i] = np.cumsum(data_for_all_items[i], axis=0)
 
         ## Take averages over groups of tokens
-        # TODO This can be skipped too, if I go straight to the tree outputs; but that's not my current concern.
         if not args.ignore_groups and not len(items.groups) == 0:
             data_for_all_items = data_utils.merge_grouped_tokens(items, data_for_all_items, method=args.group_merger)
-
 
         ## Compute balances (though whether they will be plotted depends on args.balance)
         # (Re)compute balance: how much token influences minus how much is influenced
@@ -189,9 +218,6 @@ def main():
             balance_for_all_items.append(np.stack(balance_for_item))
         # At this point we have two lists of numpy arrays: for each item, the weights & balance across layers.
 
-
-        ## TODO The following applies only if there are groups of tokens.
-        ## TODO Otherwise, perhaps have option of plotting individual sentences + balance, but no comparison?
 
         ## Store the weights in dataframe together with original data
         # TODO All of this feels terribly hacky...
@@ -209,57 +235,83 @@ def main():
         df = pd.DataFrame(data_for_dataframe, index=items.index, columns=multi_columns)
         # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT & grouped), and the balance computed from them
 
+
     ## Apply BERT or, if available, load results saved from previous run
-    if need_trees:
-        scores_df = compute_spanning_trees(df, items, dependency_trees, n_layers, args)
+    if compute_trees:
+        trees_df = analyze_by_spanning_trees(df, items, dependency_trees, n_layers, args)
         with open(args.trees_out, 'wb') as file:
-            pickle.dump(scores_df, file)
+            pickle.dump(trees_df, file)
             print('Trees and scores saved as', args.trees_out)
     else:
         with open(args.trees_out, 'rb') as file:
             print('Trees and scores loaded from', args.trees_out)
-            scores_df = pickle.load(file)
+            trees_df = pickle.load(file)
 
-    # Add to original df
-    # df = pd.concat((df, scores_df), axis=1)   # Nah, no need for this.
+    plot_tree_scores(trees_df, args)
 
-    ## Print a quick text summary of main results, significance tests, etc.
-    # TODO implement this here :)
+    if compute_pearson:
+        pearson_df = analyze_by_pearson_correlation(df, items, dependency_trees, n_layers, args)
+        with open(args.pearson_out, 'wb') as file:
+            pickle.dump(pearson_df, file)
+            print('Pearson coefficients and p-values saved as', args.pearson_out)
+    else:
+        with open(args.pearson_out, 'rb') as file:
+            print('Pearson coefficients and p-values loaded from', args.pearson_out)
+            pearson_df = pickle.load(file)
 
-    # print('means per layer:\n', stacked_df.groupby("layer").mean())
-    # print('overall mean', stacked_df.groupby("layer").mean().mean())
+    plot_pearson_scores(pearson_df, args)
 
-    ## Line plot of dependency tree scores
+    ## TODO write basic statistics to file?   using combine_pvalues
 
-    # TODO Add sanity check
-    # TODO Write trees to file for future error analysis.
+def analyze_by_pearson_correlation(df, items, dependency_trees, n_layers, args):
 
-    # print(stacked_df[('all', 'head_attachment_score')])
+    pearson_for_all_items = []
 
-    ## Stack for plotting
-    scores_df = scores_df[['score']].stack().stack().stack().reset_index(level=[1,2,3])
-    scores_df = scores_df[scores_df.measure != 'num_rels']
+    for i, item in tqdm(df.iterrows(), total=len(df)):
+        pearson_for_item = []
 
-    plt.figure(figsize=(10, 8))
-    sns.lineplot(x='layer', y='score', style='measure', hue='relations', data=scores_df)
+        dtree = dependency_trees[i]
 
-# [(x,i) for i in ['head_attachment_score', 'undirected_attachment_score'] for x in ['all', 'open', 'closed']]
+        dmatrix = - tree_utils.arcs_to_distance_matrix(tree_utils.conllu_to_arcs(dtree.to_tree()))
+        dmatrix_bidirectional = - tree_utils.arcs_to_distance_matrix(tree_utils.conllu_to_arcs(dtree.to_tree()), bidirectional=True)
 
-    out_filepath = '{}/treescores_{}{}{}{}{}{}.png'.format(args.out,
-                                                           args.method,
-                                                           "_"+args.combine if args.combine != "no" else "",
-                                                           '_norm' if args.method == 'attention' and args.normalize_heads else '',
-                                                           ('_' + str(args.n_items)) if args.n_items is not None else '',
-                                                           '_' + args.group_merger,
-                                                           '_transpose' if args.transpose else '',
-                                                           )
+        n_tokens = len(item['balance'][0])
 
-    print("Saving figure:", out_filepath)
-    pylab.savefig(out_filepath)
+        for layer in range(n_layers):
+
+            matrix = item['weights'][layer].values.reshape(n_tokens, n_tokens).astype(float)
+            # remove all nans
+            matrix = matrix[~np.all(np.isnan(matrix), axis=1), :][:, ~np.all(np.isnan(matrix), axis=0)]
+            if args.transpose:
+                # Without transpose, the matrix[i,j] represents how much i influences j.
+                # In a dependency tree arrows flow away from the root.
+                # Hence, a maximum spanning tree on the matrix maximizes information flowing away from the root (= head).
+                # Use args.transpose to hypothesize that info flows towards the root instead.
+                matrix = matrix.transpose()
+
+            ## Flatten all matrices for comparison # TODO Not sure if necessary
+            matrix = matrix.reshape(-1)
+            dmatrix = dmatrix.reshape(-1)
+            dmatrix_bidirectional = dmatrix_bidirectional.reshape(-1)
+
+            ## Compute pearson  # TODO Compute for interesting subsets of nodes too
+            coef1, p1 = pearsonr(matrix[~np.isnan(dmatrix)], dmatrix[~np.isnan(dmatrix)])
+            coef2, p2 = pearsonr(matrix, dmatrix_bidirectional)
+
+            pearson_for_item.extend([coef1, p1, coef2, p2])
+
+        pearson_for_all_items.append(pearson_for_item)
+
+    ## Put results into a new dataframe
+    columns = [('pearson', l, direct, x) for l in range(n_layers) for direct in ['directed', 'undirected'] for x in ['coefficient', 'p-value']]
+
+    columns = pd.MultiIndex.from_tuples(columns, names=['result', 'layer', 'relations', 'measure'])
+    pearson_df = pd.DataFrame(pearson_for_all_items, index=items.index, columns=columns)
+
+    return pearson_df
 
 
-
-def compute_spanning_trees(df, items, dependency_trees, n_layers, args):
+def analyze_by_spanning_trees(df, items, dependency_trees, n_layers, args):
     scores = []
     trees = []
 
@@ -298,6 +350,58 @@ def compute_spanning_trees(df, items, dependency_trees, n_layers, args):
     scores_df = pd.DataFrame(rows, index=items.index, columns=columns)
 
     return scores_df
+
+
+def plot_tree_scores(scores_df, args):
+
+    ## Stack for plotting
+    scores_df = scores_df[['score']].stack().stack().stack().reset_index(level=[1, 2, 3])
+    scores_df = scores_df[scores_df.measure != 'num_rels']
+
+    plt.figure(figsize=(10, 8))
+    sns.lineplot(x='layer', y='score', style='measure', hue='relations', data=scores_df)
+
+    out_filepath = '{}/treescores_{}{}{}{}{}{}.png'.format(args.out,
+                                                           args.method,
+                                                           "_" + args.combine if args.combine != "no" else "",
+                                                           '_norm' if args.method == 'attention' and args.normalize_heads else '',
+                                                           ('_' + str(
+                                                               args.n_items)) if args.n_items is not None else '',
+                                                           '_' + args.group_merger,
+                                                           '_transpose' if args.transpose else '',
+                                                           )
+
+    print("Saving figure:", out_filepath)
+    pylab.savefig(out_filepath)
+
+    return out_filepath
+
+
+
+def plot_pearson_scores(scores_df, args):
+
+    ## Stack for plotting
+    scores_df = scores_df[['pearson']].stack().stack().stack().reset_index(level=[1, 2, 3])
+    scores_df = scores_df[scores_df.measure != 'p-value']
+
+    plt.figure(figsize=(10, 8))
+    sns.lineplot(x='layer', y='pearson', hue='relations', data=scores_df)
+
+    out_filepath = '{}/pearson_{}{}{}{}{}{}.png'.format(args.out,
+                                                           args.method,
+                                                           "_" + args.combine if args.combine != "no" else "",
+                                                           '_norm' if args.method == 'attention' and args.normalize_heads else '',
+                                                           ('_' + str(
+                                                               args.n_items)) if args.n_items is not None else '',
+                                                           '_' + args.group_merger,
+                                                           '_transpose' if args.transpose else '',
+                                                           )
+
+
+    print("Saving figure:", out_filepath)
+    pylab.savefig(out_filepath)
+
+    return out_filepath
 
 if __name__ == "__main__":
     main()
