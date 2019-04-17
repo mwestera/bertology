@@ -176,7 +176,7 @@ def dependency_baseline(path):
         nodes.sort()
 
         baseline_left = [(nodes[i],nodes[i-1]) for i in range(1, len(nodes))]
-        baseline_right = [(nodes[i+1], nodes[i]) for i in range(len(nodes) - 1)]
+        baseline_right = [(nodes[i-1], nodes[i]) for i in range(1, len(nodes))]
 
         scores_left = tree_utils.get_scores(baseline_left, s)
         scores_right = tree_utils.get_scores(baseline_right, s)
