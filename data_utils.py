@@ -18,7 +18,7 @@ Mostly concerned with reading universal dependency format, connlu.
 """
 
 path_to_conllu_file = "/home/u148187/datasets/Universal dependencies/ud-treebanks-v2.3/UD_English-GUM/en_gum-ud-dev.conllu"
-# path_to_conllu_file = "/home/u148187/datasets/Universal dependencies/ud-treebanks-v2.3/UD_English-EWT/en_ewt-ud-train.conllu"
+path_to_conllu_file = "/home/u148187/datasets/Universal dependencies/ud-treebanks-v2.3/UD_English-EWT/en_ewt-ud-train.conllu"
 # path_to_conllu_file = "/home/matthijs/Dropbox/en_ewt-ud-train.conllu"
 
 
@@ -131,7 +131,6 @@ def write_file_plain_sentences(n, with_dependencies=False):
     proper_indices = []
     for i in indices:
         arcs = tree_utils.conllu_to_arcs(sentences[i].to_tree())
-        print(i, arcs)
         if len(arcs) >= 2:
             proper_indices.append(i)
     while len(proper_indices) < n:
@@ -740,4 +739,5 @@ if __name__ == "__main__":
     # generate_sentences_from_categories_and_conllu(100, 20)
 
     dependency_baseline("data/en_gum-ud-dev500-dep.conllu")
+    # dependency_baseline("data/en_ewt-ud-train500-dep.conllu")
     # write_file_plain_sentences(500, with_dependencies=True)
