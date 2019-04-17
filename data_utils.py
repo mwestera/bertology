@@ -205,8 +205,7 @@ def dependency_baseline(path):
     for label, dict in zip(["LEFT", "RIGHT", "GOLD"], [baseline_left_score, baseline_right_score, gold_score]):
         print("  " + label)
         for key1 in dict:
-            print("    " + key1)
-            print("      " + '  '.join([(key2 + ":" + str(dict[key1][key2])) for key2 in dict[key1]]))
+            print("    " + key1 + ':   ' + '  '.join([(key2 + ":" + str(dict[key1][key2])[:5]) for key2 in dict[key1]]))
 
 
 def write_file_for_nominal_core_args():
