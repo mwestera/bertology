@@ -146,10 +146,11 @@ def main():
         while any(x.startswith(dirname) for x in os.listdir('output')):
             out_idx += 1
             dirname = 'temp{}'.format(out_idx)
-        dirname += "_{}{}{}{}".format(args.method,
+        dirname += "_{}{}{}{}{}".format(args.method,
                                        "-" + args.combine if args.combine != "no" else "",
                                        "_normalized" if (args.method == "attention" and args.normalize_heads) else "",
-                                       '_' + '-x-'.join(args.factors) if len(args.factors) > 0 else '')
+                                       '_' + '-x-'.join(args.factors) if len(args.factors) > 0 else '',
+                                      "_transposed" if args.transpose else "",)
         args.out = os.path.join("output", dirname)
         os.mkdir(args.out)
 
