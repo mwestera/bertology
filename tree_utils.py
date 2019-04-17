@@ -1,6 +1,6 @@
 from collections import defaultdict, namedtuple
 
-from numpy import argmax, nan
+import numpy as np
 
 import data_utils
 
@@ -18,7 +18,7 @@ def max_sa_from_nodes(arcs, nodes):
             trees.append(tree)
             values.append(sum([arc[1] for arc in tree.values()]))
 
-    maxidx = argmax(values)
+    maxidx = np.argmax(values)
 
     return trees[maxidx], values[maxidx]
 
@@ -136,7 +136,7 @@ def head_attachment_score(tree1, tree2):
     nodes2 = set([a[i] for i in [0,1] for a in tree2])
 
     if len(tree2) == 0:
-        return nan
+        return np.nan
 
     # This -1 works only if it is indeed a tree. But what if it's tree fragments...
     score = len(set(tree1).intersection(set(tree2))) / (len(tree2))  # Take nodes from tree 2 as true
@@ -197,6 +197,48 @@ def filtered_scores(tree1, conllu_rep):
             }
 
     return scores
+
+
+def arcs_to_distance_matrix(arcs):
+    nodes = list(set([a[i] for i in [0, 1] for a in arcs]))
+
+    distances = np.zeros((len(nodes), len(nodes)), dtype=np.float)
+
+    graph = arcs_to_graph(arcs)
+
+    for i in range(len(nodes)):
+        for j in range(len(nodes)):
+            path = find_shortest_path(graph, nodes[i], nodes[j])
+            distances[i][j] = np.nan if path is None else len(path) - 1
+
+    return distances
+
+
+def arcs_to_graph(arcs):
+    graph = {arc[0]: [] for arc in arcs}
+    for arc in arcs:
+        graph[arc[0]].append(arc[1])
+    return graph
+
+
+def find_shortest_path(graph, start, end, path=[]):
+    """
+    __source__='https://www.python.org/doc/essays/graphs/'
+    __author__='Guido van Rossum'
+    """
+    path = path + [start]
+    if start == end:
+        return path
+    if start not in graph:
+        return None
+    shortest = None
+    for node in graph[start]:
+        if node not in path:
+            newpath = find_shortest_path(graph, node, end, path)
+            if newpath:
+                if not shortest or len(newpath) < len(shortest):
+                    shortest = newpath
+    return shortest
 
 
 def get_scores(tree1, tree2):
