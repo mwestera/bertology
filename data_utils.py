@@ -18,7 +18,7 @@ Mostly concerned with reading universal dependency format, connlu.
 """
 
 path_to_conllu_file = "/home/u148187/datasets/Universal dependencies/ud-treebanks-v2.3/UD_English-GUM/en_gum-ud-dev.conllu"
-path_to_conllu_file = "/home/u148187/datasets/Universal dependencies/ud-treebanks-v2.3/UD_English-EWT/en_ewt-ud-train.conllu"
+# path_to_conllu_file = "/home/u148187/datasets/Universal dependencies/ud-treebanks-v2.3/UD_English-EWT/en_ewt-ud-train.conllu"
 # path_to_conllu_file = "/home/matthijs/Dropbox/en_ewt-ud-train.conllu"
 
 
@@ -145,7 +145,7 @@ def write_file_plain_sentences(n, with_dependencies=False):
         outfile.write('# index, id \n')
         writer = csv.writer(outfile)
         for i, s in zip(indices, sentences):
-            row = [str(i), s.metadata['sent_id'], s.metadata['text']]
+            row = [str(i), s.metadata['sent_id'], ' '.join([token["form"] for token in s])]
             writer.writerow(row)
 
     if with_dependencies:
