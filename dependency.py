@@ -48,16 +48,10 @@ parser.add_argument('--group_merger', type=str, default='mean', choices=["mean",
 ## Disabled, as axis labels etc. would be incorrect:
 parser.add_argument('--transpose', action="store_true",
                     help='To transpose the matrix before computing spaning trees, i.e., assume info flows from children to head.')
-parser.add_argument('--no_diff_plots', action="store_true",
-                    help='To NOT plot the differences between levels of a given factor.')
-parser.add_argument('--gif', action="store_true",
-                    help='To create animated gif of plots across layers.')
 parser.add_argument('--bert', type=str, default='bert-base-cased',
                     help='Which BERT model to use (default bert-base-cased; not sure which are available)')
 parser.add_argument('--factors', type=str, default=None,
                     help='Which factors to plot, comma separated like "--factors reflexivity,gender"; default: first 2 factors in the data')
-parser.add_argument('--no_global_colormap', action="store_true",
-                    help='Whether to standardize plot coloring across plots ("global"); otherwise only per plot (i.e., per layer)')
 parser.add_argument('--balance', action="store_true",
                     help='To compute and plot balances, i.e., how much a token influences minus how much it is influenced.')
 parser.add_argument('--cuda', action="store_true",
