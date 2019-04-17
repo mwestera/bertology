@@ -199,8 +199,11 @@ def filtered_scores(tree1, conllu_rep):
     return scores
 
 
-def arcs_to_distance_matrix(arcs):
+def arcs_to_distance_matrix(arcs, bidirectional=False):
     nodes = list(set([a[i] for i in [0, 1] for a in arcs]))
+
+    if bidirectional:
+        arcs = [(arc[i], arc[j]) for (i,j) in [(0,1),(1,0)] for arc in arcs]
 
     distances = np.zeros((len(nodes), len(nodes)), dtype=np.float)
 
