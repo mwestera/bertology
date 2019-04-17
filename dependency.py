@@ -83,10 +83,13 @@ def main():
             args.factors = args.factors[:2]
     if args.out is not None:
         if os.path.exists(args.out):
-            if args.no_overwrite:
-                quit()
-            if input('Output directory {} already exists. Risk overwriting files? N/y'.format(args.out)) != 'y':
-                quit()
+            pass
+        #     if args.no_overwrite:
+        #         quit()
+        #     if input('Output directory {} already exists. Risk overwriting files? N/y'.format(args.out)) != 'y':
+        #         quit()
+        else:
+            os.mkdir(args.out)
 
     if args.raw_out is None:
         args.raw_out = 'data/auxiliary/{}_{}{}{}{}.pkl'.format(os.path.basename(args.data)[:-4],
@@ -162,49 +165,49 @@ def main():
     n_layers = data_for_all_items[0].shape[0] # for convenience
     # The list data_for_all_items now contains, for each item, weights (n_layers, n_tokens, n_tokens)
 
+    ## See if some computation needs to be done
+    if need_trees:
+        ## Take cumsum if needed (placed outside the foregoing, to avoid having to save/load separate file for this
+        if args.combine == "cumsum":
+            for i in range(len(data_for_all_items)):
+                data_for_all_items[i] = np.cumsum(data_for_all_items[i], axis=0)
 
-    ## Take cumsum if needed (placed outside the foregoing, to avoid having to save/load separate file for this
-    if args.combine == "cumsum":
-        for i in range(len(data_for_all_items)):
-            data_for_all_items[i] = np.cumsum(data_for_all_items[i], axis=0)
-
-
-    ## Take averages over groups of tokens
-    # TODO This can be skipped too, if I go straight to the tree outputs; but that's not my current concern.
-    if not args.ignore_groups and not len(items.groups) == 0:
-        data_for_all_items = data_utils.merge_grouped_tokens(items, data_for_all_items, method=args.group_merger)
-
-
-    ## Compute balances (though whether they will be plotted depends on args.balance)
-    # (Re)compute balance: how much token influences minus how much is influenced
-    balance_for_all_items = []
-    for data_for_item in data_for_all_items:
-        balance_for_item = []
-        for data_for_layer in data_for_item:
-            balance = np.nansum(data_for_layer - data_for_layer.transpose(), axis=1)
-            balance_for_item.append(balance)
-        balance_for_all_items.append(np.stack(balance_for_item))
-    # At this point we have two lists of numpy arrays: for each item, the weights & balance across layers.
+        ## Take averages over groups of tokens
+        # TODO This can be skipped too, if I go straight to the tree outputs; but that's not my current concern.
+        if not args.ignore_groups and not len(items.groups) == 0:
+            data_for_all_items = data_utils.merge_grouped_tokens(items, data_for_all_items, method=args.group_merger)
 
 
-    ## TODO The following applies only if there are groups of tokens.
-    ## TODO Otherwise, perhaps have option of plotting individual sentences + balance, but no comparison?
+        ## Compute balances (though whether they will be plotted depends on args.balance)
+        # (Re)compute balance: how much token influences minus how much is influenced
+        balance_for_all_items = []
+        for data_for_item in data_for_all_items:
+            balance_for_item = []
+            for data_for_layer in data_for_item:
+                balance = np.nansum(data_for_layer - data_for_layer.transpose(), axis=1)
+                balance_for_item.append(balance)
+            balance_for_all_items.append(np.stack(balance_for_item))
+        # At this point we have two lists of numpy arrays: for each item, the weights & balance across layers.
 
-    ## Store the weights in dataframe together with original data
-    # TODO All of this feels terribly hacky...
-    # First flatten the numpy array per item
-    data_for_all_items = [data.reshape(-1).tolist() for data in data_for_all_items]
-    balance_for_all_items = [data.reshape(-1).tolist() for data in balance_for_all_items]
-    # And then concatenate them (still per item per layer)
-    data_and_balance_for_all_items = [array1 + array2 for array1, array2 in zip(data_for_all_items, balance_for_all_items)]
-    # Concatenate onto original data rows (with each row repeated n_layers times)
-    # original_items_times_nlayers = [a for l in [[i.to_list()] * n_layers for (_, i) in items.iterrows()] for a in l]
-    data_for_dataframe = [a + b for a, b in zip([i.to_list() for (_, i) in items.iterrows()], data_and_balance_for_all_items)]
-    # Multi-column to represent the (flattened) numpy arrays in a structured way
-    multi_columns = pd.MultiIndex.from_tuples([(c, '', '', '') for c in items.columns] + [('weights', l, g1, g2) for l in range(n_layers) for g1 in items.groups for g2 in items.groups] + [('balance', l, g, '') for l in range(n_layers) for g in items.groups], names=['', 'layer', 'in', 'out'])
 
-    df = pd.DataFrame(data_for_dataframe, index=items.index, columns=multi_columns)
-    # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT & grouped), and the balance computed from them
+        ## TODO The following applies only if there are groups of tokens.
+        ## TODO Otherwise, perhaps have option of plotting individual sentences + balance, but no comparison?
+
+        ## Store the weights in dataframe together with original data
+        # TODO All of this feels terribly hacky...
+        # First flatten the numpy array per item
+        data_for_all_items = [data.reshape(-1).tolist() for data in data_for_all_items]
+        balance_for_all_items = [data.reshape(-1).tolist() for data in balance_for_all_items]
+        # And then concatenate them (still per item per layer)
+        data_and_balance_for_all_items = [array1 + array2 for array1, array2 in zip(data_for_all_items, balance_for_all_items)]
+        # Concatenate onto original data rows (with each row repeated n_layers times)
+        # original_items_times_nlayers = [a for l in [[i.to_list()] * n_layers for (_, i) in items.iterrows()] for a in l]
+        data_for_dataframe = [a + b for a, b in zip([i.to_list() for (_, i) in items.iterrows()], data_and_balance_for_all_items)]
+        # Multi-column to represent the (flattened) numpy arrays in a structured way
+        multi_columns = pd.MultiIndex.from_tuples([(c, '', '', '') for c in items.columns] + [('weights', l, g1, g2) for l in range(n_layers) for g1 in items.groups for g2 in items.groups] + [('balance', l, g, '') for l in range(n_layers) for g in items.groups], names=['', 'layer', 'in', 'out'])
+
+        df = pd.DataFrame(data_for_dataframe, index=items.index, columns=multi_columns)
+        # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT & grouped), and the balance computed from them
 
     ## Apply BERT or, if available, load results saved from previous run
     if need_trees:
@@ -242,9 +245,9 @@ def main():
 
 # [(x,i) for i in ['head_attachment_score', 'undirected_attachment_score'] for x in ['all', 'open', 'closed']]
 
-    out_filepath = '{}/treescores_{}_{}{}{}{}{}.png'.format(args.out,
+    out_filepath = '{}/treescores_{}{}{}{}{}{}.png'.format(args.out,
                                                            args.method,
-                                                           "_chain" if args.combine == "chain" else "", # cumsum can use same as no
+                                                           "_"+args.combine if args.combine != "no" else "",
                                                            '_norm' if args.method == 'attention' and args.normalize_heads else '',
                                                            ('_' + str(args.n_items)) if args.n_items is not None else '',
                                                            '_' + args.group_merger,
