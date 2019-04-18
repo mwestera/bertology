@@ -22,6 +22,8 @@ import interface_BERT
 
 import data_utils
 
+from scipy.stats import ttest_ind
+
 parser = argparse.ArgumentParser(description='e.g., experiment.py data/example.csv')
 parser.add_argument('data', type=str,
                     help='Path to data file (typically .csv).')
@@ -181,6 +183,8 @@ def main():
     df = pd.DataFrame(data_for_dataframe, index=items.index, columns=multi_columns)
     # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT), and the balance computed from them
 
+    quit()
+
     if args.track is not None:
         line_plot(df, args)
 
@@ -189,6 +193,13 @@ def main():
     # print(df.groupby(items.factors).describe()) # TODO group columns?
 
     ## Restrict attention to the factors of interest:
+
+    # cat1 = df[my_data['Category'] == 'cat1']
+    # cat2 = df[my_data['Category'] == 'cat2']
+    #
+    # ttest_ind(cat1['values'], cat2['values'])
+    # >> > (1.4927289925706944, 0.16970867501294376)
+
     df_means = df.groupby(args.factors).mean()
 
     print(df_means)
@@ -294,14 +305,20 @@ def line_plot(df, args):
 
         if len(to_track) == 1:
             score = "balance"
-            data = df.loc[:,('balance', slice(None), to_track[0])]
+            data = pd.concat([df[['coref']], df.loc[:, ('balance', slice(None), to_track[0])]], axis=1)
         else:
             score = "weights"
-            data = df.loc[:, ('weights', slice(None), to_track[0], to_track[1])]
+            data = pd.concat([df.loc[:, ('coref', '', '', '')], df.loc[:, ('weights', slice(None), to_track[0], to_track[1])]], axis=1)
 
-        data = data.stack().stack().stack().reset_index(level=[1, 2, 3])
+        print(data)
 
-        ax = sns.lineplot(x="layer", y=score, hue=args.factors[0] if len(args.factors) > 0 else None, style=args.factors[1] if len(args.factors) > 1 else None, data=data, label=to_track)
+        data = data.stack().stack().reset_index(level=[1, 2, 3])
+
+        print(data.columns)
+        print(data)
+
+        ax = sns.lineplot(x="layer", y=score, hue=None, style=None, data=data, label=to_track)
+        # ax = sns.lineplot(x="layer", y=score, hue=args.factors[0] if len(args.factors) > 0 else None, style=args.factors[1] if len(args.factors) > 1 else None, data=data, label=to_track)
         ax.set_title("Tracking across layers ({})".format(args.method + ((", " + args.combine) if args.combine is not "no" else "")))
 
     plt.legend()
