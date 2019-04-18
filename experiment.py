@@ -300,8 +300,8 @@ def line_plot(df, args, n_layers, to_track):
         factors_series.append([x for y in [[l]*n_layers for l in df[factor]] for x in y])
     data_df = pd.DataFrame(zip(*factors_series, layers, data), columns=[*args.factors, 'layer', score])
 
-    sns.lineplot(x="layer", y=score, hue=args.factors[0] if len(args.factors) > 0 else None, style=args.factors[1] if len(args.factors) > 1 else None, data=data_df)
-    plt.suptitle("Tracking " + ','.join(to_track) + " across layers ({})".format(args.method + ((", " + args.combine) if args.combine is not "no" else "")))
+    ax = sns.lineplot(x="layer", y=score, hue=args.factors[0] if len(args.factors) > 0 else None, style=args.factors[1] if len(args.factors) > 1 else None, data=data_df)
+    ax.set_title("Tracking " + ','.join(to_track) + " across layers ({})".format(args.method + ((", " + args.combine) if args.combine is not "no" else "")))
 
     # TODO Also an overall mean plot on the side
 
