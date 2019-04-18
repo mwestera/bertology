@@ -1,0 +1,708 @@
+#|0 ADJ,|1 ADV,|2 NOUN,|3 PRON,|4 VERB,|5 AUX,|6 DET,|7 PROPN
+|7 Digital | |7 Humanities | |7 Clinics | -
+|4 Leading | |0 Dutch | |2 Librarians | into |7 DH |
+"|7 Michiel | |7 Cock | |7 m.p.cock@vu.nl | Vrije Universiteit |7 Amsterdam | , |6 the | |7 Netherlands |"
+"|7 Lotte | |7 Wilms | |7 lotte.wilms@kb.nl | |7 National | |7 Library | of |6 the | |7 Netherlands | , |6 the | |7 Netherlands |"
+"In 2015 , |6 an | |2 initiative | |5 was | |4 started | to |4 set | up |6 a | |7 Dutch | |4 speaking | |7 DH+Lib | |2 community | in |6 the | |7 Netherlands | and |7 Belgium | , |4 based | on |6 the | |2 example | of |6 the | |0 American | |0 communal | |2 space | of |2 librarians | , |2 archivists | , |7 LIS | |2 graduate | |2 students | , and |2 information | |2 specialists | to |4 discuss | |2 topics | ‘ Where |6 the | |0 Digital | |2 Humanities | and |2 Libraries | |4 meet | ’ ."
+At |6 the | |0 initial | |2 meeting | |3 it | |4 became | |0 apparent | that |0 most | |2 participants | |4 were | |1 there | to |4 learn | |0 more | about |0 digital | |2 humanities | and |4 were | not ( |1 yet | ) in |6 the | |2 situation | where |3 they | |5 were | |0 able | to |4 offer | |2 expertise | on |6 the | |2 subject | .
+"On |6 the | |0 administrative | |2 level | , |6 the | |2 directors | of |6 the | |2 libraries | |4 participating | in |6 the | |2 consortium | of |0 Dutch | |0 academic | |2 libraries | ( |7 UKB | ) |1 also | |4 expressed | |6 the | |2 wish | that |2 librarians | |4 become | |1 more | |0 fluent | in |7 DH | ."
+"|6 A | |2 year | |1 later | , |6 the | |7 National | |7 Library | of |6 the | |7 Netherlands | ( Koninklijke Bibliotheek ) , and |6 the | |7 University | |7 Library | of |6 the | Vrije Universiteit |7 Amsterdam | |1 again | |4 concluded | that |2 librarians | at |3 their | |2 institutes | |3 who | |4 wanted | to |5 get | |4 involved | in |7 DH | |4 needed | |0 more | |2 training | to |1 adequately | |4 support | |2 researchers | and |2 students | in |6 this | |2 field | ."
+|1 Therefore | |6 both | |2 institutes | |4 joined | |2 forces | to |4 develop | |6 a | |2 set | of |2 clinics | on |7 DH | for |2 librarians | .
+|6 The | two |2 institutes | |5 were | |1 later | |4 joined | by |6 the | |7 Leiden | |7 University | |7 Libraries | .
+"|3 We | |4 see | |3 this | as |6 the | |0 ideal | |2 opportunity | to |4 provide | |6 these | |0 educative | |2 sessions | not |1 only | to |3 our | |0 own | |2 librarians | , but |1 also | to |6 the | |0 academic | |2 librarians | of |0 other | |0 Dutch | |2 research | |2 libraries | ."
+"In |2 essence | , |3 we | |4 want | to |4 teach | |3 our | |2 country | ’s |2 librarians | |6 the | |2 ins | and |2 outs | of |7 DH | in |2 order | for |3 them | to |4 take | up |3 their | |0 natural | |2 role | of |4 facilitating | and |4 supporting | |2 research | and |1 ideally | |4 become | |6 the | |2 research | |2 partner | |4 needed | in |7 DH | |2 projects | ."
+"|6 The | |2 aim | of |6 these | |2 clinics | |5 is | to |4 provide | |0 basic | |0 methodological | |2 competencies | and |0 technical | |2 skills | in |7 DH | , for |6 a | |0 diverse | |2 group | of |2 librarians | , |4 consisting | of |3 both | |2 subject | and |0 technical | |2 librarians | with |0 basic | |0 technical | |2 skills | ."
+"|6 The | |2 content | of |6 these | |2 sessions | |5 should | |4 enable | |3 them | to |4 provide | |2 services | to |2 researchers | and |2 students | , |4 identify | |4 remaining | |2 gaps | in |2 knowledge | or |2 skills | |3 that | |3 they | |5 could | |4 address | by |0 self-directed | |2 learning | and ( |1 perhaps | ) to |4 automate | |3 their | |0 daily | |2 library | |2 work | ."
+"|3 We | |5 are | not |4 setting | out to |4 turn | |3 them | into |2 programmers | or |2 data | |2 crunchers | , but |4 want | to |4 boost | |3 their | |2 knowledge | |2 level | to where |3 they | |4 feel | |0 comfortable | |4 providing | |2 information | about |7 DH | |2 projects | , |4 follow | |6 the | |2 literature | and |2 research | , |4 follow | |0 online | |2 tutorials | and |1 hopefully | |4 take | up |6 the | |2 challenge | of |4 finishing | |6 this | |0 professional | |2 development | by |4 engaging | with |6 the | |7 DH | |2 community | ."
+"In |2 order | to |4 design | |6 this | |2 curriculum | |3 we | |4 follow | |6 a | four |2 step | |2 approach | with |6 a | |7 Working | |7 Out | |7 Loud | - |2 principle | ( |7 Williams | , 2010 ) :"
+"|2 Desk | |2 research | about |3 what | |5 being | |6 a | |7 DH | |2 librarian | |4 entails | ( e.g. |7 Hartsell-Gundy | et al. , 2015 ; |7 Mulligan | , 2016 ; |1 also | |4 see | |6 the | |7 Zotero | |2 library | of |6 the | |7 LIBER | |7 Digital | |7 Humanities | |4 working | |2 group | ) ;"
+"|4 Identify | |0 possible | |2 subjects | , |4 based | on |2 experience | , |6 a | |2 comparison | of |4 existing | |2 teaching | |2 material | |4 related | to |7 DH | ( e.g. |6 The | |7 Programming | |7 Historian | , |6 the | |7 Digital | |7 Scholarship | |7 Training | |7 Programme | at |6 the | |7 British | |7 Library | and |7 Columbia | |7 University | 's |7 Developing | |7 Librarian | |2 project | ) and |6 the | |7 TaDiRAH | |2 taxonomy | of |2 research | |2 activities | ;"
+"|4 Get | |2 feedback | from |2 researchers | on |0 possible | |2 subjects | , |4 based | on |6 the | |2 knowledge | and |2 skills | |3 they | |4 feel | |2 librarians | |4 need | ;"
+"|4 Get | |2 feedback | from |2 librarians | on |0 possible | |2 subjects | , |4 based | on |1 already | |4 known | |2 gaps | in |3 their | |2 knowledge | and |2 skills | ."
+"With |3 these | in |2 hand | , |3 we | |5 will | |4 design | |6 the | |2 curriculum | of |2 clinics | , |4 based | on |6 the | |2 method | of ' |0 constructive | |2 alignment | ' ( |7 Biggs | et al. , 2011 ) , to |4 make | |0 sure | that |6 the | |4 intended | |2 learning | |2 objectives | and |6 the | |2 teaching | / |2 learning | |2 activities | |4 stay | |4 aligned | ."
+"|3 Our | |2 plan | |5 is | to |4 organize | |6 a | |2 maximum | of 6 |2 clinics | , |3 each | one |0 full | |2 day | ."
+"|6 Each | |2 day | |4 starts | with one or |0 more | |2 lectures | by |2 researchers | , |3 that | |4 address | |6 the | |0 conceptual | |2 knowledge | |4 needed | ."
+"|6 The | |2 afternoon | |2 sessions | |5 will | |5 be | |4 devoted | to |6 the | |0 hands-on | |2 training | of |2 skills | , |4 following | |6 the | |7 Library | |7 Carpentry | |2 model | |1 as | |1 closely | as |0 possible | ."
+"By |4 having | |2 researchers | |4 provide | |6 the | |2 lecture | |2 sessions | , |3 we | |4 hope | to |4 fuel | |6 the | |2 enthusiasm | of |6 the | |2 librarians | with |6 the | |2 inspiration | of |0 direct | |2 contact | with |2 researchers | and to |4 provide | |2 access | to |6 a | |2 network | within and across |2 universities | ."
+"With |6 these | |2 clinics | , |3 we | |4 hope | to |4 initiate | |6 a | |2 stream | of |7 DH | |2 activities | in |0 Dutch | |2 universities | , |4 making | |2 access | to |2 support | |0 easier | for |0 new | |0 digital | |2 scholars | ."
+"|6 The | |2 poster | at |7 DH2017 | |5 will | |4 present | |6 the | |2 curriculum | , |3 its | |2 position | in |6 the | |0 international | |2 context | and |4 offer | |6 the | |2 lessons | |4 learned | from both |6 the | |2 design | |2 process | and |6 the | |0 first | |2 clinics | ."
+|3 We | |4 welcome | |2 discussion | about |3 our | |2 efforts | and |6 the | |2 possibilities | of |4 applying | |3 this | in |0 other | |2 contexts | .
+|7 Emperor | |7 Norton |
+"|7 Joshua | |7 Abraham | |7 Norton | ( c. 1818 – |7 January | 8 , 1880 ) , |4 known | as |7 Emperor | |7 Norton | , |5 was | |6 a | |2 citizen | of |7 San | |7 Francisco | , |7 California | , |3 who | in 1859 |4 proclaimed | |3 himself | "" |7 Norton | |7 I | , |7 Emperor | of |6 the | |7 United | |7 States | "" ."
+"|3 He | |1 later | |4 expanded | |3 his | |2 pretense | by |4 claiming | to |5 be | "" |7 Protector | of |7 Mexico | "" |1 as | |1 well | ."
+"|4 Born | in |7 England | , |7 Norton | |4 spent | |0 most | of |3 his | |0 early | |2 life | in |7 South | |7 Africa | ."
+"After |6 the | |2 death | of |3 his | |2 mother | in 1846 and |3 his | |2 father | in 1848 , |3 he | |4 sailed | |1 west | , |4 arriving | in |7 San | |7 Francisco | |1 possibly | in |7 November | 1849 ."
+"|7 Norton | |1 initially | |4 made | |6 a | |2 living | as |6 a | |2 businessman | , but |3 he | |4 lost | |3 his | |2 fortune | |4 investing | in |0 Peruvian | |2 rice | ."
+"After |3 he | |4 lost | |6 a | |2 lawsuit | in |3 which | |3 he | |4 tried | to |4 void | |3 his | |2 rice | |2 contract | , |7 Norton | 's |0 public | |2 prominence | |4 faded | ."
+"|3 He | |4 reemerged | in |7 September | 1859 , |4 laying | |2 claim | to |6 the | |2 position | of |7 Emperor | of |6 the | |7 United | |7 States | ."
+"|3 He | |4 had | |6 no | |0 political | |2 power | , and |3 his | |2 influence | |4 extended | |1 only | |1 so | |1 far | as |3 he | |5 was | |4 humored | by |3 those | around |3 him | ;"
+"|1 nevertheless | , |3 he | |5 was | |4 treated | |1 deferentially | in |7 San | |7 Francisco | , and |2 currency | |4 issued | in |3 his | |2 name | |5 was | |4 honored | in |6 the | |2 establishments | |3 he | |4 frequented | ."
+"Though |3 some | |4 considered | |3 him | |0 insane | or |0 eccentric | , |2 citizens | of |7 San | |7 Francisco | |4 celebrated | |3 his | |0 regal | |2 presence | and |3 his | |2 proclamations | , |0 such | as |3 his | |2 order | that |6 the | |7 United | |7 States | |7 Congress | |5 be | |4 dissolved | by |2 force | and |3 his | |0 numerous | |2 decrees | |4 calling | for |6 a | |2 bridge | |4 connecting | |7 San | |7 Francisco | to |7 Oakland | , and |6 a | |0 corresponding | |2 tunnel | to |5 be | |4 built | under |7 San | |7 Francisco | |7 Bay | ."
+"|1 Long | after |3 his | |2 death | , |0 similar | |2 structures | |5 were | |4 built | in |6 the | |2 form | of |6 the | |7 San | |7 Francisco | – |7 Oakland | |7 Bay | |7 Bridge | and |6 the | |7 Transbay | |7 Tube | , and |3 there | |5 have | |4 been | |2 campaigns | to |4 rename | |6 the | |2 bridge | "" |6 The | |7 Emperor | |7 Norton | |7 Bridge | "" ."
+"On |7 January | 8 , 1880 , |7 Norton | |4 collapsed | at |6 the | |2 corner | of |7 California | and |7 Dupont | ( |1 now | |7 Grant | ) |2 streets | and |4 died | before |3 he | |5 could | |5 be | |4 given | |0 medical | |2 treatment | ."
+"|1 Nearly | 30,000 |2 people | |4 packed | |6 the | |2 streets | of |7 San | |7 Francisco | to |4 pay | |3 him | |2 homage | at |3 his | |2 funeral | ."
+"|7 Norton | |5 has | |5 been | |4 immortalized | as |6 the | |2 basis | of |2 characters | in |6 the | |2 literature | of |2 writers | |7 Mark | |7 Twain | , |7 Robert | |7 Louis | |7 Stevenson | , |7 Christopher | |7 Moore | , |7 Morris | and |7 Goscinny | , |7 Selma | |7 Lagerlöf | , and |7 Neil | |7 Gaiman | ."
+"|7 Norton | |7 I | , |7 Emperor | of |6 the | |7 United | |7 States | , |2 photograph | , c. 1871 – 72"
+|4 Declares | |3 himself | |2 emperor |
+"|7 Emperor | |7 Joshua | |7 Norton | , in |0 full | |0 military | |2 regalia | , circa 1880 or |1 earlier |"
+"By 1859 , |7 Norton | |5 had | |4 become | |1 completely | |0 disgruntled | with |3 what | |3 he | |4 considered | |6 the | |2 inadequacies | of |6 the | |0 legal | and |0 political | |2 structures | of |6 the | |7 United | |7 States | ."
+"On |7 September | 17 , 1859 , |3 he | |4 took | |2 matters | into |3 his | |0 own | |2 hands | and |4 distributed | |2 letters | to |6 the | |0 various | |2 newspapers | in |6 the | |2 city | , |4 proclaiming | |3 himself | "" |7 Emperor | of |6 these | |7 United | |7 States | "" :"
+"At |6 the | |0 peremptory | |2 request | and |2 desire | of |6 a | |0 large | |2 majority | of |6 the | |2 citizens | of |6 these | |7 United | |7 States | , |3 I | , |7 Joshua | |7 Norton | , |1 formerly | of |7 Algoa | |7 Bay | , |7 Cape | of |7 Good | |7 Hope | , and |1 now | for |6 the | |0 last | 9 |2 years | and 10 |2 months | |0 past | of |7 S.F. | , |7 Cal. | , |4 declare | and |4 proclaim | |3 myself | |7 Emperor | of |6 these | |7 U.S. | ;"
+"and in |2 virtue | of |6 the | |2 authority | |1 thereby | in |3 me | |4 vested | , |5 do | |1 hereby | |4 order | and |4 direct | |6 the | |2 representatives | of |6 the | |0 different | |2 States | of |6 the | |7 Union | to |4 assemble | in |7 Musical | |7 Hall | , of |6 this | |2 city | , on |6 the | |0 1st | |2 day | of |7 Feb. | |0 next | , |1 then | and |1 there | to |4 make | |6 such | |2 alterations | in |6 the | |4 existing | |2 laws | of |6 the | |7 Union | as |5 may | |4 ameliorate | |6 the | |2 evils | under |3 which | |6 the | |2 country | |5 is | |4 laboring | , and |1 thereby | |4 cause | |2 confidence | to |4 exist | , both at |2 home | and |2 abroad | , in |3 our | |2 stability | and |2 integrity | ."
+"— |7 NORTON | |7 I | , |7 Emperor | of |6 the | |7 United | |7 States | ."
+|6 The | |2 announcement | |5 was | |1 first | |4 reprinted | for |0 humorous | |2 effect | by |6 the | |2 editor | of |6 the | |7 San | |7 Francisco | |7 Bulletin | .
+"|7 Norton | |5 would | |1 later | |4 add | "" |7 Protector | of |7 Mexico | "" to |6 this | |2 title | ."
+"|1 Thus | |4 commenced | |3 his | |0 unprecedented | and |0 whimsical | |0 21-year | "" |2 reign | "" over |7 America | ."
+One of |7 Norton | 's |0 undated | |2 proclamations |
+"In |3 his | |0 self-appointed | |2 role | of |2 emperor | , |7 Norton | |4 issued | |0 numerous | |2 decrees | on |2 matters | of |6 the | |2 state | ."
+"After |4 assuming | |0 absolute | |2 control | over |6 the | |2 country | , |3 he | |4 saw | |6 no | |0 further | |2 need | for |6 a | |2 legislature | , and on |7 October | 12 , 1859 , |3 he | |4 issued | |6 a | |2 decree | |1 formally | |4 abolishing | |6 the | |7 United | |7 States | |7 Congress | ."
+"In |3 it | , |7 Norton | |4 observed | :"
+... |2 fraud | and |2 corruption | |4 prevent | |6 a | |0 fair | and |0 proper | |2 expression | of |6 the | |0 public | |2 voice | ;
+"|3 that | |0 open | |2 violation | of |6 the | |2 laws | |5 are | |1 constantly | |4 occurring | , |4 caused | by |2 mobs | , |2 parties | , |2 factions | and |0 undue | |2 influence | of |0 political | |2 sects | ;"
+that |6 the | |2 citizen | |4 has | not |6 that | |2 protection | of |2 person | and |2 property | |3 which | |3 he | |5 is | |4 entitled | .
+"|7 Norton | |4 ordered | |6 all | |0 interested | |2 parties | to |4 assemble | at |7 Platt | 's |7 Music | |7 Hall | in |7 San | |7 Francisco | in |7 February | 1860 to "" |4 remedy | |6 the | |2 evil | |4 complained | of "" ."
+"In |6 an | |0 imperial | |2 decree | |6 the | |4 following | |2 month | , |7 Norton | |4 summoned | |6 the | |7 Army | to |4 depose | |6 the | |4 elected | |2 officials | of |6 the | |7 U.S. | |7 Congress | :"
+"WHEREAS , |6 a | |2 body | of |2 men | |4 calling | |3 themselves | |6 the | |7 National | |7 Congress | |5 are | |1 now | in |2 session | in |7 Washington | |7 City | , in |2 violation | of |3 our | |0 Imperial | |2 edict | of |6 the | |0 12th | of |7 October | |0 last | , |4 declaring | |6 the | |4 said | |7 Congress | |4 abolished | ;"
+"WHEREAS , |3 it | |5 is | |0 necessary | for |6 the | |2 repose | of |3 our | |2 Empire | that |6 the | |4 said | |2 decree | |5 should | |5 be | |1 strictly | |4 complied | with ;"
+"|1 NOW | , |1 THEREFORE | , |3 we | |5 do | |1 hereby | |4 Order | and |4 Direct | |7 Major-General | |7 Scott | , |6 the | |2 Command-in-Chief | of |3 our | |2 Armies | , |1 immediately | upon |2 receipt | of |3 this | , |3 our | |2 Decree | , to |4 proceed | with |6 a | |0 suitable | |2 force | and |4 clear | |6 the | |2 Halls | of |7 Congress | ."
+|6 The | |2 Beast |
+|3 I | |5 was | thirteen .
+"|3 It | |5 was | |2 spring | , |6 the | |0 barren | |2 time | in |7 March | when |3 you | |5 can | not |5 be | |0 sure | if |3 it | |5 is | |1 really | |0 warmer | , but |3 you | |5 are | |1 so | |0 desperate | for |2 change | that |3 you | |4 tell | |3 yourself | |6 the | |2 mud | at |6 the | |2 edge | of |6 the | |2 sidewalk | |5 is | |0 different | from |2 winter | |2 mud | and |3 you | |5 are | |0 sure | that |6 the | |2 smell | of |0 wet | |2 soil | |4 has | |1 suddenly | |6 a | |2 bit | of |6 the | |2 scent | of |2 summer | |2 rains | , of |2 grass | and |0 drowned | |2 earthworms | ."
+"And |3 it | |4 has | , because |3 it | |5 is | |2 spring | and inside |6 the | |2 ground | |2 something | |5 is | |4 stirring | ."
+|3 I | |5 was | |4 wearing | |6 a | |0 yellow | |2 linen | |2 dress | |3 which | |3 my | |2 mother | |5 had | |4 picked | out and |3 which | |3 I | |1 therefore | |4 disliked | although |3 I | |4 knew | |3 it | |4 flattered | |3 me | .
+|3 My | |2 shoes | |5 were | |0 white | and |3 I | |5 was | |4 concentrating | on |4 keeping | |3 them | out of |6 the | |2 mud | .
+|3 My | |2 father | and |3 I | |5 were | |4 going | to |2 mass | — |3 my | |2 mother | |5 did | not |4 go | ; |3 she | |5 was | |0 Protestant | .
+"|3 My | |2 father | |4 put | |3 his | |2 hand | on |2 top | of |3 my | |2 hair | , |3 his | |2 palm | on |3 my | |2 head | , and |3 I | |5 could | |4 feel | |6 the | |2 bone | of |3 my | |2 skull | and |3 my | |2 skin | and |3 his | |0 hot | |2 palm | , |1 so | |0 dry | and |0 strong | ."
+"When |3 I | |5 was | |6 a | |0 little | |2 girl | , |3 he | |4 did | |3 that | |1 often | , and |4 called | |3 me | |7 Muscles | ."
+|3 He | |5 had | not |4 called | |3 me | |7 Muscles | or |4 put | |3 his | |2 hand | on |3 my | |2 head | for |6 a | |0 long | |2 time | .
+"|3 I | |5 could | not |4 help | |4 arching | |3 my | |2 back | |6 a | |0 little | , |3 I | |4 wanted | to |4 push | against |3 his | |2 hand | like |6 a | |2 cat | but |6 the | |2 instinct | |3 that | |4 comes | with |5 being | thirteen , |6 the | |0 half-understood | |2 caution | that |4 makes | |6 a | |2 girl | |0 timid | , or |0 wild | , |6 the | |2 shyness | |4 told | |3 me | to |1 just | |4 walk | ."
+"|3 I | |4 wanted | to |4 feel | |6 the | |0 rough | |2 edge | of |6 the | |2 pocket | of |3 his | |2 coat | against |3 my | |2 cheek | , but |3 I | |5 was | |1 too | |0 tall | ."
+"|3 I | |4 wanted | to |5 be | seven |1 again | , and |0 safe | ."
+"But |3 I | |1 still | |4 wanted | to |4 push | against |3 his | |2 hand | and |4 put | |3 my | |2 hand | in |3 his | |2 pocket | and |4 steal | |6 the | |2 leather | |0 palmed | |2 glove | , |6 that | |0 secret | |2 animal | ."
+"|1 Instead | |3 I | |4 went | into |6 the | |2 church | , |4 took | |6 a | |2 Bulletin | , |4 dipped | |3 my | |2 finger | in |0 Holy | |2 Water | and |4 genuflected | ."
+"|6 The | |2 inside | of |6 the | |2 church | |4 smelled | like |0 damp | |2 wood | and |2 furniture | |2 polish | , not |0 alive | at |3 all | ."
+|3 My | |2 father | |4 took | off |3 his | |2 coat | and |4 draped | |3 it | over |6 the | |2 edge | of |6 the | |2 pew | and when |3 I | |4 came | |1 back | from |2 communion | |3 I | |4 stole | |3 his | |2 glove | .
+|6 The | |2 paper | |2 taste | of |6 the | |2 wafer | |5 was | |1 still | in |3 my | |2 mouth | and |3 I | |4 took | |6 a | |0 deep | |2 breath | of |6 the | |2 leather | .
+|3 It | |4 smelled | like |7 March | .
+"|3 We | |4 walked | |1 back | through |6 the | |2 school | because |3 it | |5 was | |4 drizzling | , |3 my | |2 father | |0 tall | in |3 his | |0 navy | |2 suit | and |3 my | |2 shoes | |4 going | |2 click | on |6 the | |2 linoleum | ."
+"|3 There | |4 were | two |2 classes | of |6 each | |2 grade | , |4 starting | at |6 the | |0 sixth | and |4 going | down to |6 the | |0 first | ."
+"|6 The | |2 hall | |4 ended | in |6 a | |2 T | and |3 we | |4 went | |1 left | through |6 the | |2 gym | , |4 walked | underneath |6 the | |2 bleachers | and |4 stood | |0 next | to |6 the | |2 side | |2 door | , |4 waiting | for |6 the | |2 rain | to |4 stop | ."
+|3 It | |5 was | |0 dark | under |6 the | |2 bleachers | .
+"|3 My | |2 father | |5 was | |6 a | |0 young | |2 man | , thirty-five , |0 younger | because |3 he | |4 liked | to |4 be | |0 outside | , to |4 play | |2 softball | on |7 Saturday | and to |4 take | |3 my | |2 mother | and |3 me | |4 camping | on |2 vacation | ."
+|3 He | |4 stood | |4 rocked | |1 back | on |3 his | |2 heels | with |3 his | |2 coat | |4 thrown | over |3 his | |2 shoulders | and |3 his | |2 hands | in |3 his | |2 pockets | .
+"|3 I | |4 thought | of |2 bacon | and |2 eggs | , |2 toast | with |2 peach | |2 jam | out of |6 the | |2 jar | ."
+|3 I | |5 was | |1 so | |0 hungry | .
+|6 The | |2 space | under |6 the | |2 bleachers | |5 was | |0 secret | and |0 dark | .
+"|3 There | |4 were | |2 things | in |6 the | |2 shadows | ; |6 a | |2 metal | |2 pail | , |6 a | |2 mop | , |2 rags | ."
+|0 Next | to |6 the | |2 door | |5 was | |6 a | |0 tall | |0 wrought-iron | |2 candle | |2 holder | — |6 the | |2 kind | |3 that | |4 stood | at |6 either | |2 end | of |6 the | |2 altar | .
+|3 There | |4 was | |6 no | |2 holder | and |6 the | |2 end | |5 was | |0 jagged | .
+On |6 the | |2 floor | |5 was | |6 a | |2 wrapper | from |6 a | |7 French | |7 Chew | .
+|3 They | |5 were | |4 sold | at |2 eighth-grade | |2 basketball | |2 games | on |7 Friday | |2 nights | .
+"|6 The | |2 light | from |6 the | |2 door | |4 made | |6 the | |2 shadows | under |6 the | |2 bleachers | |0 darker | , |6 the | |0 long | |2 space | |4 stretched | |1 far | |1 away | ."
+|3 I | |4 heard | |6 the | |2 rain | and |6 the | |0 faint | |2 rustle | of |2 paper | and |4 smelled | |0 damp | |2 concrete | .
+"|3 I | |5 did | not |4 go | near |3 my | |2 father | but |4 kept | |3 my | |2 hand | in |3 my | |2 pocket | , |4 feeling | |6 the | |0 soft | |2 leather | |2 glove | ."
+|3 There | |4 was | |6 a | |2 rustling | on |6 the | |2 concrete | and |6 the | |2 drizzle | of |0 soft | |2 rain | .
+"|3 I | |4 wondered | if |2 anyone | |1 ever | |4 went | |1 back | under |6 the | |2 bleachers | , if |3 there | |4 were | |2 crickets | or |2 mice | |1 there | ."
+|6 The | |2 rustling | |5 might | |5 have | |5 been | |2 mice | .
+|3 I | |4 wished | |6 the | |2 rain | |5 would | |4 stop | .
+|3 I | |4 wanted | to |4 go | |2 home | .
+|3 I | |4 made | |2 noises | with |3 my | |2 heels | but |3 they | |5 were | |1 too | |0 loud | so |3 I | |4 stopped | .
+|2 Something | |1 else | |4 clicked | and |3 I | |4 tried | to |4 see | |3 what | |3 it | |4 was | but |5 could | n’t |4 see | |2 anything | .
+|3 It | |5 was | n’t |1 as | |0 loud | as |3 my | |2 heels | .
+"|3 My | |2 father | |4 cleared | |3 his | |2 throat | , |4 looking | out |6 the | |2 door | ."
+"|3 I | |4 imagined | |6 a | |2 man | |1 down | |1 there | in |6 the | |2 dark | , |6 an | |4 escaped | |2 convict | or |6 a | |2 madman | ."
+|3 It | |5 had | |1 nearly | |4 stopped | |4 raining | .
+In fifteen |2 minutes | |3 we | |5 would | |5 be | |2 home | and |3 my | |2 mother | |5 would | |4 fry | |2 eggs | .
+|3 I | |4 heard | |6 a | |2 noise | like |2 paper | .
+"|3 My | |2 father | |4 heard | |3 it | , |1 too | , but |3 he | |4 pretended | not to , at |0 least | |3 he | |5 did | n’t |4 turn | |3 his | |2 head | ."
+"And |3 there | |4 was | |6 a | |0 heavier | |2 sound | , |6 a | |2 rasp | , like |6 a | |2 box | |4 pulled | over |2 concrete | ."
+|3 I | |4 looked | at |3 my | |2 father | but |3 he | |5 did | n’t |4 turn | |3 his | |2 head | .
+|3 I | |4 wished | |3 he | |5 would | |4 turn | |3 his | |2 head | .
+"|3 There | |4 was | |6 a | |2 click | |1 again | and |6 the | |2 rustle | , and |3 I | |5 could | not |4 think | of |3 what | |3 it | |5 could | |4 be | ."
+|3 I | |4 had | |6 no | |2 explanation | for |6 the | |0 particular | |2 combination | of |2 sounds | .
+"|6 No | |2 doubt | |3 there | |4 was | , |6 some | two |2 things | |3 that | |4 happened | to |5 be | |4 making | |2 noises | at |6 the | |0 same | |2 time | ."
+"|1 Once | in |6 a | |2 fever | |3 I | |4 heard | |2 thousands | of |2 birds | outside |3 my | |2 window | and |3 I | |5 was | |0 terrified | that |3 they | |5 would | |4 fling | |3 themselves | through |6 the | |2 glass | and |4 attack | |3 me | , but |3 it | |5 was | |1 only | |6 the | |2 rain | on |6 the | |2 eaves | ."
+|7 Wikinews | |4 interviews | |0 meteorological | |2 experts | on |7 Cyclone | |7 Phalin |
+|2 File | |2 photo | of |2 interviewee | |7 David | |7 Titley | .
+|2 Image | : |7 David | |7 Titley | .
+"|7 Cyclone | |7 Phailin | |4 has | |2 winds | |3 that | |5 have | |5 been | |4 measured | at 200 |2 km | / |2 h | , as |3 it | |4 surges | over |2 land | |5 will | |3 it | |4 begin | to |4 lose | |2 strength | ?"
+"Yes , |6 all | |0 tropical | |2 cyclones | |5 are | |4 driven | by |0 high | |2 heat | |2 content | |2 waters | ."
+"|1 Once | |6 a | |2 storm | |4 moves | over |6 any | |1 appreciably | |4 sized | |2 piece | of |2 land | , |6 the | |2 moisture | |2 source | |5 is | |4 removed | and |6 the | |2 storm | |4 begins | to |4 dissipate | ."
+"|1 As | of |6 the | |0 last | |2 advisory | , |7 T | |7 C | |7 Phailin | |4 has | |2 winds | of 190 |2 kilometers | per |2 hour | and |5 has | |4 moved | |1 inland | , |4 headed | on |6 a | |0 northwest | |2 track | ."
+|3 That | |5 is | |6 a | |2 Category | 3 |2 storm | .
+|6 The | |2 forecast | |5 is | for |6 a | |4 continued | |2 decline | in |2 strength | to |6 a | |0 tropical | |2 storm | within 24 |2 hours | and |6 a | |0 tropical | |2 depression | within 36 |2 hours | .
+"|1 However | , |3 there | |5 will | |5 be | |1 very | |0 heavy | |2 rains | and |4 flooding | along |3 its | |2 path | ."
+"Yes , |3 it | |5 will | |4 loose | |2 strength | |1 steadily | as |0 more | and |0 more | of |6 this | |4 swirling | |2 system | |4 moves | from |4 being | over |2 ocean | to |4 being | over |2 land | ."
+|3 This | |4 occurs | for two |2 reasons | :
+"As |3 it | |4 moves | over |2 land | , |3 it | |5 is | |4 cut | off from |6 the | |2 source | of |2 energy | |4 driving | |6 the | |2 storm | [ |3 which | |5 is | ] |6 the | |2 evaporation | of |2 water | from |6 the | |0 warm | |2 sea | |2 surface | ;"
+"|4 Increased | |2 friction | - |6 the | |2 ocean | |2 surface | |5 is | |1 much | , |1 much | |0 smoother | than |6 the | |2 land | |2 surface | ."
+"|0 Tropical | |2 cyclones | |5 are | |4 sustained | by |6 a | |2 form | of |2 energy | |4 called | |0 latent | |2 heat | , |3 which | |5 is | |4 released | by |2 moisture | |4 evaporated | from |6 the | |2 ocean | |3 that | |4 condenses | to |4 form | |2 rain | ."
+"As |0 tropical | |2 cyclones | |4 make | |2 landfall | , |6 this | |2 energy | |2 source | |5 is | |4 cut-off | and |3 they | |1 rapidly | |4 lose | |2 strength | as |3 they | |4 move | over |2 land | ."
+"Yes , |6 the | |7 Cyclone | |5 is | |1 almost | |0 certain | to |4 lose | |2 strength | as |3 it | |4 surges | over |2 land | ."
+|2 Cyclones | |4 gather | |3 their | |2 strength | through |4 scraping | |2 moisture | and |2 heat | from |0 warm | |2 ocean | |2 water | that |3 it | |5 is | not |6 the | |2 case | over |2 land | .
+"In |6 the | |0 mean | |2 time | , |1 much | |0 stronger | |2 friction | over |2 land | |1 quickly | |4 reduces | |3 their | |2 strength | ."
+Yes .
+|6 All | |0 tropical | |2 cyclones | |4 lose | |2 strength | once |3 they | |4 make | |2 landfall | .
+"|1 However | , |3 they | |5 can | |4 remain | |0 dangerous | |2 storms | |0 due | to |1 very | |0 heavy | |2 rains | and |0 subsequent | |2 landslides | , and |2 river | |2 flooding | ."
+|7 Phailin | 's |2 winds | |5 will | |1 rapidly | |4 weaken | as |3 it | |4 pushes | |1 inland | .
+Once |7 Cyclone | |7 Phailin | |4 comes | on |2 shore | |3 it | |5 will | |1 immediately | |4 begin | to |4 lose | |2 strength | .
+"|1 However | , and |3 this | |5 is | |0 important | , |3 it | |1 still | |5 will | |4 contain | |2 lots | of |2 rainfall | |4 making | |4 flooding | |6 an | |0 almost | |2 certainty | ."
+|2 File | |2 photo | of |2 interviewee | |7 R | |7 Saravanan | .
+|2 Image | : |7 R | |7 Saravanan | .
+"|6 A | |0 previous | |2 cyclone | in 1999 in |6 the | |7 Bay | of |7 Bengal | |2 area | of |7 India | |4 left | 10,000 |2 people | |0 dead | ."
+|5 Is | |6 the | |0 Indian | |2 government | |1 well | |4 prepared | to |4 deal | with |6 this | |2 cyclone | ?
+|3 I | |5 have | not |4 followed | |6 that | |2 aspect | of |6 the | |0 societal | |2 response | for |6 the | |0 present | |2 storm | .
+"|1 However | , |1 historically | , |3 there | |5 have | |5 been | |0 several | |2 events | |3 that | |5 should | |4 cause | |6 a | |0 societal | |2 response | ."
+"|1 Hopefully | , |3 we | |3 all | |4 learn | from |0 past | |2 mistakes | ."
+"|6 The | |2 history | of |0 strong | |2 cyclones | and |2 death | in |6 the | |2 region | |5 is | |0 notable | , with at |0 least | 5 |0 large | |2 cyclone | |2 events | in |6 the | |0 past | 35 |2 years | with 10,000 and |1 as | |0 many | as 300,000 |2 people | |4 killed | , |2 millions | |4 left | |0 homeless | and |0 estimated | |2 damages | as |0 high | as US$ 10 billion ."
+"|3 I | |5 do | n't |4 have | |0 enough | |2 information | to |4 answer | |6 this | |2 question | , one |2 way | or |6 the | |0 other | ."
+"From |3 all | |6 the | |2 press | |2 reports | |3 that | |3 I | |5 have | |4 read | , |6 the | |0 Indian | |2 government | |4 appears | to |5 have | |4 taken | |6 the | |2 threat | of |7 Cyclone | |7 Phailin | |1 very | |1 seriously | |1 indeed | ."
+|6 The | |2 government | |5 has | |5 been | |1 much | |1 more | |0 pro-active | in |4 preparing | for |6 this | |2 cyclone | than in |6 the | |2 past | .
+|6 The | |2 forecasts | of |2 cyclone | |2 track | and |2 intensity | |5 have | |5 been | |1 fairly | |0 accurate | .
+"|0 Mandatory | |0 mass | |2 evacuations | |5 have | |5 been | |4 carried | out , |3 which | |5 is | |0 essential | to |4 minimize | |2 loss | of |2 life | in |6 these | |2 situations | ."
+"|1 Unfortunately | , |0 extensive | |2 property | |2 damage | |5 is | |4 bound | to |4 occur | |1 even | with |6 the | |0 best | |2 preparation | ."
+|3 My | |2 knowledge | of |6 the | |2 responsiveness | of |6 the | |0 Indian | |2 government | to |6 this | |2 storm | |5 is | |1 purely | from |6 the | |0 cyber | |2 space | .
+|3 I | |4 heard | that |3 they | |4 orchestrated | |6 the | |0 largest | |2 people | |2 evacuation | to |6 a | |0 natural | |2 disaster | in |0 Indian | |2 history | .
+|3 This | |5 shall | |5 be | |4 applauded | |4 given | |6 the | |2 size | and |2 strength | of |7 Phailin | .
+|3 I | |4 visited | |6 the | |0 damaged | |2 area | of |6 the | 1999 |2 storm | near |7 Bhubaneshwar | in |6 the | |2 summer | of 2012 for |6 an | |4 invited | |2 symposium | and |2 summer | |2 school | on |0 tropical | |2 cyclones | [ ... ] |4 sponsored | by |6 the | |0 Indian | |2 government | .
+"|4 Given | |6 the | |4 living | |2 standard | and |2 residence | of |2 people | |4 living | near |6 the | |0 coastal | |2 areas | in |6 this | |2 region | , |6 the | |2 evacuation | |5 is | |1 certainly | |0 necessary | and |0 essential | to |4 save | |2 lives | ."
+|3 I | |5 cannot | |4 comment | |1 directly | on how |6 the | |0 Indian | |2 government | |5 was | |4 prepared | for |6 this | |2 cyclone | .
+"|1 However | , |6 the | |2 news | |4 reports | ( |7 BBC | etc. ) |5 were | |1 very | |4 encouraging | in that |6 the | |2 authorities | |5 were | |1 reportedly | |4 making | |0 strenuous | |2 efforts | to |4 evacuate | |6 the | |2 population | from near |6 the | |2 coast | and |2 areas | |3 that | |5 are | |0 prone | to |2 flooding | ."
+|2 Water | |5 is | |6 the | |0 main | |2 killer | in |6 these | |2 storms | .
+"From |6 all | |2 reports | |3 that | |3 I | |5 have | |4 seen | , |6 the | |2 government | |5 was | |1 well | |4 prepared | for |6 this | |2 cyclone | ."
+For |6 this | |2 question | |3 I | |5 do | n't |4 know | |3 the | ' |2 preparedness | ' of |6 the | |0 Indian | |2 gov't | to |4 deal | with |3 this | .
+|7 Wikinews | |4 interviews | |7 Mario | |7 J. | |7 Lucero | and |7 Isabel | |7 Ruiz | of |7 Heaven | |7 Sent | |7 Gaming |
+|0 General | |2 questions |
+|3 What | |5 is | |7 Heaven | |7 Sent | |7 Gaming | ?
+"|7 Heaven | |7 Sent | |7 Gaming | |5 is | |1 basically | |3 me | and |7 Isabel | , |3 I | |5 'm | |7 Mario | |7 J. | |7 Lucero | ."
+"And , |3 I | |5 'm | |7 Isabel | |7 Ruiz | ."
+"And , |1 together | |3 we | |4 formed | |6 this | |2 thing | , |3 it | |5 's | |2 sort | of like |6 an | |2 entertainment | |2 team | ."
+"|3 We | |4 started | |3 it | |1 basically | , because |3 I | |4 wanted | to - |3 I | |4 wanted | to |4 work | with |7 Isabel | on |6 a | |2 lot | of |2 projects | |3 that | |3 we | |4 had | |4 going | on |1 together | ."
+"|3 We | |5 were | |4 coming | with |2 comics | , like , |1 left | and |1 right | , |3 we | |5 were | |4 coming | up with |2 things | like |7 Karis | , in |0 high | |2 school | |3 she | |4 came | up with |6 that | one , |3 I | |4 came | up with |6 an | |0 individual | |2 story | |4 called | |7 Thad | 's |7 World | |7 Destruction | and , |3 she | |4 wanted | to |4 illustrate | |3 it | , and |1 so | , |3 that | |5 's | |6 the | |2 way | |3 we | |4 ended | up |4 doing | |3 it | ."
+"Yep , |3 we | |4 like | to |1 just | |4 make | |3 our | |0 own | |0 original | |2 content | , and , yep , |3 that | |4 's | |3 what | |3 we | |4 wanted | to |4 do | ."
+How |5 did | |3 you | two |4 meet | ?
+|3 We | |4 met | |1 back | in |0 high | |2 school | .
+"In |6 this | |0 private | , |0 tiny-tiny | |0 private | |2 school | of 50 |2 students | ."
+"But , before |2 hand | in |0 middle | |2 school | , |3 I | |4 kept | on |4 hearing | about |6 this | |2 guy | |4 named | |7 Mario | , and |3 he | |4 kept | on |4 hearing | about |3 me | , |6 this | |2 girl | |4 named | |7 Isabel | ."
+"And , |2 everyone | , |3 all | of |3 our | |2 friends | and |3 all | of |3 our | |2 acquaintances | |5 would | |4 say | , "" Hey , |3 you | |5 'd | |4 get | along with |3 him | |1 really | |1 well | . """
+"|1 So | before |2 hand | |3 I | |1 kinda | |4 knew | about |3 him | , but |3 I | |1 never | |4 met | |3 him | ."
+"And one of |3 our | |2 friends | , |3 our | |0 common | |2 friends | , |3 he | |4 introduced | |3 us | during |2 study | |2 hall | , and |3 we | |1 just | |1 kind | of |4 hit | |3 it | off from |1 there | ."
+|3 It | |5 's | |0 true | .
+|3 Who | |1 else | |5 is | |4 involved | in |6 this | |2 project | ?
+"|1 Currently | , |3 we | |5 're | in |2 talks | with |2 people | ."
+"|3 There | |4 's | |7 Jeff | [ |7 Drake | ] , |3 who | |4 is | behind |6 the | |2 camera | ."
+"|1 Right | |1 now | , yeah , |3 he | |5 's | |4 helping | |3 us | |1 right | |1 now | ."
+"|3 We | |5 're | |4 talking | about |4 doing | |6 some | |0 individual | |2 web | |2 series | , |0 video | |2 series | ."
+"|7 Josh | |7 Kindig | , |3 he | |5 's | |4 coming | on |2 board | , |3 he | |4 has | |6 some | |2 ideas | for |3 that | |1 too | , |3 he | |4 wants | to |4 take | over "" |7 aywv | "" and |4 do | |0 more | |2 gaming | |2 news | ."
+"|3 There | |4 's | of |2 course | |7 Jason | , |3 who | |5 is | |3 our | |2 editor | and |3 he | |5 's | |6 the | one |3 who | |4 writes | |7 dD | ."
+|7 Digital | |7 Domain |
+|3 What | |5 is | |3 your | |2 purpose | behind |6 this | |2 venture | ?
+"Well , |1 back | in |2 college | , |1 back | in |7 Collins | |7 College | , |7 Isabel | and |3 I | , |3 we | |5 had | |4 met | like |3 she | |4 said | at |7 Sandia | |7 View | |7 Academy | , and |3 we | |4 went | off to |2 college | |1 together | in |7 Arizona | ;"
+and ... ( how |5 do | |3 I | |0 best | |4 explain | |3 this | ? )
+"|1 Basically | , |3 she | |4 came | up with |6 a | |0 few | |2 class | |2 projects | , and |3 I | |4 came | up with |6 a | |0 few | |2 class | |2 projects | ;"
+"|3 we | |4 started | |4 working | with |6 a | |0 few | of |3 our | |2 friends | , and |2 colleagues | and |2 whatnot | ."
+"|3 Those | |4 included | |7 Drew | |7 Cass | , |7 Devin | |7 Thurlow | , |2 people | like |3 that | ."
+"|3 She | |4 had | |0 several | |2 ideas | , and |3 she | |4 used | to |4 draw | |6 a | |2 lot | in |6 the | |2 sketchbook | , |3 she | |4 used | to |4 have | |6 this | |0 thick | |2 sketchbook | |3 that | |3 she | |4 used | to |4 carry | around with |3 her | |1 everywhere | , where |3 she | |5 'd | |4 draw | |6 these | |0 different | |2 characters | and |2 whatnot | ;"
+"and |3 she | |5 was | |1 always | |1 really | |0 shy | to |4 show | |3 that | off to |2 people | , and |3 I | |4 wanted | to |4 help | |3 her | |4 show | |6 that | |2 stuff | , and |3 I | |4 wanted | to |4 bring | |3 it | out to |6 the | |2 world | ."
+"|3 I | |5 was | |6 a | |2 writer | , and |3 she | |1 always | |4 liked | |3 my | |2 writings | , |1 so | |3 I | |4 was | like , |4 let | |3 's | |1 just | |4 get | |3 both | of |3 our | |2 things | |1 together | , and |4 let | |3 's | |4 get | |3 this | |4 done | ."
+"And for |3 me | , |3 what | |3 I | |4 want | |6 the | |2 purpose | to |5 be | , |5 is | to |4 inspire | |2 people | ."
+"To |4 bring | |6 a | |1 little | |1 more | |2 light | to |6 the | |2 world | |4 is | |3 what | |3 I | |4 want | , |1 out | of |3 all | of |3 this | ."
+And |3 what | |5 was | |6 the | |2 verse | |3 that | |3 we | |4 have | ?
+|7 First | |7 Corinthians | 9 : 25 ?
+Yes .
+"Yeah , |1 exactly | ."
+"|3 We | |1 just | |4 want | to |5 be | |0 able | to |4 bring | , like |3 she | |4 said | , |4 bring | |2 light | into |6 the | |2 entertainment | and into |6 the | |2 media | |2 industry | , |1 specifically | |4 is | |3 what | |3 we | |4 do | ."
+Yeah .
+|6 The | |2 future | of |6 the | |2 peace | |2 process | in |7 Israel |
+""" |6 The | |2 future | |5 is | |1 only | |2 peace | . |6 The | |2 problem | |5 is | how |1 long | |5 will | |3 it | |4 take | and how |0 many | |2 victims | |5 will | |3 it | |4 call | for . """
+|7 Shimon | |7 Peres | |2 image | : |7 David | |7 Shankbone | .
+"|7 Mr. | |7 President | , as |6 a | |7 Nobel | |7 Peace | |7 Prize | |2 recipient | and as one of |6 the | |2 fathers | of |6 the | |0 modern | |2 peace | |2 process | in |7 Israel | , |5 do | |3 you | |1 still | |4 think | that |3 there | |4 is | |6 a | |2 future | to |6 the | |2 peace | |2 process | ?"
+|6 The | |2 future | |5 is | |1 only | |2 peace | .
+|6 The | |2 problem | |5 is | how |1 long | |5 will | |3 it | |4 take | and how |0 many | |2 victims | |5 will | |3 it | |4 call | for .
+Why |5 do | |3 I | |4 say | |2 peace | ?
+"Because when |3 you | |4 look | |1 historically | , at |6 the | |2 development | of |2 humanity | , |0 most | of |3 our | |2 lives | |3 we | |5 are | |4 living | on |6 the | |2 land | ."
+|6 The | |2 history | |5 is | |4 written | with |0 red | |2 ink | .
+"|6 The | |2 reason | for |3 it | |5 is | because |2 people | |5 were | |4 fighting | for |3 our | |2 land | , either |4 defending | |3 it | or |4 extending | |3 it | , because |3 that | |5 was | |6 the | |0 main | |2 source | ."
+"|6 The | |2 land | , |6 the | |0 natural | |2 resources | , |6 the | |2 markets | , |3 all | |3 these | |4 go | |1 together | ."
+"|6 The | |2 minute | |6 the | |2 land | |5 was | |4 replaced | by |2 science | , |3 what | |4 is | |3 there | to |4 fight | |1 about | ?"
+|2 Armies | |5 cannot | |4 conquer | |2 science | .
+"|2 Customs | |5 cannot | |4 check | |3 what | |6 a | |2 scientist | |4 has | in |3 his | |2 mind | , |3 they | |5 can | |4 see | |3 what | |3 he | |4 has | in |3 his | |2 pocket | but not |3 what | |3 he | |4 has | in |3 his | |2 mind | so |3 it | |5 ’s | |0 uncontrolled | ; |3 it | |4 means | that |2 borders | |5 are | n’t |0 important | and |2 distances | |5 are | n’t |0 important | ."
+"How |5 do | |3 you | |4 approach | |6 the | |0 difficult | |2 challenge | of |4 talking | to |6 the | |7 Palestinians | when , in |6 the | |2 end | , |3 they | |5 do | n’t |4 want | |7 Israel | to |4 exist | ."
+How |5 do | |3 you | |4 come | to |6 an | |2 understanding | to |4 make | |2 peace | |0 possible | ?
+"Well , |3 what | |5 is | |6 the | |2 problem | ?"
+"|3 I | |4 mean | , |5 is | |6 the | |2 problem | |0 national | , |4 say | between |7 Jews | and |7 Arabs | ; or |5 is | |3 it | |6 a | |2 matter | of |2 generations | between |6 an | |0 old | |2 age | and |6 a | |0 new | |2 age | ?"
+"|3 You | |4 see | , |6 the | |2 terrorists | |5 are | |4 protesting | against |2 modernity | ."
+|3 They | |4 think | that |2 modernity | |5 may | |4 endanger | |3 their | |2 tradition | .
+|3 They | |5 are | |1 simply | |0 afraid | and |4 hate | |2 modernity | .
+"|3 They | |4 consider | |2 modernity | as |3 their | |2 enemy | , but |1 then | |3 they | |4 have | two |2 problems | ."
+"|1 First | of |3 all | , |5 can | |3 they | |4 exist | on |2 tradition | ?"
+|3 They | |5 cannot | .
+|1 Sooner | or |1 later | |3 they | |5 will | |4 have | to |4 enter | |6 the | |0 new | |2 age | .
+"|3 All | |6 the | |2 talks | about |2 nationalities | , etcetera , well , |6 the | |0 new | |2 age | |4 has | |1 very | |0 little | |2 patience | for |2 history | ."
+|2 History | |5 is | |4 becoming | |1 more | and |1 more | |0 irrelevant | .
+How |5 do | |3 you | |4 feel | about |3 that | ?
+"Well , |3 I | |4 distinguish | between two |2 histories | , |6 the | |0 spiritual | and |6 the | |0 material | ."
+Or |6 the | |2 history | of |2 events | and |6 the | |2 history | of |2 values | .
+"|6 The | |2 history | of |2 values | |5 is | |0 okay | because |2 wisdom | |5 is | |0 ageless | ; |3 it | |5 does | n’t |4 grow | |0 old | , like |2 material | ."
+But |2 events | |5 are | |1 totally | |0 unimportant | for 2 |2 reasons | .
+"|1 First | , |6 the | |2 event | |5 is | |0 unimportant | ."
+"|4 Tell | |3 me | , |6 what | |2 events | |5 is | |2 today | |0 important | such as how |0 many | |2 elephants | |7 Hannibal | |4 had | on |6 the | |7 Alps | , when |3 you | |5 can | |4 have | |2 helicopters | ?"
+Why |5 should | |3 I | |4 bother | |3 my | |2 children | with |3 all | |6 this | |2 nonsense | ?
+|6 What | |2 sort | of |6 a | |2 nose | |5 did | |7 Cleopatra | |4 have | ?
+"|7 God | , |3 I | |5 do | n’t |4 know | !"
+"|3 You | |5 can | |4 invite | |2 people | to |2 war | over |2 noses | , but |2 nobody | |5 will | |4 go | to |4 fight | for |2 noses | |3 any | |1 more | ."
+"On |6 the | |0 other | |2 hand | , |3 there | |4 are | |1 already | |2 machines | |3 that | |5 can | |4 replace | |3 our | |2 memory | ."
+Why |5 should | |3 I | |4 bother | |3 my | |2 child | with |2 memory | when |3 he | |5 can | |4 buy | |6 a | |2 computer | |3 that | |5 will | |4 remember | |2 everything | |3 you | |4 asked | |3 him | to |4 remember | ?
+|6 The | |4 waning | |2 importance | of |2 history |
+|5 Is | n’t |6 the | |2 answer | to |6 that | |2 question | that |0 wise | |2 decisions | |5 are | |4 made | with |6 a | |2 basis | from |2 memory | ?
+Although |6 a | |2 computer | |5 can | |4 have | …
+"No , no ."
+|4 Forget | |2 memory | .
+"|4 Look | , |6 the | |0 new | |2 age | |5 is | |0 unprecedented | ."
+"When |2 something | |5 is | |0 unprecedented | , |3 it | |4 means | |3 it | |5 does | n’t |4 have | |6 a | |2 past | , |5 does | n’t |4 have | |6 a | |2 history | ."
+|3 It | |5 ’s | |1 totally | |4 oriented | on |6 the | |2 future | .
+"And |3 whoever | |4 dwells | in |6 the | |2 past | , |5 does | n’t |4 understand | |6 the | |2 future | because |6 the | |2 past | |5 is | |0 full | of |2 prejudices | , of |2 commitments | ."
+|3 It | |4 arrests | |3 us | .
+"And |1 then | |3 you | |4 say | |3 you | |5 wo | n’t |4 commit | |6 a | |2 mistake | , |1 so | |3 you | |5 ’ll | |4 commit | |0 new | |2 mistakes | ."
+|3 It | |5 does | n’t |4 matter | .
+"`` |3 I | |4 say | |2 brains | |5 is | |6 the | |0 greater | |2 producer | of |2 wealth | , not |2 oil | ."
+"|3 It | |5 ’s | |0 limitless | , and |3 you | |5 ’ll | |4 see | that |6 the | |2 GNP | of |7 Israel | |5 is | |1 very | |0 close | to |6 the | |7 Saudis | ’ ."
+|1 So | |3 they | |5 are | 3 |2 times | |0 larger | than |3 us | and |3 they | |4 have | |3 all | |6 the | |2 oil | in |6 the | |2 world | .
+"|3 We | |4 have | |2 brains | . """
+"— |7 Peres | , on whether |6 the | |0 Arab | |2 states | ' |2 oil | |2 wealth | |5 will | |4 eclipse | |7 Israel | 's |2 prominence | in |6 the | |2 region | ."
+"|3 What | about |6 the | |2 adage | , “ |3 Those | |3 who | |4 forget | |2 history | |5 are | |4 doomed | to |4 repeat | |3 it | ” ?"
+|1 So | |3 they | |5 will | |4 make | |0 new | |2 mistakes | .
+|2 Mistake | |5 is | |0 inevitable | |1 as | |1 long | as |3 there | |4 are | |0 human | |2 beings | .
+But |3 you | |5 cannot | |4 repeat | |2 mistakes | because |6 the | |2 world | |5 is | not |4 built | on |2 repetition | ; |3 it | |5 ’s | |4 built | on |2 mutation | .
+|5 Do | n’t |3 you | |4 think | |7 Darfur | |5 is | |2 repetition | ?
+"|3 I | |4 think | |7 Darfur | |5 is | , |1 again | , |6 the | |0 last | , or among |6 the | |0 last | |2 battles | between |0 old | and |0 new | ."
+|3 What | |5 are | |3 they | |4 fighting | for ?
+|3 What | |5 are | |3 they | |4 killing | |4 killing | |4 killing | over ?
+|3 They | |5 do | n’t |4 carry | |2 futures | .
+|3 It | |5 ’s | not |6 a | |2 mistake | .
+|3 It | |4 belongs | to |6 a | |2 past | .
+|3 It | |5 does | n’t |4 have | |6 a | |2 moment | .
+"|3 I | |5 am | |0 sure | that |6 the | |2 reasons | for |2 war | |5 are | over , |1 even | though |1 still | |3 there | |4 are | |2 wars | |3 which | |5 are | |6 an | |2 inertia | from |6 the | |2 past | , |6 a | |2 continuation | |3 that | |5 does | n’t |4 make | |2 sense | ."
+|3 I | |5 ’m | |4 answering | |3 your | |2 question | .
+"|6 The | |2 problem | |5 is | how to |4 enable | |6 the | |0 whole | |2 world | to |4 enter | |6 the | |0 new | |2 future | , |4 including | |6 the | |7 Arabs | ."
+And |3 there | |4 are | |1 already | |2 Arabs | |3 who | |4 did | |3 it | .
+"|4 Look | at |7 Turkey | , |3 who | |5 is | |4 knocking | on |6 the | |2 doors | of |6 the | |4 united | |7 Europe | ."
+Why ?
+"|3 It | |5 ’s | not |6 a | |0 geographic | |2 endeavor | , |3 it | |5 is | |6 an | |0 intellectual | |2 endeavor | ."
+|3 They | |4 say | |3 you | |5 can | |5 be | |0 Muslim | and |0 modern | .
+|7 Scientology | |2 defector | |4 arrested | after |4 attempting | to |4 leave | |2 organization |
+"|7 Saturday | , |7 October | 9 , 2010"
+"|0 Recent | |2 reports | |5 have | |4 revealed | that |6 a | |2 defector | from |6 the | |0 elite | |2 group | within |7 Scientology | |4 called | |6 the | |7 Sea | |7 Org | |5 was | |1 first | |4 persuaded | to |4 travel | |1 back | to |6 a | |2 management | |2 building | for |6 the | |2 organization | in |7 California | , where |3 he | |5 was | |4 interrogated | by |6 an | |2 attorney | for |7 Scientology | and |1 then | |4 arrested | ."
+"|7 Daniel | |7 Montalvo | in |7 September | 2010 , after |5 having | |4 left | |6 the | |0 elite | |2 group | within |7 Scientology | |4 called | |6 the | |7 Sea | |7 Org | ."
+"|7 Montalvo | |5 is | |4 holding | |6 a | |2 copy | of |6 the | |2 book | |7 Blown | |7 for | |7 Good | |0 critical | of |7 Scientology | , |4 written | by |7 Marc | |7 Headley | ."
+|2 Image | : |7 Mark | |7 Rathbun | .
+"|7 Daniel | |7 Montalvo | , 19 , |6 a | |2 member | of |7 Scientology | |3 all | |3 his | |2 life | , |5 was | |4 arrested | after |4 leaving | |3 its | |0 elite | |2 group | |6 the | |7 Sea | |7 Org | ."
+"|3 He | |5 was | |4 released | on US$ 20,000 |2 bail | on |7 Thursday | ."
+|7 Montalvo | |5 was | |4 charged | with |4 taking | |0 hard | |2 drives | and |6 a | |2 zip | |2 drive | from |6 the | |7 Scientology | |2 organization | after |4 leaving | |6 the | |7 Sea | |7 Org | |2 group | .
+"|6 The | |7 Sea | |7 Org | |4 requires | |2 members | to |4 sign | |6 a | |2 billion-year-contract | , |4 agreeing | to |4 work | for |6 the | |2 organization | |4 founded | by |2 science | |2 fiction | |2 writer | |7 L. | |7 Ron | |7 Hubbard | for |0 multiple | |2 lifetimes | ."
+"|2 Members | of |6 the | |7 Sea | |7 Org | |4 live | |6 a | |0 strict | |2 lifestyle | – with |0 little | |2 income | , |0 small | |2 diet | |4 provided | and |0 significant | |2 time | |4 invested | in |2 work | per |2 day | ."
+"|7 Montalvo | |5 had | |4 read | |6 an | |2 article | in |6 the | |7 Scientology | |2 propaganda | |2 publication | |7 Freedom | |7 Magazine | , |3 which | |4 attacked | |0 high-ranking | |2 defectors | from |6 the | |2 organization | |4 including | |7 Tom | |7 Devocht | and |7 Mark | |7 Rathbun | ."
+"|7 Montalvo | |5 had | |4 known | |7 Devocht | |1 personally | , and |4 came | to |6 the | |2 conclusion | that |6 the | |2 claims | |4 made | about |3 him | in |6 the | |7 Freedom | |2 article | |5 were | |2 lies | ."
+"|7 Montalvo | |5 was | |1 subsequently | |4 motivated | to |4 seek | out |2 information | about |7 Scientology | on |6 the | |7 Internet | , and |4 came | upon |6 a | |2 blog | |4 written | by |7 Rathbun | ."
+"|7 Montalvo | |4 contacted | |0 former | |2 members | of |7 Scientology | , |3 who | |4 helped | |3 him | |4 leave | |6 the | |2 organization | and |4 get | in |2 touch | with |7 Devocht | ."
+"|3 He | |4 traveled | to |7 Florida | to |4 meet | with |7 Devocht | , |3 who | |5 had | |4 told | |7 Montalvo | |3 he | |5 would | |4 assist | |3 him | with |0 future | |2 employment | and |2 housing | ."
+According to |7 Rathbun | |6 the | |7 Scientology | |2 property | in |2 question | |5 was | |4 returned | by |2 mail | to |6 the | |2 organization | by |7 Montalvo | |1 shortly | after |3 he | |4 left | |6 the | |7 Sea | |7 Org | .
+|7 Scientology | |2 officials | |5 have | |4 stated | |3 they | |5 have | not |4 received | |6 the | |2 materials | .
+"After |4 calling | |6 the | |7 Scientology | |2 organization | by |2 phone | to |4 attempt | to |4 speak | with |3 his | |2 mother | , |7 Montalvo | |5 was | |1 instead | |4 put | through to |6 a | |7 Scientology | |2 attorney | , |7 Kendrick | |7 Moxon | ."
+"|7 Rathbun | |4 wrote | , "" |7 Moxon | |4 proceeded | to |4 lie | to |7 Daniel | that |6 the | |0 hard | |2 drives | |5 were | |1 never | |4 returned | , and |4 made | |6 a | |0 convincing | |2 case | ( not |0 difficult | to |4 do | with |6 a | 19 |2 year | |0 old | |3 who | |5 does | not |1 even | |4 know | |6 the | three |2 branches | of |2 government | ) that |7 Daniel | |5 would | |5 be | |4 put | behind |2 iron | |2 bars | for |6 a | |0 good | |0 long | |2 time | , UNLESS of |2 course | , |3 he | |4 returned | and |4 cooperated | with |7 Moxon | and |4 routed | out |1 properly | . """
+"To "" |4 route | out "" in |7 Scientology | |2 jargon | |4 refers | to |6 the | |2 member | |3 who | |4 wishes | to |4 leave | |4 proceeding | through |6 a | |2 set | of |0 interrogative | |2 exit | |2 interviews | while |4 attached | to |6 the | |7 Scientology | |2 device | |4 called | |6 the | |7 E-meter | ."
+"According to |7 Rathbun | , |6 a | |2 detective | for |6 the | |7 Los | |7 Angeles | |7 Sheriff | 's |2 office | |5 was | |4 provided | with |2 material | from |7 Scientology | to |4 build | |6 a | |2 case | against |7 Montalvo | ."
+"|7 Rathbun | |4 stated | ,"
+""" |7 Daniel | |5 was | |4 picked | up by |6 an | |2 investigator | in |6 a | |0 black | |2 car | with |4 blacked | out |2 windows | ."
+"Instead of |5 being | |4 taken | to |6 a | |2 hotel | , where |3 he | |5 could | |4 route | out as |4 promised | , |3 he | |5 was | |4 taken | to |6 the | |7 Century | |7 City | |7 Towers | ."
+"|3 He | |5 was | |4 deposited | in |6 an | |2 office | on |6 the | |0 33rd | |2 floor | where |6 a | |0 pricy | |2 church | |2 lawyer | |4 interrogated | |3 him | for two |2 hours | . """
+"|7 Rathbun | |4 asserted | that |7 Scientology | |2 officials | , "" ... |4 plied | |6 the | |7 Sheriff | 's |2 detective | with |6 a | |0 grand | |2 conspiracy | |2 theory | , |4 characterizing | |3 me | as |6 the | ' |2 anti-christ | ' of |6 the | |2 church | of |7 Scientology | . ... |6 The | |0 next | |2 thing | |7 Daniel | |4 knows | |3 he | |5 's | in |6 a | |2 cell | where |3 he | |4 sat | for |6 the | |0 next | 30 |2 hours | . """
+"|7 Steve | |7 Whitmore | , |6 a | |2 representative | for |6 the | |7 LA | |7 Sheriff | 's |2 office | , |4 told | |7 LA | |7 Weekly | in |6 a | |2 statement | that |6 the | |2 case | |4 involving | |7 Montalvo | |5 was | |5 being | |4 dealt | with as |2 charges | |4 relating | to |0 grand | |2 theft | ."
+|7 Whitmore | |4 stated | |7 Montalvo | |4 left | |0 Scientology-related | |2 employment | in |7 Los | |7 Angeles | on |7 September | 24 .
+"On |7 September | 29 , |7 Scientology | |2 officials | |4 went | to |6 the | |7 East | |7 Los | |7 Angeles | |2 sheriff | 's |2 station | where |3 they | |4 claimed | |7 Montalvo | |1 allegedly | |4 left | |6 the | |2 organization | with |2 computer | |0 hard | |2 drives | ."
+"|7 Whitmore | |4 told | |7 LA | |7 Weekly | that on |7 October | 6 after |4 traveling | |1 back | from |7 Florida | , |7 Montalvo | "" |4 walked | into |2 lobby | of |6 the | |7 East | |7 L.A. | |2 station | and |4 turned | |3 himself | in "" , and |4 told | |6 the | |2 police | , "" |2 everything | |3 he | |4 did | "" ."
+|7 Whitmore | |4 stated | to |7 LA | |7 Weekly | that |6 the | |0 alleged | |2 crime | |4 involved | five |0 hard | |2 drives | |3 each | of $ 200 in |2 value | .
+"|7 Montalvo | |5 has | |5 been | |4 assisted | by |0 former | |2 members | of |7 Scientology | , |4 including | |2 musician | |7 Tiziano | |7 Lugli | and |2 actor | |7 Jason | |7 Beghe | ."
+"|7 Rathbun | |4 requested | |2 donations | via |6 a | |2 statement | |4 made | on |3 his | |2 blog | , in |2 order | to |4 help | |7 Montalvo | with |3 his | |0 legal | |2 defense | |2 financing | ."
+"|3 He | |4 described | |7 Montalvo | as |6 an | |2 individual | , "" |4 facing | |6 the | |2 penitentiary | in |2 thanks | for |6 the | |4 following | |2 sins | : a) |4 Leaving | |6 a | |2 lifehood | of |2 slavery | to |4 get | |6 a | |2 taste | of |2 freedom | and |6 the | |2 world | . b) |4 Refusing | - despite |6 every | |2 provocation | and |2 incentive | and |2 threat | - to |4 frame | three |2 guys | |3 who | |4 went | out of |3 their | |2 ways | ( and |4 dipped | into |3 their | |2 pockets | ) to |4 help | |6 the | |2 kid | |4 achieve | |6 that | |2 freedom | . """
+|2 Parents | |4 prosecuted | after |0 homeopathic | |2 treatment | |4 leads | to |2 daughter | 's |2 death |
+"|7 Friday | , |7 May | 8 , 2009"
+"|7 Thomas | |7 Sam | , 42 , and |3 his | |2 wife | |7 Manju | |7 Sam | , 36 , from |7 Sydney | , |7 Australia | , |5 are | |4 undergoing | |2 trial | for |2 manslaughter | by |0 gross | |2 negligence | for |6 the | |2 death | of |3 their | |0 nine-month-old | |2 child | , |7 Gloria | ."
+"|3 She | |4 died | from |2 infection | |4 caused | by |0 severe | |2 eczema | after |3 they | |4 shunned | |0 effective | |0 conventional | |0 medical | |2 treatments | for |2 homeopathy | , |6 a | |2 form | of |0 alternative | |2 medicine | |3 that | |5 has | |5 been | |4 described | as |2 pseudoscience | ."
+|2 Articles | in |0 peer-reviewed | |0 academic | |2 journals | |4 including | |7 Social | |7 Science | & |7 Medicine | |5 have | |4 characterized | |2 homeopathy | as |6 a | |2 form | of |2 quackery | .
+|6 An | |2 example | of |0 severe | |2 eczema | .
+|2 Image | : |7 Jambula | .
+|7 Gloria | |4 developed | |0 severe | |2 eczema | at |6 the | |2 age | of four |2 months | and |6 the | |2 parents | |5 were | |4 advised | to |4 send | |6 the | |2 child | to |6 a | |2 skin | |2 specialist | .
+"|7 Thomas | |7 Sam | , |6 a | |4 practising | |2 homeopath | , |1 instead | |4 decided | to |4 treat | |3 his | |2 daughter | |3 himself | ."
+"|3 His | |2 daughter | 's |2 condition | |4 deteriorated | , to |6 the | |2 point | that |6 the | |2 baby | |4 spent | |3 all | |3 her | |2 energy | |4 battling | |6 the | |2 infections | |4 caused | by |6 the | |0 constant | |2 breaking | of |6 the | |2 skin | , |4 leading | to |0 severe | |2 malnutrition | and , |1 eventually | , |3 her | |2 death | ."
+"By |6 the | |2 end | , |7 Gloria | 's |2 eczema | |5 was | |1 so | |0 severe | that |3 her | |2 skin | |4 broke | |6 every | |2 time | |3 her | |2 parents | |4 changed | |3 her | |2 clothes | or |2 nappy | , and in |6 the | |2 words | of |6 the | |7 Crown | |2 prosecutor | , |7 Mark | |7 Tedeschi | , |7 QC | , "" |7 Gloria | |4 spent | |6 a | |2 lot | of |6 the | |0 last | five |2 months | of |3 her | |2 life | |4 crying | , |0 irritable | , |4 scratching | and |6 the | |0 only | |2 thing | |3 that | |4 gave | |3 her | |2 solace | |5 was | to |4 suck | on |3 her | |2 mother | 's |2 breast | . """
+|7 Gloria | |1 also | |4 became | |0 unable | to |4 move | |3 her | |2 legs | .
+"|7 Mr. | |7 Tedeschi | |1 also | |4 told | |6 the | |2 court | that , over |6 the | |0 last | five |2 months | of |3 her | |2 life | , "" |7 Gloria | 's |2 eczema | |4 played | |6 a | |0 devastating | |2 role | in |3 her | |0 overall | |2 health | and |3 it | |5 is | |4 asserted | by |6 the | |7 Crown | that |6 both | |3 her | |2 parents | |4 knew | |3 this | and |4 discussed | |3 it | with |6 each | |0 other | . """
+"|1 However | , despite |3 their | |2 child | 's |0 severe | |2 illness | , and |3 her | |2 lack | of |2 improvement | , |6 the | |7 Sams | |4 continued | to |4 shun | |0 conventional | |0 medical | |2 treatment | , |1 instead | |4 seeking | |2 help | from |0 other | |2 homeopaths | and |2 naturopaths | ."
+"|7 Gloria | |1 temporarily | |4 improved | during |6 the | |0 rare | |2 times | |3 they | |4 used | |0 conventional | |2 treatments | , but |3 they | |1 soon | |4 dropped | |3 them | in |2 favour | of |2 homeopathy | , and |3 she | |1 consistently | |4 worsened | ."
+"|1 Allegedly | , |7 Thomas | ' |2 sister | |4 pleaded | with |3 him | to |4 send | |7 Gloria | to |6 a | |0 conventional | |0 medical | |2 doctor | , but |3 he | |4 replied | "" |3 I | |5 am | not |0 able | to |4 do | |3 that | "" ."
+"|6 The | |2 parents | |5 are | |1 also | |4 accused | of |4 putting | |3 their | |0 social | |2 life | |1 ahead | of |3 their | |2 child | , |4 taking | |3 her | on |6 a | |2 trip | to |7 India | and |4 leaving | |3 her | to |2 servants | while |4 embarking | on |6 a | |0 busy | |0 social | |2 schedule | , and |4 giving | |3 her | |0 homeopathic | |2 drops | |1 instead | of |4 using | |6 the | |2 prescription | |2 creams | |3 they | |5 had | |5 been | |4 given | ."
+|7 Gloria | |5 was | |1 finally | |4 taken | to |6 the | |2 emergency | |2 department | |1 shortly | before |3 her | |2 death | .
+"By |6 this | |2 time | , "" |3 her | |2 skin | |5 was | |4 weeping | , |3 her | |2 body | |0 malnourished | and |3 her | |2 corneas | |4 melting | "" , |4 according | to |6 the | |7 Sydney | |7 Morning | |7 Herald | ."
+"|4 Speaking | in |6 the | |2 parents | ' |2 defense | , |7 Tom | |7 Molomby | , |7 SC | , |4 said | that , as |6 the | |2 parents | |4 came | from |7 India | , where |2 homeopathy | |5 is | in |0 common | |2 use | , |3 they | |5 should | |5 be | |4 declared | not |0 guilty | |0 due | to |0 cultural | |2 differences | ."
+"|2 Homeopathy | |5 is | |6 a | |2 form | of |0 alternative | |2 medicine | |3 which | |4 treats | |2 patients | with |1 massively | |4 diluted | |2 forms | of |2 substances | that , if |4 given | to |6 a | |0 healthy | |2 person | |0 undiluted | , |5 would | |4 cause | |2 symptoms | |0 similar | to |6 the | |2 disease | ."
+"|0 Typical | |2 treatments | |4 take | |6 the | |2 dilutions | , with |4 ritualised | |4 shaking | between |6 each | |2 step | of |6 the | |2 dilution | , past |6 the | |2 level | where |6 any | |2 molecules | of |6 the | |0 original | |2 substance | |5 are | |0 likely | to |4 remain | ; for |0 homeopathic | |2 treatments | to |4 work | , |0 basic | |0 well-understood | |2 concepts | in |2 chemistry | and |2 physics | |5 would | |4 have | to |5 be | |0 wrong | ."
+|3 There | |4 is | |6 no | |2 evidence | that |2 homeopathy | |5 is | |1 more | |0 effective | than |2 placebo | for |6 any | |2 condition | .
+|0 Australian | |2 children | |4 suffering | from |2 iodine | |2 deficiency |
+"|7 Thursday | , |7 February | 23 , 2006"
+"|1 Almost | |2 half | of |6 all | |0 Australian | |0 primary | |2 school | |2 children | |5 are | |0 mild | to |1 moderately | |2 iodine | |0 deficient | , |2 researchers | |4 say | ."
+|6 A | |0 new | |2 study | |4 documenting | |2 iodine | |0 nutritional | |2 status | in |0 Australian | |2 school | |2 children | |5 has | |4 revealed | |0 many | |5 are | not |4 getting | |0 enough | |2 iodine | - |3 which | |5 can | |4 lead | to |0 mental | and |2 growth | |2 retardation | .
+"|6 The | |2 report | 's |2 authors | |4 say | |2 iodine | |2 deficiency | |5 is | "" |6 the | |2 sleeper | |2 health | |2 issue | in |7 Australia | "" , and |1 potentially | |6 a | |1 very | |0 serious | one ."
+"|6 The | |2 results | of |6 the | |0 Australian | |7 National | |7 Iodine | |7 Nutrition | |7 Study | |4 published | in |6 the | |7 Medical | |7 Journal | of |7 Australia | |6 this | |2 week | , |4 revealed | that |2 children | in |0 mainland | |7 Australia | |5 are | |1 borderline | |2 iodine | |0 deficient | ."
+|6 The | |2 report | |5 has | |4 prompted | |2 calls | for |6 all | |0 edible | |2 salt | to |5 be | |4 iodised | .
+|3 They | |4 say | |4 adding | |6 the | |2 mineral | to |2 salt | |5 is | |6 the | |0 simplest | and |1 most | |0 effective | |2 method | of |4 preventing | |2 iodine | |2 deficiency | |2 disorders | .
+"|6 A | |0 cross-sectional | |2 survey | of 1709 |2 schoolchildren | - |0 aged | 8 – 10 |2 years | , from 88 |2 schools | - |5 was | |4 carried | out in |7 New | |7 South | |7 Wales | , |7 Victoria | , |7 South | |7 Australia | , |7 Western | |7 Australia | and |7 Queensland | , between |7 July | 2003 and |7 December | 2004 ."
+"|7 Tasmania | |5 was | |4 excluded | from |6 the | |2 study | - where |6 an | |0 voluntary | |2 iodine | |2 fortification | |2 program | |4 using | |4 iodised | |2 salt | in |2 bread | , |5 is | |0 ongoing | ."
+|6 The | |2 authors | |4 say | |6 the | |2 results | |4 confirm | |6 the | |2 existence | of |0 inadequate | |2 iodine | |2 intake | in |6 the | |0 Australian | |2 population | .
+"|3 They | |4 call | for "" |0 urgent | |2 implementation | of |0 mandatory | |2 iodisation | of |6 all | |0 edible | |2 salt | in |7 Australia | . """
+"|0 Most | |2 iodine | in |2 food | |4 comes | from |2 seafood | , |2 milk | and |4 iodised | |2 salt | ."
+"|7 Professor | |7 Cres | |7 Eastman | , |7 Director | of |6 the | |7 National | |7 Iodine | |7 Nutrition | |2 study | , and |7 Chairman | of |6 the | |7 Australian | |7 Centre | for |7 Control | of |7 Iodine | |7 Deficiency | |7 Disorders | , |4 says | |3 it | |5 is | |0 crucial | that |2 children | and |0 pregnant | |2 women | in |0 particular | |4 have | |6 an | |0 adequate | |2 intake | of |2 iodine | ."
+"|2 Iodine | |2 deficiency | |5 can | |4 lead | to |0 serious | |2 health | |2 problems | |4 including | |2 brain | |2 damage | , |4 stunted | |2 growth | and |2 deafness | ."
+|7 Professor | |7 Eastman | |4 says | |2 manufacturers | |5 could | |1 easily | |4 remedy | |6 the | |2 situation | by |4 using | |4 iodised | |2 salt | in |3 their | |2 products | in |2 line | with |6 the | |7 United | |7 States | and |0 most | |0 European | |2 countries | .
+""" |3 I | |4 suspect | |3 they | |5 wo | n't |4 do | |3 that | on |6 a | |0 voluntary | |2 basis | , |3 we | |5 've | |4 tried | |1 so | |1 far | and |5 have | n't |4 succeeded | , so |3 we | |5 've | |4 convinced | |6 the | |7 Food | |7 Standards | of |7 Australia | and |7 New | |7 Zealand | | that |6 all | |2 salt | |5 should | |5 be | |4 iodised | , "" |3 he | |4 said | ."
+"|6 The | |2 report | |4 says | |6 the | |2 decline | in |2 iodine | |2 intake | |4 appears | to |5 be | |0 due | to |2 changes | in |6 the | |2 dairy | |2 industry | , where |0 chlorine-containing | |2 sanitisers | |5 have | |4 replaced | |0 iodine-containing | |2 sanitisers | ."
+"|2 Iodine | |4 released | from |6 these | |2 chemicals | into |2 milk | |5 has | |5 been | |6 the | |0 major | |2 source | of |0 dietary | |2 iodine | in |7 Australia | for at |0 least | four |2 decades | , but |5 is | |1 now | |4 declining | ."
+|6 Another | |0 contributory | |2 factor | |5 has | |5 been | |6 the | |4 decreasing | |2 consumption | of |4 iodised | |2 salt | |4 used | in |2 foods | .
+|6 The | |2 report | |4 states | that |0 few | if |3 any | |2 food | |2 manufacturers | |4 use | |4 iodised | |2 salt | in |6 the | |2 preparation | and |2 manufacture | of |2 foods | .
+|7 Professor | |7 Eastman | |4 says | |2 iodine | |5 is | |4 added | to |1 only | 10 per |2 cent | of |0 Australian | |2 salt | in |2 contravention | of |6 a | |7 World | |7 Health | |7 Organisation | |2 recommendation | that |6 all | |2 salt | |5 be | |4 iodised | .
+|3 He | |4 says | |2 authorities | |5 are | |4 reacting | |1 slowly | to |3 his | |0 urgent | |2 calls | for |0 mandatory | |4 iodised | |2 salt | .
+""" |6 The | |2 effects | of |2 iodine | |2 deficiency | |5 are | |0 dependent | upon how |0 severe | |3 it | |5 is | and when |3 it | |4 occurs | ."
+"|1 So | if |3 we | |4 go | to |6 the | |0 pregnant | |2 woman | , |3 she | |5 does | n't |4 get | |0 enough | |2 iodine | , |3 she | |5 wo | n't |4 make | |0 enough | |2 thyroid | |2 hormone | , and |6 the | |2 foetus | |5 wo | n't |4 get | |6 the | |2 amount | of |2 thyroid | |2 hormone | |3 it | |4 needs | for |0 adequate | and |0 proper | |2 development | of |6 the | |2 brain | , |1 so | |3 you | |5 'll | |1 then | |4 see | |2 consequences | |5 being | |2 loss | of |2 IQ | , |2 learning | |2 difficulties | , |2 hearing | |2 difficulties | and |0 other | |0 neurological | |2 problems | , "" |7 Professor | |7 Eastman | |4 said | ."
+""" If |6 an | |2 infant | |5 's | not |4 getting | |0 enough | |2 iodine | ... |2 brain | |2 development | |5 wo | n't |5 be | |4 completed | and |3 they | |5 wo | n't |4 grow | |1 normally | , and as |3 you | |4 get | |0 older | |6 the | |2 problem | |5 will | |5 be | that |3 you | |5 will | |4 develop | |6 a | |2 goiter | and |3 your | |2 thyroid | |5 wo | n't |4 function | |1 as | |1 well | as |3 it | |5 should | , |1 so | |3 that | |5 may | |4 have | |6 all | |2 sorts | of |0 pernicious | |2 effects | upon |0 normal | |2 function | in |2 life | . """
+"|0 More | than two billion |2 people | around |6 the | |2 world | |4 live | in |2 areas | |0 prone | to |2 iodine | |2 deficiency | , and |1 yet | |6 the | |2 problem | |5 is | |1 easily | |4 fixed | ."
+|6 The | |7 World | |7 Health | |7 Organisation | ( |7 WHO | ) |4 recommends | that |6 every | |2 country | |5 should | |4 iodise | |6 all | |0 edible | |2 salt | .
+"|6 The | |1 most | |1 well | |4 known | |2 effects | of |7 IDD | |5 are | |0 visible | |2 goiter | and |2 cretinism | , |6 a | |2 condition | |4 characterised | by |0 severe | |2 brain | |2 damage | |4 occurring | in |1 very | |0 early | |2 life | ."
+"|7 WHO | |4 say | |2 Iodine | |2 deficiency | |5 is | |6 the | |2 world | ’s |1 most | |0 prevalent | , |1 yet | |1 easily | |0 preventable | , |2 cause | of |2 brain | |2 damage | ."
+|7 Professor | |7 Eastman | |4 said | |3 he | |5 is | |4 alarmed | by |3 what | |3 they | |4 found | .
+""" |0 Pregnant | |2 women | in |7 Australia | |5 are | |4 getting | |1 about | |2 half | |1 as | |0 much | as |3 what | |3 they | |4 require | on |6 a | |0 daily | |2 basis | ."
+"|1 So | |3 that | |4 alarms | |3 me | , because |3 there | |4 's | |1 quite | |0 serious | |2 potential | for |0 adverse | |2 effects | and |2 brain | |2 damage | in |6 the | |0 next | |2 generation | of |2 children | |4 born | in |6 this | |2 country | , "" |3 he | |4 said | ."
+""" If |2 Iodine | |2 deficiency | |5 is | |0 serious | |3 you | |4 lose | 15 |2 IQ | |2 points | , on |2 average | ."
+"|3 There | |5 should | n't |5 be | |2 anyone | |4 suffering | from |2 iodine | |2 deficiency | in |6 a | |4 developed | |2 country | like |7 Australia | . """
+"|7 Lydia | |7 Buchtmann | for |7 Food | |7 Standards | |7 Australia | |7 New | |7 Zealand | , |4 says | |3 they | |5 are | |4 looking | at |0 mandatory | |2 guidelines | on |2 iodine | by |6 the | |2 end | of |6 the | |2 year | ."
+|3 She | |4 says | |6 the | |2 issue | |5 is | |4 complicated | and |5 will | |4 take | |2 time | to |4 get | |1 right | .
+"|3 We | |4 need | to "" |4 make | |0 sure | |3 there | |4 's | |0 sufficient | |2 iodine | |4 added | into |6 the | |2 food | |2 supply | , to |4 help | |6 those | |2 people | with |6 a | |2 deficiency | ."
+"But at |6 the | |0 other | |2 end | of |6 the | |2 scale | |3 we | |5 've | |4 got | to |4 make | |0 sure | |6 the | |2 people | |3 who | |4 eat | |6 a | |2 lot | of |2 food | - |3 we | |3 all | |4 know | |6 the | |0 teenage | |2 boy | |3 who | |4 comes | |2 home | from |2 school | and |4 eats | |6 a | |0 whole | |2 loaf | of |2 bread | - that |6 those | |2 people | |5 do | n't |4 get | |1 too | |1 much | and |4 get | |2 overdose | , "" |7 Ms | |7 Bauchtman | |4 said | ."
+""" One of |6 the | |2 reasons | that |2 iodine | |5 is | |4 going | |1 down | |5 is | because |2 people | |5 are | |4 taking | |6 that | |0 good | |0 healthy | |2 eating | |2 message | and not |4 adding | |2 salt | during |2 cooking | . """
+"|0 Senior | |2 researcher | |7 Mu | |7 Li | , of |6 the | |7 University | of |7 NSW | 's |2 school | of |0 public | |2 health | , |4 said | "" |3 it | |5 is | |0 reasonable | to |4 assume | that |0 pregnant | |2 women | and |4 breastfeeding | |2 mothers | |5 are | |1 also | |2 iodine | |0 deficient | , |4 putting | |6 the | |0 next | |2 generation | of |2 children | |4 born | in |6 this | |2 country | at |2 risk | of |6 the | |0 neuropsychological | |2 consequences | of |2 iodine | |2 deficiency | . """
+"|7 Athens | ( |0 Greek | : Αθήνα , Athína ) , |5 is | |6 the | |2 capital | |2 city | of |7 Greece | with |6 a | |0 metropolitan | |2 population | of 3.7 million |2 inhabitants | ."
+"|3 It | |5 is | in |0 many | |2 ways | |6 the | |2 birthplace | of |0 Classical | |7 Greece | , and |1 therefore | of |0 Western | |2 civilization | ."
+|4 Understand |
+|0 Old | |7 Athens |
+|6 The | |0 first | |0 pre-historic | |2 settlements | |5 was | |4 constructed | in 3000 |1 BC | around |6 the | |2 hill | of |7 Acropolis | .
+"|6 The | |2 legend | |4 says | that |6 the | |7 King | of |7 Athens | , |7 Theseus | |4 unified | |6 the | ten |2 tribes | of |0 early | |7 Athens | into one |2 kingdom | ( c. 1230 |1 BC | ) ."
+"|6 This | |2 process | of synoikismos – |4 bringing | |1 together | in one |2 home | – |4 created | |6 the | |0 largest | and |0 wealthiest | |2 state | on |6 the | |0 Greek | |2 mainland | , but |3 it | |1 also | |4 created | |6 a | |0 larger | |2 class | of |2 people | |4 excluded | from |0 political | |2 life | by |6 the | |2 nobility | ."
+"By |6 the | |0 7th | |2 century | |1 BC | , |0 social | |2 unrest | |5 had | |4 become | |0 widespread | , and |6 the | |7 Areopagus | |4 appointed | |7 Draco | to |4 draft | |6 a | |0 strict | |0 new | |2 law | |2 code | ( |1 hence | "" |0 draconian | "" ) ."
+"When |3 this | |4 failed | , |3 they | |4 appointed | |7 Solon | , with |6 a | |2 mandate | to |4 create | |6 a | |0 new | |2 constitution | ( 594 ) ."
+"|3 This | |5 was | |6 the | |0 great | |2 beginning | of |6 a | |0 new | |0 social | |2 revolution | , |3 which | |5 was | |6 the | |2 result | of |6 the | |2 democracy | under |7 Clisthenes | ( 508 |1 BC | ) ."
+"During |6 the | |7 Middle | |7 Ages | , |7 Athens | |4 experienced | |6 a | |2 decline | , but |4 re-emerged | under |0 Byzantian | |2 rule | ."
+"|7 Athens | |5 was | |0 thriving | and |0 prosperous | during |6 the | |7 Crusades | , |1 actually | |4 benefiting | from |6 the | |0 Italian | |2 trade | during |6 this | |2 period | ."
+"|1 However | , |6 this | |0 fruitful | |2 period | |5 was | |0 short-lived | , as |7 Greece | |4 suffered | |1 badly | under |6 the | |7 Ottoman | |7 Empire | , |1 only | to |4 recover | in |6 the | |0 19th | |2 century | as |6 the | |2 capital | of |0 independent | |7 Greece | ."
+|0 Modern | |7 Olympic | |7 Games |
+|7 Athens | |4 hosted | |6 the | 2004 |7 Summer | |7 Olympic | |7 Games | .
+While |0 most | of |6 the | |2 sporting | |2 venues | |5 were | |4 located | outside |6 the | |2 city | |0 proper | - in |0 various | |2 locations | throughout |7 Attica | - |6 the | |0 entire | |0 urban | |2 area | of |7 Athens | |4 underwent | |0 major | |0 lasting | |2 changes | |3 that | |5 have | |4 improved | |6 the | |2 quality | of |2 life | for |2 visitors | and |2 residents | |1 alike | .
+"|1 Aside | from |6 the | |0 excellent | |2 transportation | |2 infrastructure | |3 that | |5 was | |4 completed | in |2 time | for |6 the | 2004 |7 Olympics | ( from |0 new | |2 freeways | to |0 light | |2 rail | |2 systems | ) , |6 the | |2 city | 's |0 historic | |2 center | |4 underwent | |0 serious | |2 renovation | ."
+|1 Most | |0 notable | among |6 the | |2 city | 's |2 facelift | |2 projects | |5 are | |6 the | |7 Unification | of |7 Archaeological | |7 Sites | - |3 which | |4 connects | |6 the | |2 city | 's |0 classical | - |2 era | |2 ruins | and |2 monuments | to |6 each | |0 other | through |6 a | |2 network | of |0 pleasant | |4 pedestrianized | |2 streets | - and |6 the | |2 restoration | of |6 the | |0 picturesque | |0 neoclassical | |7 Thissio | and |7 Pláka | |2 districts | .
+|6 The | |0 ancient | |7 Olympic | |7 Games | |4 took | |2 place | in |7 Olympia | from 776 |1 BCE | to 394 |1 AD | .
+"|3 It | |5 is | |6 a | |0 lengthy | |2 day | |2 trip | from |7 Athens | to |4 visit | |7 Olympia | , but |1 quite | |0 interesting | ."
+|2 Architecture |
+|7 Athens | |5 was | |1 just | |6 a | |0 small | |0 provincial | |2 village | when |3 it | |5 was | |4 chosen | in |6 the | |2 1830s | to |4 serve | as |6 the | |0 national | |2 capital | of |6 the | |0 modern | |0 Greek | |2 State | .
+"Although |3 it | |4 had | |6 a | |0 prestigious | |2 past | , |6 the | |2 city | 's |0 political | , |0 economic | , and |0 cultural | |2 importance | |5 had | |4 declined | over |6 the | |2 centuries | , |4 leaving | behind |1 only | |3 its | |0 classical | |2 ruins | as |6 a | |2 reminder | of |0 better | |2 times | ."
+"With |6 the | |2 decision | to |4 move | |6 the | |0 national | |2 capital | from |7 Nafplio | to |7 Athens | , |2 architects | and |2 city | |2 planners | |5 were | |4 hired | to |4 build | |6 a | |0 new | |2 city | |0 next | to |6 the | |0 classical | |2 ruins | , with |0 grand | |0 neoclassical | |2 homes | and |0 public | |2 buildings | , |0 large | |2 city | |2 squares | , |0 green | |2 spaces | , and |0 wide | |2 avenues | , |4 making | |6 a | |0 conscious | , |0 decisive | |2 turn | from |6 the | |2 city | 's |7 Ottoman | |2 past | ."
+"|6 The | |2 city | |4 regained | |3 its | |2 importance | in |0 Greek | |2 civilization | , and by 1900 |5 had | |4 evolved | into |6 a | |1 very | |0 attractive | |0 cosmopolitan | |2 city | , with |0 abundant | |0 neoclassical | |2 architecture | |4 harking | to |6 the | |2 nation | 's |2 past | ."
+"|6 The | |0 20th | |2 century | |1 however | , |4 marked | |6 the | |0 rapid | |2 development | of |7 Athens | ."
+"|6 The | |2 city | |4 suffered | |0 minor | |2 damage | during |7 WWII | , and |4 suffered | |0 extensive | |0 urban | |2 planning | in |6 the | |2 decades | |3 that | |4 followed | , as |6 the | |2 nation | |1 rapidly | |4 industrialized | and |4 urbanized | ."
+"In |6 the | |2 1960s | and |2 1970s | , |0 many | |0 19th | |2 century | |0 neoclassical | |2 buildings | , |1 often | |0 small | and |0 private | , |5 were | |4 demolished | to |4 make | |2 way | for |2 office | |2 buildings | , |1 often | |4 designed | by |0 great | |0 Greek | |2 architects | ."
+"|6 The | |2 city | |1 also | |4 expanded | |1 outward | through |0 rash | |2 development | , |1 particularly | towards |6 the | |2 west | , as |3 its | |2 population | |4 grew | by |4 absorbing | |2 job-seekers | from |6 the | |2 provinces | ."
+"With |6 the | |2 onset | of |6 the | |2 automobile | , |0 public | |2 officials | |4 reduced | |6 the | |2 city | 's |0 public | |2 transportation | |2 services | without |4 foreseeing | |6 the | |2 traffic | |2 gridlock | and |2 smog | |3 that | |5 would | |4 menace | |6 the | |2 city | by |6 the | |2 1980s | ."
+"By |6 the | |0 late | |2 1980s | and |0 early | |2 1990s | , |6 the | |2 city | 's |2 reality | |4 led | to |6 a | |0 rude | |2 awakening | among |0 local | and |0 national | |2 officials | and , |4 coupled | with |6 the | |2 country | 's |0 new | |4 found | |0 remarkable | |2 prosperity | , |0 large | |2 scale | |2 projects | |4 began | to |1 slowly | |4 regenerate | |6 the | |2 city | and |4 undo | |3 some | of |6 the | |2 damages | of |0 recent | |2 decades | ."
+"Over |6 the | |2 course | of |6 the | |0 next | 15 |2 years | , |2 money | |5 was | |4 poured | into |0 new | |2 transportation | |2 infrastructure | |2 projects | , |6 the | |2 restoration | of |4 surviving | |0 neoclassical | |2 buildings | , |6 the | |2 gentrification | of |6 the | |2 city | 's |0 historical | |2 center | and |6 the | |2 renovation | of |0 many | |0 former | |0 industrial | |2 areas | and |6 the | |2 city | 's |2 coastline | ."
+|6 The | |2 restoration | of |0 charming | |0 neoclassical | |2 buildings | in |6 the | |2 city | 's |0 historical | |2 center | |5 has | |5 been | |4 accompanied | by |6 the | |2 construction | of |0 attractive | |0 post-modern | |2 buildings | in |0 newer | |2 districts | ; |3 both | of |3 which | |5 have | |4 begun | to |4 improve | |6 the | |0 aesthetic | |2 essence | of |6 the | |2 city | .
+"|7 Athens | |2 today | |5 is | |1 ever | |4 evolving | , |4 forging | |6 a | |2 brand | |0 new | |2 identity | for |6 the | |0 21st | |2 century | ."
+|2 Climate |
+|2 Spring | and |0 late | |2 autumn | |5 are | |6 the | |0 best | |2 times | to |4 visit | |7 Athens | .
+"|2 Summer | |5 can | |5 be | |1 extremely | |0 hot | and |0 dry | during |2 heatwaves | , but |3 this | |1 rarely | |4 happens | ."
+"|2 Winter | |5 is | |1 definitely | |0 low | |2 season | , with |6 the | |0 occasional | |0 rainy | or |0 snowy | |2 day | , but |1 also | |6 an | |0 ideal | |2 time | to |4 save | |2 money | while |4 enjoying | |6 the | |2 city | without |0 countless | |0 other | |2 travelers | and |2 tourists | ."
+"Whilst |2 peak | |2 traffic | |2 hour | |5 can | |5 be | |6 a | |2 bit | |0 smoggy | on |6 the | |0 main | |2 roads | , on |0 most | |0 sunny | |2 days | |6 the | |2 skies | |5 are | |0 azure | |0 blue | ."
+|6 The | |0 main | |2 reason | |4 attributed | for |6 the | |2 pollution | of |7 Athens | |5 is | because |6 the | |2 city | |5 is | |4 enclosed | by |2 mountains | in |6 a | |2 basin | |3 which | |5 does | not |4 let | |6 the | |2 smog | |4 leave | .
+|6 The | |2 government | 's |2 ban | on |2 diesel | |2 vehicles | within |7 Athens | and |6 the | |0 early | |2 1990s | |2 initiatives | to |4 improve | |2 car | |2 emissions | |5 have | |1 greatly | |4 contributed | to |0 better | |0 atmospheric | |2 conditions | in |6 the | |2 basin | .
+|7 Coron |
+"|7 Coron | |4 is | in |6 the | |2 province | of |7 Palawan | , |7 Philippines | on |7 Busuanga | |7 Island | ."
+|3 It | |5 is | |6 the | |0 largest | |2 town | on |6 the | |2 island | and |4 has | |6 the | |0 largest | |2 share | of |2 accommodations | .
+|2 Background |
+"|7 Coron | |5 is | |3 both | |6 the | |2 name | of |6 the | |0 largest | |2 town | on |6 the | |2 island | of |7 Busuanga | , and |6 the | |2 name | of |6 a | |0 different | , |0 smaller | |2 island | |1 just | |1 offshore | ."
+"|6 The | |2 area | |5 is | |0 famous | for |3 its | |7 World | |7 War | II |2 wreck | |2 diving | , and |6 the | |2 site | |5 has | |5 been | |4 named | in |0 many | |2 lists | of |0 top | |2 dive | |2 spots | in |6 the | |2 world | ."
+"In |7 September | 1944 , |6 a | |2 fleet | of |0 Japanese | |2 ships | |4 hiding | in |6 the | |2 harbor | |5 were | |4 sunk | in |6 a | |0 daring | |2 raid | by |6 the | |7 US | |2 navy | ."
+|6 The | |2 result | |5 is | |1 around | ten |1 well | |4 preserved | |0 underwater | |2 shipwrecks | |4 surrounded | with |0 coral | |2 reef | .
+|3 There | |4 are | |1 also | |2 attractions | on |7 Coron | |7 Island | |3 itself | .
+"|3 There | |4 are | |0 many | |0 beautiful | |0 white | |2 sand | |2 beaches | , |1 mostly | |0 tiny | and |4 surrounded | by |0 large | |2 limestone | |2 cliffs | and |2 wildlife | ."
+"|7 Barracuda | and |7 Kayangan | |2 lakes | |5 are | |6 both | |0 stunning | |2 locations | , and |0 good | for |4 snorkeling | , and |6 the | |2 island | |5 is | |6 the | |0 ancestral | |2 domain | of |6 an | |0 indigenous | |2 tribe | |3 who | |5 are | |4 managing | |6 the | |2 island | in |6 a | |0 sustainable | |2 way | and |4 keeping | |2 outsiders | at |6 a | |2 distance | and |1 offshore | at |2 night | ."
+|2 History |
+"|6 The | |0 first | |2 inhabitants | of |7 Coron | |5 were | |6 the | |7 Tagbanuas | |3 who | |4 belong | to |6 the | |0 second | |2 wave | of |2 Indonesians | |3 who | |4 migrated | to |6 this | |2 area | |1 some | 5,000 |2 years | |1 ago | ."
+"|3 They | |5 were | |6 a | |0 nomadic | , |0 seafaring | |2 people | , |4 living | |1 mainly | by |4 fishing | and |2 subsistence | |2 agriculture | ."
+"Although |3 they | |5 are | |1 now | |0 sedentary | ( with |6 the | |2 young | |4 using | |2 cell | |2 phones | , etc. ) , |3 they | |4 maintain | |0 many | of |3 their | |0 old | |2 customs | , |2 traditions | and |2 beliefs | ."
+"|2 Today | , |6 the | |7 Tagbanuas | |4 remain | |6 the | |0 dominant | if not |0 entire | |2 population | of |7 Coron | ."
+In 1902 |6 that | |7 Coron | |5 was | |4 registered | as |6 a | |2 town | and |6 the | |2 name | of |6 the | |2 town | |5 was | |1 officially | |4 changed | from |7 Penon | |7 de | |7 Coron | to |7 Coron | .
+"From 1939 to |6 the | |2 outbreak | of |7 World | |7 War | II , |6 the | |2 municipality | |4 experienced | |6 the | |4 mining | |2 boom | ."
+|2 Labor | |4 shifted | from |2 farming | to |2 mining | .
+In |7 July | 1942 |6 the | |2 Japanese | |4 occupied | |6 the | |2 mining | |2 camps | and |4 resumed | |2 operation | of |6 the | |2 manganese | |2 mines | .
+"On |7 September | 24 , 1944 , |6 a | |2 group | of |0 Japanese | |2 ships | |5 were | |4 sunk | by |0 American | |2 warplanes | in |7 Coron | |2 waters | as |6 the | |2 ships | |4 retreated | from |7 Manila | |7 Bay | ."
+"To |6 this | |2 day | , |1 about | 10 or 12 of |6 these | |7 World | |7 War | II |0 Japanese | |2 shipwrecks | |4 comprise | |3 what | |5 is | |4 considered | one of |6 the | |0 best | |2 dive | |2 sites | in |6 the | |2 world | ."
+"In 1947 , |0 large | |2 scale | |0 deep | |2 sea | |2 fishing | |5 was | |4 introduced | to |7 Coron | , and |6 the | |2 town | |4 experienced | |6 another | |2 boom | , |6 a | |2 fishing | |2 boom | ."
+"|6 The | |2 population | |4 increased | , as |0 many | |2 people | from |7 Luzon | and |6 the | |7 Visayas | |4 came | to |4 work | either as |2 fishermen | or |2 miners | ."
+"On |7 June | 17 , 1950 , |7 Busuanga | |5 was | |1 officially | |4 created | as |6 a | |0 separate | |2 municipality | from |7 Coron | and in 1954 , |7 Coron | |5 was | |1 further | |4 reduced | by |6 the | |0 official | |2 creation | of |6 the | |2 Municipality | of |7 Linapacan | ."
+"On |7 September | 12 , 1992 , |7 Coron | |5 was | |1 finally | |4 reduced | by |6 the | |0 official | |2 creation | of |6 the | |2 Municipality | of |7 Culion | ."
+"In |6 the | |2 past | , |7 Coron | |5 was | |1 virtually | |0 unknown | |1 outside | of |7 Palawan | ."
+"|3 It | |4 remains | |6 a | |0 small | , |0 quaint | |2 fishing | |2 town | with |4 laid | back |2 charm | but with |4 increasing | |2 media | |2 exposure | |3 it | |5 is | |4 growing | , |1 slowly | but |1 steadily | ,"
+|7 Coron | |5 has | |4 taken | |6 an | |0 important | |2 position | in |6 the | |2 tourism | |2 industry | .
+"In |6 the | |0 past | |2 decade | , |3 there | |5 has | |4 been | |6 a | |0 rapid | |2 influx | of |2 scuba | |2 divers | and |0 other | |2 tourists | |4 coming | in , |4 making | |2 tourism | |6 the | |0 major | |2 industry | |2 player | in |7 Coron | |2 today | ."
+|7 Isfahan |
+"|7 Isfahan | ( |7 Persian | : اصفهان , |1 also | |4 known | as |7 Esfahan | ) |5 is | |6 a | |2 city | in |0 central | |7 Iran | , |1 south | of |7 Tehran | and |5 is | |6 the | |2 capital | of |7 Isfahan | |7 Province | ."
+"|6 The | |2 Persians | |4 call | |3 it | "" Nesf-e-Jahan "" , |4 meaning | "" |3 Half | |6 The | |2 World | "" ."
+"|0 Due | to |3 its | |0 beautiful | |0 hand-painted | |2 tiling | and |0 magnificent | |0 public | |2 square | , |3 it | |5 is | |4 considered | to |5 be | one of |6 the | |1 most | |0 beautiful | |2 cities | in |6 the | |2 world | ."
+"|6 An | |0 ancient | |2 town | and |2 capital | of |7 Persia | from 1598 to 1722 , |3 it | |5 was | |1 long | |4 noted | for |3 its | |0 fine | |2 carpets | and |2 silver | |2 filigree | ."
+"|2 Today | , |2 textile | and |2 steel | |2 mills | |4 take | |3 their | |2 place | ."
+"|3 Its | |2 architecture | , |0 tree-lined | |2 boulevards | and |4 relaxed | |2 pace | |4 make | |3 it | one of |6 the | |2 highlights | of |7 Iran | ."
+|4 Understand |
+|6 The | |2 city | |5 is | |0 430 | |2 km | |1 south | of |7 Tehran | at |6 the | |2 foothills | of |6 the | |7 Zagros | |2 mountain | |2 range | .
+|6 The | |2 city | |4 enjoys | |6 a | |0 temperate | |2 climate | and |0 regular | |2 seasons | .
+|7 Isfahan | |5 is | |4 located | on |6 the | |0 main | |0 north-south | and |0 east-west | |2 routes | |4 crossing | |7 Iran | .
+"|6 The | |2 city | |4 has | |6 an | |0 Armenian | |2 Quarter | |4 called | |7 Jolfa | ( |1 originally | |4 called | |7 New | |7 Julfa | ) |4 established | by |7 Shah | |7 Abbas | |0 I | in |6 the | 1600s after |3 he | |4 destroyed | |6 the | |0 prosperous | |0 Armenian | |2 town | of |7 Julfa | in |7 Armenia | and |4 forced | |3 all | of |6 the | |7 Armenians | to |4 move | to |7 Persia | , |1 mostly | to |7 Isfahan | ."
+|3 They | |5 were | |4 allocated | |2 land | and |4 rebuilt | |6 a | |0 prosperous | |2 community | |3 that | |5 was | |6 a | |0 key | |2 part | of |6 an | |0 Armenian | |2 trade | |2 network | |4 extending | from |7 Singapore | and |7 India | to |7 Venice | and |7 Amsterdam | .
+"|2 Today | |6 the | |2 quarter | |1 still | |4 has | |0 many | |0 Armenian | |2 Churches | , |6 an | |0 Armenian | |2 school | , |2 shops | and |0 Armenian | |2 residents | ."
+|4 Get | in
+By |2 plane |
+|7 Isfahan | |7 International | |7 Airport | or |7 Isfahan | |7 Shahid | |7 Beheshti | ( |7 IATA | : |7 IFN | ) |5 was | |6 a | |0 military | |2 air | |2 base | before |6 the | |2 revolution | .
+|3 There | |4 are | |0 daily | |2 flights | to |7 Tehran | and |7 Mashhad | in |7 Iran | .
+"|3 There | |4 are | |1 also | |2 flights | to |7 Damascus | , |7 Dubai | , |7 Kuwait | and |7 Istanbul | ."
+"From |6 the | |7 Airport | |3 you | |5 can | |4 take | |2 cab | for |1 c. | IRR 200,000 to |6 the | |2 city | |2 centre | ."
+"Since |0 most | |2 people | |5 are | |4 going | |1 there | |1 anyway | , |3 you | |5 can | |1 always | |4 ask | |2 people | to |4 share | |2 taxi | ."
+|4 See |
+|2 Squares | and |2 streets |
+|7 Naqsh-e | |7 Jahan | |7 Square |
+1 |7 Naqsh-e | |7 Jahan | |7 Square | .
+|1 Also | |4 known | as |7 shah | |7 square | or |7 imam | |7 square | - 1602 ( |7 Meidan | |7 Emam | ) .
+"|6 The | |2 square | |4 contains | two |2 mosques | , |6 a | |2 palace | , and |6 the | |2 bazaar | ."
+|6 The | |2 square | |5 is | |6 the | |0 largest | |0 historical | |0 public | |2 square | in |6 the | |2 world | after |7 Tiananmen | |7 Square | in |7 Beijing | and |3 it | |5 is | |6 a | |7 UNESCO | |7 World | |7 Heritage | |7 Site | .
+|6 The | |2 square | |5 is | |4 surrounded | by |2 buildings | from |6 the | |7 Safavid | |2 era | .
+|3 This | |6 a | |1 very | |0 popular | |2 place | for |2 locals | to |4 picnic | on |7 Friday | and |2 holiday | |2 evenings | .
+2 |7 Chaharbagh | |7 Boulevard | .
+"1596 , |4 dating | from |6 the | |7 Saffavid | |2 era | , |6 the | |2 avenue | |5 is | |6 the | |1 most | |1 historically | |0 famous | in |3 all | of |7 Persia | ."
+|7 Meydan | |7 Kohne | .
+|7 Shahshahan | |7 Square | .
+|2 Mosques |
+|7 Shah | |7 Mosque |
+"|7 Sheikh | |7 Lotfollah | |7 Mosque | , |2 interior | of |6 the | |2 dome |"
+|6 The | |0 stunning | |2 mosques | of |7 Isfahan | |5 are | among |6 the | |1 most | |0 beautiful | and |0 interesting | in |6 the | |2 world | .
+"3 |7 Imam | |7 Mosque | ( |4 called | |7 Shah | |2 Mosque | before |6 the | |2 revolution | ) , |7 Naqsh-e | |7 Jahan | |7 Square | , |0 south | |2 side | ."
+"|4 Built | during |6 the | |7 Safavid | |2 period | , |3 it | |5 is | |6 an | |0 excellent | |2 example | of |0 Islamic | |2 architecture | of |7 Iran | , and |4 regarded | as one of |6 the | |2 masterpieces | of |0 Persian | |2 Architecture | ."
+|3 It | |5 is | |4 registered | as |6 a | |7 UNESCO | |7 World | |7 Heritage | |7 Site | .
+|3 Its | |2 splendour | |5 is | |1 mainly | |0 due | to |6 the | |2 beauty | of |3 its | |2 seven-colour | |2 mosaic | |2 tiles | and |0 calligraphic | |2 inscriptions | .
+"4 |7 Sheikh | |7 Lotf | |7 Allah | |7 Mosque | , |7 Naqsh-e | |7 Jahan | |7 Square | , |0 east | |2 side | ."
+"One of |6 the | |0 architectural | |2 masterpieces | of |7 Safavid | |0 Iranian | |2 architecture | , |6 this | |2 mosque | |5 is | |4 considered | to |5 be | |6 the | |1 most | |0 beautiful | in |7 Iran | ."
+"|4 Built | in 1602 by |7 Shah | |7 Abbas | |0 I.= | and |4 designed | by |3 his | |0 chief | |2 architect | , |7 Sheikh | |7 Bahai | ."
+|6 The | |2 mosque | |5 was | |4 designed | to |5 be | |6 a | |0 private | |2 mosque | for |6 the | |0 royal | |2 family | and |1 therefore | |3 it | |5 does | not |4 have | |6 any | |2 minarets | .
+"|3 There | |4 is | |6 a | |2 tunnel | from |6 the | |2 mosque | to |6 the | |7 Royal | |7 Palace | , across |6 the | |2 square | ."
+"5 |7 Masjed-e | |7 Jāmé | of |7 Isfahan | , |1 north | of |7 Naqsh-e | |7 Jahan | |7 Square | in |6 the | |0 old | |2 quarter | ."
+"|4 Started | in |2 AD | 842 , |3 this | |5 is | |6 the | |0 first | |0 Islamic | |2 building | to |4 adopt | |6 the | |2 four-courtyard | |2 layout | of |7 Sassanid | |2 palaces | ."
+"6 |7 Hakim | |7 Mosque | , |7 Hakim | ( |1 north | of |7 Naqsh-e | |7 Jahan | in |6 the | |0 old | |2 quarter | ) ."
+One of |6 the | |0 oldest | |2 mosques | in |7 Isfahan | .
+|4 Built | by |7 Shah | |7 Abbas | |0 II | between 1656 and 1662 .
+|4 Located | on |6 the | |2 site | of |6 a | |0 10th | |2 century | |2 mosque | .
+|6 The | |2 portal | |5 was | |4 covered | in |2 mud | until |3 it | |5 was | |4 discovered | in 1956 .
+|2 Palaces |
+|7 Ali | |7 Qapu | |7 Palace |
+|7 Chehel | |7 Sotoun |
+7 |7 Ālī | |7 Qāpū | ( |6 The | |7 Royal | |7 Palace | ) .
+|0 Early | |0 17th | |2 Century | .
+"|3 It | |5 is | forty-eight |2 meters | |0 high | and |3 there | |4 are | seven |2 floors | , |3 each | |0 accessible | by |6 a | |0 difficult | |2 spiral | |2 staircase | ."
+"In |6 the | |0 sixth | |2 floor | |2 music | |2 room | , |0 deep | |0 circular | |2 niches | |5 are | |4 found | in |6 the | |2 walls | , |4 having | not |1 only | |0 aesthetic | |2 value | , but |1 also | |0 acoustic | ."
+"|3 It | |5 is | |0 rich | in |0 naturalistic | |2 wall | |2 paintings | by |7 Reza | |7 Abbassi | , |6 the | |2 court | |2 painter | of |7 Shah | |7 Abbas | |0 I | , and |3 his | |2 pupils | ."
+"|3 There | |4 are | |0 floral | , |2 animal | and |2 bird | |2 motifs | ."
+8 |7 Hasht | |7 Behesht | ( |6 The | |2 Palace | of Eight |2 Paradises | ) .
+"1669 , |1 reportedly | |4 built | for |2 residence | |2 purposes | of |6 the | |2 king | 's |2 harem | ."
+|4 Set | within |0 lush | |2 gardens | |3 which | |5 are | |0 free | to |4 roam | if |3 you | |5 do | n't |4 want | to |4 go | inside |6 the | |2 building | .
+9 |7 Chehel | |7 Sotoun | ( |6 The | |7 Palace | of Forty |7 Columns | ) .
+"1647 : |3 It | |5 is | |4 called | |2 Palace | of forty |2 columns | , as |3 there | |4 are | |0 many | |2 columns | , and in |7 Iranian | , 40 |4 means | |0 many | ."
+"|1 Incidentally | , |3 there | |4 are | twenty |2 columns | , and |3 these | |5 are | |4 reflected | in |6 the | |2 pool | in |2 front | , |3 which | |5 might | |1 also | |4 account | for |3 its | |2 name | ."
+|6 The | |2 function | of |6 this | |2 palace | |4 was | for |4 holding | |0 religious-national | |2 ceremonies | and |0 royal | |2 festivals | and for |4 receiving | |0 royal | |2 ambassadors | and |2 guests | .
+|3 It's | |7 Persian | |7 Gardens | |5 is | one of nine |4 inscribed | on |6 the | |7 UNESCO | |7 World | |7 Heritage | |7 List | .
+|4 Contains | |6 some | |0 spectacular | |2 battle | |2 murals | .
+How to |4 Tell | |6 a | |2 Joke |
+Two |2 Parts | :
+|4 Getting | |6 the | |2 Material | |1 Right |
+|4 Getting | |6 the | |2 Delivery | |1 Right |
+"From |2 one-liners | to |0 classic | |2 three-liners | to |6 the | |0 one-minute | |2 gag | |3 you | |4 tell | |3 your | |2 friends | , |6 a | |0 good | |2 joke | |4 pleases | |2 everyone | ."
+"|2 Joke-telling | |5 is | one of |6 the | |0 best | |2 ways | to |4 ease | |2 tension | , |4 make | |6 a | |0 new | |2 friend | , or |4 light | up |6 a | |2 room | ."
+"|3 That | |5 is | , of |2 course | , if |3 you | |5 can | |4 get | |6 a | |2 laugh | ."
+"|4 Telling | |0 good | |2 jokes | |5 is | |6 an | |2 art | |3 that | |4 comes | |1 naturally | to |6 some | |2 people | , but for |2 others | |3 it | |4 takes | |2 practice | and |0 hard | |2 work | ."
+|2 Part | 1 of 2 :
+|4 Getting | |6 the | |2 Material | |0 Right |
+|4 Know | |3 your | |2 audience | .
+"|6 All | |2 aspects | of |6 the | |2 joke | |3 you | |4 tell | , from |6 the | |2 content | to |6 the | |2 length | , |4 need | to |5 be | |4 suited | to |3 your | |2 audience | ."
+"|3 What | |5 ’s | |0 funny | to |6 a | |2 group | of |2 20-year | |0 old | |2 college | |2 students | |5 may | |5 be | |1 very | |0 different | from |3 what | |4 makes | |3 your | |2 70-year | |0 old | - |2 uncle | |4 laugh | ( |1 then | |1 again | , |1 maybe | not ) ."
+"|2 Everyone | |5 ’s | |6 an | |2 individual | , so |3 there | |4 are | |6 no | |0 hard | and |0 fast | |2 rules | ."
+"But , unless |3 you | |1 personally | |4 know | |6 the | |2 members | of |3 your | |2 audience | , |1 here | |4 are | |6 some | |0 good | |2 rules | of |2 thumb | to |4 follow | :"
+|0 elderly | |2 people | |5 wo | n’t |4 like | |0 crude | |2 jokes | ;
+|4 stay | |1 away | from |0 misogynist | |2 jokes | if |3 you | |5 ’ve | got |6 an | |2 audience | |0 full | of |2 women | ;
+|2 people | of |6 a | |0 specific | |0 ethnic | or |0 racial | |2 group | |5 wo | n’t |4 enjoy | |2 jokes | |4 making | |2 fun | of |3 their | |2 group | ;
+"and |2 jokes | |4 requiring | |0 specialized | |2 knowledge | ( of , for |2 example | , |2 science | or |0 old | |2 movies | ) |5 will | |1 only | |5 be | |4 appreciated | by |2 people | |3 who | |4 possess | |6 that | |2 knowledge | ."
+|6 The | |0 more | |3 you | |4 know | about |3 your | |2 audience | |6 the | |1 better | |3 you | |5 ’ll | |5 be | |0 able | to |4 tailor | |3 your | |2 jokes | to |3 them | .
+|4 Choose | |0 great | |2 material | .
+"|3 You | |5 can | |4 find | |2 fodder | |2 lots | of |2 places | — from |3 your | |2 life | , |2 joke | |2 files | |1 online | , by |4 repurposing | |2 jokes | |3 you | |5 ’ve | |4 heard | in |6 the | |2 past | , and |1 so | on ."
+|3 You | |5 may | |4 want | to |4 start | |3 your | |0 own | |2 joke | |2 file | .
+|3 You | |5 can | |4 write | |3 your | |2 jokes | down on |2 index | |2 cards | to |4 keep | |3 them | |0 handy | or |4 use | |6 a | |2 document | |2 file | on |3 your | |2 computer | . [ 1 ]
+|6 The | |0 latter | |2 option | |5 may | |4 allow | for |0 easier | |2 revision | .
+|4 Decide | on |6 a | |2 target | .
+"|6 Every | |2 joke | |4 has | |6 a | “ |2 target | , ” |3 which | |5 is | |3 what | |6 the | |2 joke | |5 is | about ."
+|3 It | |5 ’s | |0 important | that |6 the | |2 joke | ’s |2 target | ( |6 the | |1 most | |0 basic | |2 element | of |3 your | |2 material | ) |5 be | |4 suited | to |3 your | |2 audience | .
+|4 Make | |0 sure | |3 it | |5 ’s | |6 a | |2 target | |3 your | |2 audience | |5 will | |5 be | |0 interested | in and |2 something | |3 they | |5 ’re | |1 likely | |0 willing | to |4 laugh | at . [ 2 ]
+"For |2 example | , |2 husbands | |5 are | |0 likely | to |4 laugh | at |2 jokes | about |2 wives | and |0 vice | |1 versa | ;"
+|2 students | |5 will | |1 typically | |4 find | |2 jokes | about |2 school | and |2 teachers | |0 humorous | .
+|4 Have | |6 a | |0 realistic | but |0 exaggerated | |2 setup | .
+"|6 The | |2 opening | of |6 the | |2 joke | — or |2 setup | — |5 should | |4 have | |6 a | |2 basis | in |6 the | |0 real | |2 world | so |3 your | |2 audience | |5 can | |4 relate | to |3 it | , but |3 it | |5 should | |1 also | |4 include | |2 exaggeration | because |3 this | |5 is | |3 what | |4 gives | |6 a | |2 joke | |3 its | |0 humorous | |2 edge | . [ 3 ]"
+|4 Think | of |6 the | |2 setup | as |6 the | |2 foundation | of |6 a | |2 story | .
+|3 It | |5 ’s | |6 a | |0 fundamental | |2 part | of |6 the | |2 joke | ;
+"if |3 you | |5 do | n’t |4 lay | |6 a | |0 good | |2 foundation | |1 here | , |1 then | |6 the | |2 punchline | |5 wo | n’t |4 make | |2 sense | to |6 the | |2 audience | or |3 they | |5 wo | n’t |4 find | |3 it | |0 humorous | ."
+|3 Your | |2 setup | |4 needs | to |5 be | both |0 realistic | and |0 exaggerated | in |2 order | to |5 be | |0 funny | —
+|3 it | |5 ’s | |4 placing | |6 these | two |0 incongruous | |2 elements | |2 side | by |2 side | |3 that | |4 makes | |6 the | |2 joke | |0 funny | . [ 4 ]
+|6 The | |2 exaggeration | |5 can | |5 be | |0 slight | or |0 considerable | —
+|3 it | |1 just | |4 depends | on |6 the | |0 individual | |2 joke | .
+|4 Surprise | with |6 the | |2 punchline | .
+|6 The | |2 ending | of |6 the | |2 joke | |5 is | |1 obviously | |0 crucial | .
+"|3 This | |5 is | where |6 the | |2 payoff | |4 comes | in , |3 what | |4 makes | |6 the | |2 joke | |4 succeed | or |4 fail | ."
+"If |3 you | |4 want | to |4 make | |6 the | |2 audience | |4 laugh | , |3 your | |2 punchline | |4 needs | to |5 be | |0 surprising | ."
+"|6 Some | |2 jokes | |1 also | |4 have | |3 what | |5 is | |4 called | |6 a | |2 tag | or |2 topper | , |3 which | |5 is | |6 an | |0 additional | |2 punchline | ."
+|6 The | |2 tag | |4 builds | on |6 the | |0 original | |2 punchline | or |4 twists | |1 back | on |3 it | in |6 a | |0 surprising | |2 way | .
+|4 Make | |6 the | |2 joke | |3 your | |0 own | .
+|2 Lots | of |2 jokes | |4 rehash | |6 the | |0 same | |2 ground | and |1 sometimes | |3 they | |4 retell | |6 a | |2 story | |0 countless | |0 other | |2 jokes | |5 have | |4 told | .
+"For |3 your | |2 joke | to |5 be | |0 funny | , |3 it | |4 has | to |4 surprise | |6 the | |2 audience | in |6 some | |2 way | , |3 which | |4 means | |3 it | |4 has | to |4 seem | |0 original | or |0 new | ."
+One |2 way | to |4 personalize | |6 a | |2 joke | |5 is | to |4 change | |6 the | |2 ending | . [ 5 ]
+|6 Another | |2 option | |5 is | to |4 dress | |6 the | |2 joke | up as |6 a | |2 story | about |3 your | |0 own | |2 life | .
+|3 This | |5 will | |4 make | |6 a | |0 familiar | |2 joke | |0 unrecognizable | .
+|3 It | |5 may | |1 also | |4 make | |3 it | |1 particularly | |0 interesting | if |3 your | |2 audience | |5 is | |3 your | |2 friend(s) | . [ 6 ]
+|4 Know | |3 your | |2 material | .
+|4 Practicing | |3 your | |2 joke | |5 is | |0 crucial | .
+"|3 You | |5 do | n’t |4 need | to |4 have | |3 it | |1 completely | |4 memorized | — in |2 fact | , |3 you | "" |5 should | n’t "" |4 memorize | |3 it | — but |3 you | |4 need | to |5 be | |1 really | |0 comfortable | with |3 it | , |1 so | |0 comfortable | that |3 you | |5 can | |4 continue | |1 on | with |4 telling | |3 it | |1 even | if |3 you | |5 get | |0 nervous | or |4 sidetracked | , |3 which | |5 is | |1 very | |0 possible | once |3 you | |5 ’re | in |2 front | of |6 an | |2 audience | ."
+"|4 Memorized | |2 jokes | |4 sound | |0 wooden | , like |3 they | |5 are | |5 being | |4 read | off |6 a | |2 script | instead of |4 relayed | by |6 a | |2 friend | or |2 entertainer | ."
+"|0 Good | |2 jokes | |4 have | |6 a | |2 lot | of |2 details | and |2 personality | , |1 so | |5 do | n’t |5 be | |0 afraid | to |4 embellish | . [ 7 ]"
+"|4 Try | |0 different | |2 things | out and |4 see | |3 what | |4 feels | |1 right | , |3 what | |4 sounds | |0 best | ."
+|5 Do | n’t |4 use | |6 a | |2 joke | until |3 you | |5 ’re | |1 completely | |0 comfortable | with |3 it | .
+|4 Try | |4 recording | |3 your | |2 joke | on |6 a | |2 tape | |2 player | and |4 playing | |3 it | |1 back | to |3 yourself | .
+"If |3 you | |4 hear | |6 a | |2 lot | of |0 awkward | |2 pauses | or |2 “ah”s | or |2 “um”s | , |3 your | |2 joke | |5 isn | ’t |0 ready | and |3 you | |4 need | to |4 practice | |1 more | . [ 8 ]"
+|3 You | |5 can | |1 also | |4 try | |4 practicing | in |2 front | of |6 a | |0 sympathetic | |2 friend | or |2 family | |2 member | once |3 you | |5 ’re | |0 ready | for |6 a | “ |0 real | ” |2 audience | .
+How to |4 Wash | |2 Overalls | in |6 a | |4 Washing | |2 Machine |
+"Whether |3 you | |5 are | |6 a | |4 working | |2 man | or |1 just | |6 a | |0 little | |2 cutie | |4 trying | to |4 stay | |0 cute | , |6 those | |2 overalls | |5 are | |4 going | to |4 need | |4 washing | |1 sooner | or |1 later | ."
+|6 The | |2 straps | on |2 adults | ’ |2 overalls | |1 often | |5 get | |1 so | |0 twisted | during |6 the | |2 wash | that |3 one | |4 wishes | |3 she | |5 had | |1 just | |4 used | |6 an | |0 old | |0 fashioned | |2 washboard | |1 instead | .
+"|3 Your | |2 appliances | |5 are | |1 also | |2 murder | on |6 the | |2 straps | , |3 which | |5 are | |1 almost | |1 always | |6 the | |0 first | |2 things | to |4 wear | out on |3 your | |2 overalls | ."
+"|6 This | |2 article | |5 will | |4 show | |3 you | how to |4 save | |2 time | and |4 prevent | |2 wear | , |4 extending | |6 the | |2 life | of |3 your | |2 overalls | until |3 they | |5 are | |1 so | |0 soft | |3 you | |5 could | |4 wear | |3 them | to |2 bed | ."
+|2 Steps |
+"|4 Wash | |1 alone | or with "" |0 like | "" |2 clothing | ."
+"|3 It | |5 ’s | |0 best | to |4 wash | |2 adults | ’ |2 overalls | |1 alone | , |1 especially | |2 men | ’s ."
+"|1 However | , |3 it | |5 is | |0 okay | to |4 wash | |1 just | |6 a | |0 few | |2 items | with |3 them | , like |0 blue | |2 jeans | ."
+"|3 What | |3 you | |5 do | n’t |4 want | to |4 wash | with |3 them | |5 is | |2 anything | |3 that | |5 can | |5 get | |4 twisted | up with |6 the | |2 straps | , like |2 women | ’s |0 long | |2 sleeve | |2 shirts | or |2 kids | ’ |2 blankets | ."
+"|4 Think | |0 similar | |2 clothing | , minus |6 the | |2 twisty-ness | ."
+|1 Just | |4 do | |6 the | |2 denim | and |2 canvas | |2 stuff | |1 together | .
+|4 Fasten | |6 the | |2 straps | to |6 the | |2 bib | .
+"If |3 you | |5 did | n’t |4 know | |1 already | , |6 the | |2 bib | |5 is | |6 the | |0 top | |2 front | |2 part | with |6 the | |2 breast | |2 pockets | ."
+|4 Go | |1 ahead | and |4 fasten | |6 both | |2 straps | before |3 you | |4 wash | .
+|3 This | |5 will | |4 help | |4 keep | |3 them | from |4 twisting | up during |6 the | |2 wash | .
+|4 Use | |2 twist | |2 ties | to |4 keep | |6 the | |2 straps | |4 fastened | .
+|6 This | |2 step | |5 will | |4 reapportion | |2 years | of |3 your | |2 life | in |6 the | |0 long | |2 run | .
+|5 Do | n’t |4 skip | |3 it | .
+|4 Take | |6 the | 20 |2 seconds | to |4 use | |6 a | |2 couple | |2 twist | |2 ties | on |6 the | |2 fasteners | to |4 make | |0 sure | |3 they | |5 do | n’t |4 come | |0 loose | .
+"If |3 your | |4 washing | |2 machine | |5 is | |0 worth | |3 its | |2 salt | , |3 it | |5 will | |4 undo | |6 those | |2 straps | in |6 a | |2 heartbeat | and |4 tie | |3 them | in |6 a | |2 sheet | |2 bend | unless |3 you | |4 prevent | |3 it | ."
+|3 All | |3 it | |4 takes | |5 is | two |2 twist | |2 ties | and |6 a | |0 few | |2 seconds | of |2 patience | .
+|4 Empty | |6 the | |2 pockets | .
+|2 Overalls | |4 have | |0 more | |2 pockets | than |2 pants | .
+|6 The | |2 bib | |4 has | |6 a | |2 wallet | |2 pocket | and |6 a | |2 watch | |2 pocket | .
+"|2 Kids | |4 put | |2 rocks | , |2 candy | , and |2 bugs | in |3 these | ."
+|2 Men | |4 put | |2 cell | |2 phones | and |0 small | |2 tools | in |3 them | .
+"|2 Women | |4 defy | |6 the | |2 laws | of |2 purse-space | , |1 so | when |3 it | |4 comes | to |2 bib | |2 pockets | , |6 the | |2 sky | |5 is | |6 the | |2 limit | ."
+|4 Make | sure |3 all | |6 the | |2 pockets | |5 are | |0 empty | .
+|4 Move | |6 the | |2 strap | |2 adjusters | around .
+"|3 You | |5 ’ve | |1 probably | |4 got | |3 them | |1 just | |6 the | |2 way | |3 you | |4 like | |3 them | , but if |3 you | |4 move | |6 the | |2 adjusters | up or down on |6 the | |2 straps | |1 occasionally | , |6 the | |2 straps | |5 will | |4 last | |1 longer | ."
+"Depending on |6 the | |2 adjusters | , |3 you | |5 may | |5 be | |0 able | to |4 leave | |3 them | |6 a | |1 little | |0 loose | |1 too | ."
+|6 The | |2 straps | |4 wear | out |1 fastest | around |6 the | |2 adjusters | over |6 the | |2 course | of |0 numerous | |4 wash | and |4 dry | |2 cycles | ( not to |4 mention | |5 being | |1 out | in |6 the | |2 elements | if |3 they | |5 are | |2 work | |2 clothes | ) .
+|4 Moving | |3 them | |4 distributes | |6 the | |2 wear | and |2 tear | of |4 washing | .
+|3 This | |5 is | |6 the | |0 same | |2 idea | as |4 rotating | |2 tires | .
+"|3 You | |4 know | about |4 rotating | |3 your | |2 tires | , |4 do | n't |3 you | ?"
+|2 Tips |
+"If |3 you | |4 wash | |3 your | |2 overalls | |1 alone | or in |6 a | |0 light | |2 load | , |4 use | |1 about | |3 half | |6 the | |2 detergent | |4 called | for and |0 less | |2 water | ."
+|4 Leave | |6 the | |2 straps | |4 fastened | and |4 twist-tied | to |6 the | |2 bib | when |3 you | |4 throw | |3 them | in |6 the | |2 dryer | .
+"|3 This | |5 will | |4 cut | down on |3 some | of |6 the | |2 racket | , but |3 you | |5 're | |1 still | |4 going | to |4 hear | |3 them | ."
+|2 Warnings |
+"|6 The | |2 paper-type | |2 twist | |2 ties | |5 will | |4 deteriorate | |6 a | |0 little | , but |6 the | |2 dryer | |2 filter | |2 screen | |5 will | |4 catch | |6 the | |2 fallout | ."
+"|2 Plastic-type | |2 twist | |2 ties | |5 will | |4 hold | up in |6 the | |2 wash | , but |5 may | or |5 may | not |4 melt | in |3 your | |2 dryer | ."
+|4 Use | with |2 caution | .
+How to |4 Make | |7 Skittles | |2 Vodka |
+Three |2 Methods | : |0 Single | |4 Serving | ( 25 |2 mL | |2 Shot | )
+"|2 Bottles | of "" |4 Skittled | """
+|2 Vodka | |2 Dishwasher | |2 Bottle | |2 Method |
+|4 Making | |7 Skittles | |2 vodka | |5 is | |6 a | |0 fun | |2 way | to |4 add | |6 a | |2 splash | of |0 fruity | |2 flavor | and |2 color | to |0 regular | |2 vodka | .
+|3 All | |3 you | |4 need | to |4 do | |5 is | |4 place | |3 your | |0 favorite | |2 combination | of |7 Skittles | |2 candies | into |6 a | |2 glass | or |2 bottle | of |2 vodka | and |4 wait | for |3 it | to |4 infuse | .
+|3 You | |5 can | |1 then | |4 use | |3 your | |7 Skittles | |2 vodka | to |4 make | |0 brightly-colored | |2 cocktails | or |1 even | |4 serve | |3 it | as |6 a | |0 sugary | |2 shot | !
+|4 Find | |0 multiple | |2 methods | for |4 making | |7 Skittles | |2 vodka | after |6 the | |2 jump | -- and |1 soon | |3 you | |5 'll | |5 be | |4 tasting | |6 the | |2 rainbow | !
+|2 Ingredients |
+"|6 A | |2 handle | ( 1.75 |2 liters | , |1 about | |6 a | |2 half | |2 gallon | ) of |2 vodka | per |2 bag | of |7 Skittles |"
+"|6 A | |0 large | |2 bag | of |7 Skittles | |2 candy | ( |6 the | "" |2 movie | |2 size | "" |2 bag | )"
+|2 Method | 1 of 3 : |0 Single | |4 Serving | ( 25 |2 mL | |2 Shot | )
+|4 Separate | |6 the | |2 colors | of |7 Skittles | |3 that | |3 you | |4 want | to |4 flavor | |6 the | |2 vodka | with .
+"|0 Many | |2 people | |4 choose | to |4 leave | out |6 the | |2 green | , |3 which | |5 is | |0 lime | if |3 you | |5 're | |4 using | |0 original | |7 Skittles | , and |2 purple | , |3 which | |5 is | |2 grape | in |6 the | |0 original | |2 style | , as |3 they | |5 can | |4 create | |6 a | |0 weird | |2 taste | |2 combination | or |6 a | |0 less | than |0 appealing | |2 color | for |6 the | |0 final | |2 product | ."
+"|1 However | , |3 you | |5 can | |4 put | |3 them | in if |3 you | |4 want | ."
+"If |3 you | |5 do | n't |4 mind | |4 mixed | |2 flavors | , |3 you | |5 can | |1 just | |4 skip | |6 this | |2 step | |1 altogether | ."
+|4 Add | six |7 Skittles | to 25 |2 ml | of |2 vodka | .
+|4 Keep | |4 swirling | |6 the | |2 mixture | until |6 the | |7 Skittles | |5 are | |1 almost | |1 completely | |4 dissolved | .
+|4 Note | that |6 the | |2 ratio | of |7 Skittles | to |2 vodka | |4 varies | from |2 recipe | to |2 recipe | .
+|3 You | |5 should | |4 experiment | to |4 find | |3 your | |4 preferred | |2 mix | before |4 making | |0 larger | |2 bottles | .
+"|2 Filter | out |6 the | |4 remaining | |7 Skittle | "" |2 insides | "" ."
+"With |0 single | |2 servings | like |3 this | , |3 you | |5 can | |4 decide | |6 which | |2 flavor(s) | |3 you | |4 like | |1 best | and |4 proceed | to |4 making | |2 bottles | , if |3 you | |4 desire | ."
+"|2 Method | 2 of 3 : |2 Bottles | of "" |4 Skittled | "" |2 Vodka |"
+|4 Pour | out |6 some | |2 vodka | from |6 a | |2 bottle | to |4 make | |2 room | for |7 Skittles | .
+|4 Separate | |6 the | |7 Skittles | by |2 color | .
+|4 Add | |6 the | |7 Skittles | ( 20 - 25 per 350 |2 ml | / 11.8 |0 fl | |2 oz | ) .
+|4 Let | |6 the | |2 mixture | |4 sit | for |6 a | |2 day | or two .
+|4 Shake | |1 occasionally | so |6 the | |2 flavour | |4 mixes | |1 well | .
+"|4 Strain | out |6 the | |7 Skittles | |4 using | |6 a | |2 filter | , |0 such | as |6 a | |2 paper | |2 coffee | |2 filter | or |6 a | |0 clean | |2 t-shirt | ."
+|4 Refrigerate | |1 overnight | .
+|2 Method | 3 of 3 : |2 Dishwasher | |2 Bottle | |2 Method |
+|4 Separate | |6 the | |2 colors | from five |2 bags | of 200 |2 g | |7 Skittles | .
+"|4 Using | 5 x 700 |2 ml | / 23.6 |0 fl | |2 oz | |2 bottles | , |4 pour | 300 |2 ml | / 10.1 |0 fl | |2 oz | of |2 vodka | into |6 a | |2 jug | and |4 fill | |6 each | |2 bottle | with |7 skittles | ."
+|4 Place | |6 the | |2 bottles | in |3 your | |2 dishwasher | and |4 put | on |6 an | |0 intensive | |2 cycle | .
+"One |2 third | of of |6 the | |2 way | through |6 the | |2 cycle | , |4 shake | |6 all | |2 bottles | |1 vigorously | ."
+"Two |2 thirds | of |6 the | |2 way | through |6 the | |2 cycle | , |4 shake | |6 all | |2 bottles | |1 vigorously | ."
+"Once |6 the | |2 cycle | |5 has | |4 finished | , |4 shake | |6 all | |2 bottles | |1 vigorously | |1 again | ."
+|1 Then | |4 place | in |6 the | |2 freezer | for 2 |2 hours | .
+"Once |6 the | |2 vodka | |5 is | |0 cold | , |3 it | |5 should | |5 be | |0 syrupy | ."
+"|4 Take | |6 a | |2 sieve | , |4 line | |3 it | with |6 a | |2 piece | of |2 cheesecloth | ( |2 muslin | ) or |6 a | |2 coffee | |2 filter | , |4 place | above |6 a | |0 large | |2 jug | and |4 pour | |6 the | |2 vodka | through |1 slowly | ."
+"Once |6 the | |0 first | |2 bottle | |5 has | |5 been | |4 filtered | , |4 wash | out |6 the | |2 bottle | and |4 pour | |6 the | |7 Skittles | |2 vodka | |1 back | in ."
+"|4 Repeat | |6 the | |0 above | two |2 steps | for |6 all | |2 bottles | , |4 ensuring | that |2 everything | |5 is | |4 cleaned | between |2 uses | to |4 prevent | |2 color | |2 contamination | ."
+|4 Place | |3 all | of |6 the | |2 bottles | in |6 the | |2 freezer | until |3 you | |5 are | |0 ready | to |4 drink | .
+"|5 Do | n't |4 worry | , |6 the | |2 vodka | |5 wo | n't |4 freeze | ."
+|3 You | |5 are | |4 finished | .
+|4 Enjoy | |3 your | |0 tasty | |2 creation | .
+|2 Tips | .
+"If |3 you | |4 want | to |4 make | |3 it | |1 more | |1 quickly | , |4 cut | |6 the | |7 skittles | in |2 half | before |4 putting | |3 them | into |2 vodka | ."
+|4 Shake | |6 every | 15 |2 minutes | .
+|3 They | |5 'll | |4 dissolve | in |6 an | |2 hour | |1 instead | of |6 a | |2 day | .
+Or |3 you | |5 could | |1 just | |4 scoop | |3 them | out when |6 the | |2 color | |4 dissolves | .
+|4 Start | with |0 small | |2 amount | of |2 vodka | and |7 Skittles | at |0 first | to |4 experiment | |3 which | |2 combination | of |2 taste | |4 suits | |3 you | |1 best | .
+|3 You | |5 can | |4 carry | |3 this | out with |0 larger | |2 amount | of |2 vodka | and |7 Skittles | once |3 you | |5 have | |4 decided | that |3 you | |4 enjoy | |6 the | |2 taste | .
+"|6 The | |2 lime | |0 green | |7 Skittles | |4 add | |6 a | |2 sourness | to |6 the | |2 drink | , |1 so | if |3 you | |4 want | one |3 that | |5 's | |0 sweet | , |4 leave | |6 the | |0 green | |2 ones | out and |4 add | |3 them | to |3 their | |0 own | |2 bottle | for |6 a | |0 sour | |0 lime | |2 vodka | ."
+|6 Another | |2 approach | |5 is | to |4 buy | five |2 bottles | of |2 vodka | and five |2 bags | of |7 Skittles | .
+|1 Then | |4 separate | |6 the | |2 candy | and |4 use | one |2 flavor | for |6 each | |2 bottle | .
+"( Or |4 get | four |2 bottles | and |6 an | |0 empty | , to |4 allow | |2 room | for |6 the | |7 skittles | . )"
+"If |4 using | |6 a | |2 t-shirt | to |4 strain | , |5 be | |0 sure | |2 fabric | |2 softener | or |6 a | |2 dryer | |2 sheet | |5 had | not |5 been | |4 used | with |3 it | , |4 lets | |3 you | |4 get | |6 some | |0 extra | ( |0 unwanted | ) |2 flavoring | ( and |1 potentially | |0 toxic | |2 chemicals | ) ."
+|2 Warnings |
+|4 Drink | |1 responsibly | .
+|1 Never | |4 drink | and |4 drive | .
+"|4 Know | |3 your | |2 limits | , and |5 do | not |4 drink | to |6 the | |2 extent | of |2 intoxication | ."
+|5 Do | not |4 drink | if |0 underage | in |3 your | |2 country | .
+|2 Things | |3 You | |5 'll | |4 Need |
+"|6 Each | |2 handle | of |2 vodka | ( 1.75 |2 liters | , |1 about | |6 a | |2 half | |2 gallon | ) |4 requires | |6 a | |0 large | |2 bag | |2 worth | of |7 Skittles | , |1 so | if |3 you | |4 plan | on |4 doing | |1 only | one |2 flavor | for |6 a | |0 flavorful | |2 vodka | , |3 you | |5 'll | |4 have | to |4 buy | 5 |0 large | |2 bags | of |7 Skittles | ."
+"|2 Coffee | |2 filter | , |2 cheesecloth | / |2 muslin | , or |6 an | |1 extremely | |0 clean | |2 T-shirt |"
+|0 Large | |2 funnel | or |2 strainer | to |4 hold | |2 filter |
