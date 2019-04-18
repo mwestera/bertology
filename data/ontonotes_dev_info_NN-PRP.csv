@@ -1,4 +1,4 @@
-"# id, coref, distance, |0 noun,|1 pronoun,|2 other_noun,|3 other_pronoun"
+# id, coref, distance, |0 noun,|1 pronoun
 nw/xinhua/02/chtb_0290,True,6,"It is not only an important force that safeguards the safety of the |0 country | and maintains the unity of |1 our | country , but is also an important force that maintains the stability of society and promotes two civilized constructions ."
 nw/xinhua/02/chtb_0220,False,19,"The |0 communique | holds that methods such as forbidding overseas Cubans residing in America from remitting money and mailing articles to |1 their | families in Cuba , and sending Cuban stowaways detained on the high seas to the Guantanamo naval base , etc. is to put pressure on the Cuban government and attempt to damage and postpone Cuba 's economic recovery process ."
 nw/xinhua/02/chtb_0250,True,26,"The "" Representation Committee "" , a standing political |0 institution | of the Latin American Unification Association , held a grand ceremony on August 31st to accept China as an observer country , and to express |1 its | welcome to Rumao Xie , China 's permanent observer to the Association and ambassador to Uruguay ."
