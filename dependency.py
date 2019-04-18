@@ -79,6 +79,10 @@ def main():
     To run this code with default settings and example data, do
        $ python experiment.py data/example.csv
     """
+    if not os.path.exists('output'):
+        os.mkdir('output')
+    if not os.path.exists('output/auxiliary'):
+        os.mkdir('output/auxiliary')
 
     ## Argument parsing
     args = parser.parse_args()
@@ -98,14 +102,14 @@ def main():
             os.mkdir(args.out)
 
     if args.raw_out is None:
-        args.raw_out = 'data/auxiliary/{}_{}{}{}{}.pkl'.format(os.path.basename(args.data)[:-4],
+        args.raw_out = 'output/auxiliary/{}_{}{}{}{}.pkl'.format(os.path.basename(args.data)[:-4],
                                                          args.method,
                                                          "_chain" if args.combine == "chain" else "", # cumsum can use same as no
                                                          '_norm' if args.method == 'attention' and args.normalize_heads else '',
                                                          ('_'+str(args.n_items)) if args.n_items is not None else '')
 
     if args.trees_out is None:
-        args.trees_out = 'data/auxiliary/{}_SPANNING_{}{}{}{}{}{}.pkl'.format(os.path.basename(args.data)[:-4],
+        args.trees_out = 'output/auxiliary/{}_SPANNING_{}{}{}{}{}{}.pkl'.format(os.path.basename(args.data)[:-4],
                                                          args.method,
                                                          '_' + args.combine if args.combine != "no" else "",
                                                          '_norm' if args.method == 'attention' and args.normalize_heads else '',
@@ -115,7 +119,7 @@ def main():
                                                           )
 
     if args.pearson_out is None:
-        args.pearson_out = 'data/auxiliary/{}_PEARSON_{}{}{}{}{}{}.pkl'.format(os.path.basename(args.data)[:-4],
+        args.pearson_out = 'output/auxiliary/{}_PEARSON_{}{}{}{}{}{}.pkl'.format(os.path.basename(args.data)[:-4],
                                                                            args.method,
                                                                            '_' + args.combine if args.combine != "no" else "",
                                                                            '_norm' if args.method == 'attention' and args.normalize_heads else '',
@@ -368,14 +372,20 @@ def plot_tree_scores(scores_df, args):
     scores_df = scores_df[scores_df.measure != 'num_rels']
 
     plt.figure(figsize=(10, 8))
-    sns.lineplot(x='layer', y='score', style='measure', hue='relations', data=scores_df)
+    plt.ylim(0.0,1.0)
+    ax = sns.lineplot(x='layer', y='score', style='measure', hue='relations', data=scores_df)
+
+    ax.set_title("Spanning tree scores based on {} ({}{}, {}{})".format(args.method,
+                               args.combine,
+                               ', norm' if args.method == 'attention' and args.normalize_heads else '',
+                               args.group_merger,
+                               ', transpose' if args.transpose else '',))
 
     out_filepath = '{}/treescores_{}{}{}{}{}{}.png'.format(args.out,
                                                            args.method,
                                                            "_" + args.combine if args.combine != "no" else "",
                                                            '_norm' if args.method == 'attention' and args.normalize_heads else '',
-                                                           ('_' + str(
-                                                               args.n_items)) if args.n_items is not None else '',
+                                                           ('_' + str(args.n_items)) if args.n_items is not None else '',
                                                            '_' + args.group_merger,
                                                            '_transpose' if args.transpose else '',
                                                            )
@@ -394,7 +404,15 @@ def plot_pearson_scores(scores_df, args):
     scores_df = scores_df[scores_df.measure != 'p-value']
 
     plt.figure(figsize=(10, 8))
-    sns.lineplot(x='layer', y='pearson', hue='relations', data=scores_df)
+    plt.ylim(0.0, 1.0)
+    ax = sns.lineplot(x='layer', y='pearson', hue='relations', data=scores_df)
+
+    ax.set_title("Pearson coefficient of dependency tree with {} ({}{}, {}{})".format(args.method,
+                               args.combine,
+                               ', norm' if args.method == 'attention' and args.normalize_heads else '',
+                               args.group_merger,
+                               ', transpose' if args.transpose else '',))
+
 
     out_filepath = '{}/pearson_{}{}{}{}{}{}.png'.format(args.out,
                                                            args.method,
