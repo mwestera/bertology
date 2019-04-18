@@ -160,8 +160,10 @@ def pearson_correlation(matrix1, matrix2):
     matrix2 = matrix2.reshape(-1)
 
     # Filter out nans
-    matrix1_nonan = matrix1[~(np.isnan(matrix1) or np.isnan(matrix2))]
-    matrix2_nonan = matrix1[~(np.isnan(matrix1) or np.isnan(matrix2))]
+    matrix1_nonan = matrix1[~np.isnan(matrix1)]
+    matrix2_nonan = matrix2[~np.isnan(matrix1)]
+    matrix1_nonan = matrix1_nonan[~np.isnan(matrix2_nonan)]
+    matrix2_nonan = matrix2_nonan[~np.isnan(matrix2_nonan)]
 
     return pearsonr(matrix1_nonan, matrix2_nonan)
 
