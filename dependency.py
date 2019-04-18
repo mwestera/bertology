@@ -306,7 +306,7 @@ def analyze_by_pearson_correlation(df, items, dependency_trees, n_layers, args):
         pearson_for_all_items.append(pearson_for_item)
 
     ## Put results into a new dataframe
-    columns = [('pearson', l, direct, x) for l in range(n_layers) for direct in ['directed', 'undirected'] for x in ['coefficient', 'p-value']]
+    columns = [('pearson', l, direct, x) for l in range(n_layers) for direct in ['directed', 'directed-irreflexive', 'undirected', 'undirected-irreflexive'] for x in ['coefficient', 'p-value']]
 
     columns = pd.MultiIndex.from_tuples(columns, names=['result', 'layer', 'relations', 'measure'])
     pearson_df = pd.DataFrame(pearson_for_all_items, index=items.index, columns=columns)
