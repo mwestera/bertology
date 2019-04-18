@@ -302,7 +302,7 @@ def line_plot(df, args):
         data = data.stack().stack().stack().reset_index(level=[1, 2, 3])
 
         ax = sns.lineplot(x="layer", y=score, hue=args.factors[0] if len(args.factors) > 0 else None, style=args.factors[1] if len(args.factors) > 1 else None, data=data, label=to_track)
-        ax.set_title("Tracking " + ','.join(to_track) + " across layers ({})".format(args.method + ((", " + args.combine) if args.combine is not "no" else "")))
+        ax.set_title("Tracking across layers ({})".format(args.method + ((", " + args.combine) if args.combine is not "no" else "")))
 
     plt.legend()
 
