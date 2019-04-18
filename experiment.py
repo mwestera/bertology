@@ -53,7 +53,7 @@ parser.add_argument('--bert', type=str, default='bert-base-cased',
 parser.add_argument('--factors', type=str, default=None,
                     help='Which factors to plot, comma separated like "--factors reflexivity,gender"; default: first 2 factors in the data')
 parser.add_argument('--track', type=str, default=None,
-                    help='Which tokens/token groups to track; single tokens to track balance; pairs (,) to track their weight. Items separated by ;, e.g., term1,term2;term3.')
+                    help='Which tokens/token groups to track; single tokens to track balance; pairs (,) to track their weight. Items separated by ;, e.g., term1,term2;term3. Asterisk (*) to track all groups.')
 parser.add_argument('--no_global_colormap', action="store_true",
                     help='Whether to standardize plot coloring across plots ("global"); otherwise only per plot (i.e., per layer)')
 parser.add_argument('--balance', action="store_true",
@@ -81,8 +81,6 @@ def main():
         if len(args.factors) > 2:
             print("WARNING: Cannot plot more than 2 factors at a time. Trimming to", args.factors[:2])
             args.factors = args.factors[:2]
-    if args.track is not None:
-        args.track = [[a.strip() for a in b.split(',')] for b in args.track.split(";")]
     if args.out is not None:
         if os.path.exists(args.out):
             if input('Output directory {} already exists. Risk overwriting files? N/y'.format(args.out)) != 'y':
@@ -93,7 +91,7 @@ def main():
                                                          args.method,
                                                          '_'+args.combine if args.combine != 'no' else '',
                                                          '_norm' if args.method == 'attention' and args.normalize_heads else '',
-                                                         ('_'+args.n_items) if args.n_items is not None else '')
+                                                         ('_'+str(args.n_items)) if args.n_items is not None else '')
     need_BERT = True
     if os.path.exists(args.raw_out):
         if input('Raw output file exists. Overwrite? (N/y)') != "y":
@@ -107,6 +105,12 @@ def main():
 
     ## Store for convenience
     args.factors = args.factors or items.factors[:2]    # by default use the first two factors from the data
+
+    # Fill in args.track default depending on data
+    if args.track == '*':
+        args.track = [[g] for g in items.groups]
+    elif args.track is not None:
+        args.track = [[a.strip() for a in b.split(',')] for b in args.track.split(";")]
 
     ## Now that args.factors is known, finally choose output directory
     if args.out is None:
@@ -172,14 +176,13 @@ def main():
     # original_items_times_nlayers = [a for l in [[i.to_list()] * n_layers for (_, i) in items.iterrows()] for a in l]
     data_for_dataframe = [a + b for a, b in zip([i.to_list() for (_, i) in items.iterrows()], data_and_balance_for_all_items)]
     # Multi-column to represent the (flattened) numpy arrays in a structured way
-    multi_columns = pd.MultiIndex.from_tuples([(c, '', '', '') for c in items.columns] + [('weights', l, g1, g2) for l in range(n_layers) for g1 in items.groups for g2 in items.groups] + [('balance', l, g, '') for l in range(n_layers) for g in items.groups])
+    multi_columns = pd.MultiIndex.from_tuples([(c, '', '', '') for c in items.columns] + [('weights', l, g1, g2) for l in range(n_layers) for g1 in items.groups for g2 in items.groups] + [('balance', l, g, '') for l in range(n_layers) for g in items.groups], names=['result', 'layer', 'in', 'out'])
 
     df = pd.DataFrame(data_for_dataframe, index=items.index, columns=multi_columns)
     # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT), and the balance computed from them
 
     if args.track is not None:
-        for to_track in args.track:
-            line_plot(df, args, n_layers, to_track)
+        line_plot(df, args)
 
     ## Compute means over attention weights across all conditions (easy because they're flattened)
     # df_means = df.groupby(items.factors).mean()
@@ -283,28 +286,27 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
     return weights_to_plot_per_layer
 
 
-def line_plot(df, args, n_layers, to_track):
+def line_plot(df, args):
 
-    if len(to_track) == 1:
-        score = "balance"
-        data = df.loc[:,('balance', slice(None), to_track[0])]
-    else:
-        score = "weights"
-        data = df.loc[:, ('weights', to_track[0], to_track[1])]
+    plt.figure(figsize=(10, 8))
 
-    # TODO This manual reshaping from multiindex feels terribly hacky
-    data = data.values.reshape(-1)
-    layers = [l for l in range(n_layers)] * len(df)
-    factors_series = []
-    for factor in args.factors:
-        factors_series.append([x for y in [[l]*n_layers for l in df[factor]] for x in y])
-    data_df = pd.DataFrame(zip(*factors_series, layers, data), columns=[*args.factors, 'layer', score])
+    for to_track in args.track:
 
-    ax = sns.lineplot(x="layer", y=score, hue=args.factors[0] if len(args.factors) > 0 else None, style=args.factors[1] if len(args.factors) > 1 else None, data=data_df)
-    ax.set_title("Tracking " + ','.join(to_track) + " across layers ({})".format(args.method + ((", " + args.combine) if args.combine is not "no" else "")))
+        if len(to_track) == 1:
+            score = "balance"
+            data = df.loc[:,('balance', slice(None), to_track[0])]
+        else:
+            score = "weights"
+            data = df.loc[:, ('weights', slice(None), to_track[0], to_track[1])]
+
+        data = data.stack().stack().stack().reset_index(level=[1, 2, 3])
+
+        ax = sns.lineplot(x="layer", y=score, hue=args.factors[0] if len(args.factors) > 0 else None, style=args.factors[1] if len(args.factors) > 1 else None, data=data, label=to_track)
+        ax.set_title("Tracking " + ','.join(to_track) + " across layers ({})".format(args.method + ((", " + args.combine) if args.combine is not "no" else "")))
+
+    plt.legend()
 
     # TODO Also an overall mean plot on the side
-
     out_filepath = "{}/track_{}{}{}_{}.png".format(args.out,
                                                   args.method,
                                                  "-"+args.combine if args.combine != "no" else "",
