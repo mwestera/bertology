@@ -322,6 +322,94 @@ def write_file_for_main_POS():
             writer.writerow([' '.join(token_forms)])
 
 
+
+def write_file_for_coreference():
+
+    path = 'data/raw/ontonotes_dev_info.tsv'
+    out_file_path = os.path.basename(path)[:-4] + '_NN-PRP.csv'
+
+    discourses = []
+    with open(path) as data:
+        discourse = []
+        current_discourse_id = None
+        sentence = []
+        for i, line in enumerate(data):
+            if i != 0:
+                row = line.split()
+                row[2] = [int(s) for s in row[2].strip('[]').split(',') if s != '']
+                if row[0] != current_discourse_id:
+                    if len(sentence) > 0:
+                        discourse.append(sentence)
+                        sentence = []
+                    discourses.append(discourse)
+                    discourse = []
+                    current_discourse_id = row[0]
+                if row[1] == '<eos>':
+                    if len(sentence) > 0:
+                        discourse.append(sentence)
+                        sentence = []
+                else:
+                    sentence.append((row[1],row[2],row[3]))
+
+    items = []
+
+    # tags:
+    consequent_tags = ['PRP', 'PRP$']
+    antecedent_tags = ['NN', 'NNS']
+    for d_idx, discourse in enumerate(discourses):
+        # TODO Consider longer stretches too?
+        for s_idx, sentence in enumerate(discourse):
+            antecedents = []    # store as (idx, span)
+            consequents = []
+            for idx, token in enumerate(sentence):
+                if token[2] in antecedent_tags[:1]: # lowest-level span only
+                    for span in token[1]:
+                        antecedents.append((idx, span))
+                if token[2] in consequent_tags[:1]: # lowest-level span only
+                    for span in token[1]:
+                        if span in [ante[1] for ante in antecedents]:
+                            consequents.append((idx, span))
+            for consequent in consequents:
+                for antecedent in antecedents:
+                    if consequent[1] == antecedent[1]:
+                        ## Check if material intervenes
+                        intervener = False
+                        for j in range(antecedent[0]+1, consequent[0]):
+                            if consequent[1] not in sentence[j][1]:
+                                # print(consequent[1], sentence[j], sentence[j][1])
+                                intervener = True
+                                break
+                        if intervener:
+                            row = []
+                            for idx, token in enumerate(sentence):
+                                if idx == antecedent[0]:
+                                    row.append('|0 '+ token[0] + ' |')
+                                elif idx == consequent[0]:
+                                    row.append('|1 ' + token[0] + ' |')
+                                elif token[2] in antecedent_tags and consequent[1] not in token[1]:
+                                    row.append('|2 ' + token[0] + ' |') # competing nouns get nr 2
+                                elif token[2] in consequent_tags and consequent[1] not in token[1]:
+                                    row.append('|3 ' + token[0] + ' |') # competing pronouns get nr 3
+                                else:
+                                    row.append(token[0])
+                            items.append(row)
+                            # print(discourses[d_idx][s_idx])
+                            # print(items[-1])
+                            # print('-----')
+
+    print("Writing", len(items), "items to file", out_file_path)
+
+    with open('data/'+out_file_path, 'w') as outfile:
+        writer = csv.writer(outfile)
+        writer.writerow(['#|0 noun,|1 pronoun,|2 other_noun,|3 other_pronoun'])
+
+        for item in items:
+            writer.writerow([' '.join(item).replace('| |', '|')])
+
+
+
+
+
 def read_categories_from_rosch_etal():
     """
     Lazy sloppy code for selecting some categories.
@@ -777,12 +865,16 @@ def merge_grouped_tokens(items, data_for_all_items, method="mean"):
 
 if __name__ == "__main__":
     # write_file_plain_sentences(500, with_dependencies=True)
+    # write_file_for_open_vs_closed_POS()
+    # write_file_for_main_POS()
+
+    # write_file_for_coreference()
 
     pass
     # colorless_sentences_from_categories(500)
     # generate_sentences_from_categories_and_conllu(100, 20)
 
     # dependency_baseline("data/en_gum-ud-dev500-dep.conllu")
-    pearson_baseline("data/en_gum-ud-dev500-dep.conllu")
+    # pearson_baseline("data/en_gum-ud-dev500-dep.conllu")
     # dependency_baseline("data/en_ewt-ud-train500-dep.conllu")
     # write_file_plain_sentences(500, with_dependencies=True)
