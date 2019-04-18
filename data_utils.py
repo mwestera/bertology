@@ -156,6 +156,58 @@ def write_file_plain_sentences(n, with_dependencies=False):
                 outfile.writelines(s.serialize())
 
 
+
+def pearson_baseline(path):
+
+    sentences = []
+
+    for s in parse_incr(open(path, "r", encoding="utf-8")):
+        sentences.append(s)
+
+    baseline_left_score = []
+    baseline_right_score = []
+    gold_score = []
+
+    for i, s in enumerate(sentences):
+        arcs = tree_utils.conllu_to_arcs(s.to_tree())
+
+        nodes = list(set([a[j] for j in [0,1] for a in arcs]))
+        nodes.sort()
+
+        baseline_left = [(nodes[i],nodes[i-1]) for i in range(1, len(nodes))]
+        baseline_right = [(nodes[i-1], nodes[i]) for i in range(1, len(nodes))]
+
+        baseline_left_matrix = - tree_utils.arcs_to_distance_matrix(baseline_left)
+        baseline_right_matrix = - tree_utils.arcs_to_distance_matrix(baseline_right)
+        baseline_left_matrix_bidir = - tree_utils.arcs_to_distance_matrix(baseline_left, bidirectional=True)
+        baseline_right_matrix_bidir = - tree_utils.arcs_to_distance_matrix(baseline_right, bidirectional=True)
+        gold_matrix = - tree_utils.arcs_to_distance_matrix(arcs)
+        gold_matrix_bidir = - tree_utils.arcs_to_distance_matrix(arcs, bidirectional=True)
+
+        pearson_left = tree_utils.pearson_scores(baseline_left_matrix, s)
+        pearson_left_bidir = tree_utils.pearson_scores(baseline_left_matrix_bidir, s)
+        pearson_right = tree_utils.pearson_scores(baseline_right_matrix, s)
+        pearson_right_bidir = tree_utils.pearson_scores(baseline_right_matrix_bidir, s)
+        pearson_gold = tree_utils.pearson_scores(gold_matrix, s)
+        pearson_gold_bidir = tree_utils.pearson_scores(gold_matrix_bidir, s)
+
+        baseline_left_score.append(pearson_left + pearson_left_bidir)
+        baseline_right_score.append(pearson_right + pearson_right_bidir)
+        gold_score.append(pearson_gold + pearson_gold_bidir)
+
+    for label, scores in zip(["LEFT", "RIGHT", "GOLD"], [baseline_left_score, baseline_right_score, gold_score]):
+        print("  "+label)
+        for score in zip(*scores):
+            print(np.nanmean(score), len(score))
+
+    print("BASELINES:")
+    for label, dict in zip(["LEFT", "RIGHT", "GOLD"], [baseline_left_score, baseline_right_score, gold_score]):
+        print("  " + label)
+        for key1 in dict:
+            print("    " + key1 + ':   ' + '  '.join([(key2 + ":" + str(dict[key1][key2])[:5]) for key2 in dict[key1]]))
+
+
+
 def dependency_baseline(path):
 
     sentences = []
@@ -737,6 +789,7 @@ if __name__ == "__main__":
     # colorless_sentences_from_categories(500)
     # generate_sentences_from_categories_and_conllu(100, 20)
 
-    dependency_baseline("data/en_gum-ud-dev500-dep.conllu")
+    # dependency_baseline("data/en_gum-ud-dev500-dep.conllu")
+    pearson_baseline("data/en_gum-ud-dev500-dep.conllu")
     # dependency_baseline("data/en_ewt-ud-train500-dep.conllu")
     # write_file_plain_sentences(500, with_dependencies=True)
