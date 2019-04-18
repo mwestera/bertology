@@ -195,18 +195,11 @@ def pearson_baseline(path):
         baseline_right_score.append(pearson_right + pearson_right_bidir)
         gold_score.append(pearson_gold + pearson_gold_bidir)
 
+    print("PEARSON BASELINES: (plain; irreflexive; bidirectional dep; bidir-irrefl) (same for bidirectional both sides)")
     for label, scores in zip(["LEFT", "RIGHT", "GOLD"], [baseline_left_score, baseline_right_score, gold_score]):
         print("  "+label)
-        for score in zip(*scores):
-            print(np.nanmean(score), len(score))
-
-    print("BASELINES:")
-    for label, dict in zip(["LEFT", "RIGHT", "GOLD"], [baseline_left_score, baseline_right_score, gold_score]):
-        print("  " + label)
-        for key1 in dict:
-            print("    " + key1 + ':   ' + '  '.join([(key2 + ":" + str(dict[key1][key2])[:5]) for key2 in dict[key1]]))
-
-
+        means = [np.nanmean(score) for score in zip(*scores)]
+        print('   ' + '\n   '.join(['{} ({})'.format(a.round(2), b.round(2)) for a,b in zip(means[::2],means[1::2])]))
 
 def dependency_baseline(path):
 
