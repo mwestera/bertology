@@ -115,7 +115,7 @@ def main():
                                                           )
 
     if args.pearson_out is None:
-        args.pearson_out = 'data/auxiliary/{}_PEARSON_{}{}{}{}-{}{}.pkl'.format(os.path.basename(args.data)[:-4],
+        args.pearson_out = 'data/auxiliary/{}_PEARSON_{}{}{}{}{}{}.pkl'.format(os.path.basename(args.data)[:-4],
                                                                            args.method,
                                                                            '_' + args.combine if args.combine != "no" else "",
                                                                            '_norm' if args.method == 'attention' and args.normalize_heads else '',
@@ -123,6 +123,9 @@ def main():
                                                                            '_' + args.group_merger,
                                                                            '_' + 'transpose' if args.transpose else '',
                                                                            )
+
+    print(args.trees_out)
+    print(args.pearson_out)
 
     ## Do we need to apply BERT (anew)?
     apply_BERT = True
@@ -198,6 +201,8 @@ def main():
     ## If some computation needs to be done, we need to process the BERT outputs a bit
     if compute_trees or compute_pearson:
 
+        print("Processing the data from BERT...")
+
         ## Take cumsum if needed (placed outside the foregoing, to avoid having to save/load separate file for this
         if args.combine == "cumsum":
             for i in range(len(data_for_all_items)):
@@ -267,6 +272,8 @@ def analyze_by_pearson_correlation(df, items, dependency_trees, n_layers, args):
 
     pearson_for_all_items = []
 
+    print("Computing pearson correlations...")
+
     for i, item in tqdm(df.iterrows(), total=len(df)):
         pearson_for_item = []
 
@@ -314,6 +321,8 @@ def analyze_by_pearson_correlation(df, items, dependency_trees, n_layers, args):
 def analyze_by_spanning_trees(df, items, dependency_trees, n_layers, args):
     scores = []
     trees = []
+
+    print("Computing spanning trees...")
 
     for i, item in tqdm(df.iterrows(), total=len(df)):
         dtree = dependency_trees[i]
