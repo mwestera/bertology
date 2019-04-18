@@ -24,7 +24,6 @@ import tree_utils
 
 from tqdm import tqdm
 
-from scipy.stats.stats import pearsonr
 from scipy.stats import combine_pvalues
 
 parser = argparse.ArgumentParser(description='e.g., experiment.py data/example.csv')
@@ -300,16 +299,9 @@ def analyze_by_pearson_correlation(df, items, dependency_trees, n_layers, args):
                 # Use args.transpose to hypothesize that info flows towards the root instead.
                 matrix = matrix.transpose()
 
-            ## Flatten all matrices for comparison # TODO Not sure if necessary
-            matrix = matrix.reshape(-1)
-            dmatrix = dmatrix.reshape(-1)
-            dmatrix_bidirectional = dmatrix_bidirectional.reshape(-1)
+            scores = tree_utils.pearson_scores(matrix, dtree, matrix2=dmatrix, matrix2_bidirectional=dmatrix_bidirectional)
 
-            ## Compute pearson  # TODO Compute for interesting subsets of nodes too
-            coef1, p1 = pearsonr(matrix[~np.isnan(dmatrix)], dmatrix[~np.isnan(dmatrix)])
-            coef2, p2 = pearsonr(matrix, dmatrix_bidirectional)
-
-            pearson_for_item.extend([coef1, p1, coef2, p2])
+            pearson_for_item.extend(scores)
 
         pearson_for_all_items.append(pearson_for_item)
 

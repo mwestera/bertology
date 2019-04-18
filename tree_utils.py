@@ -4,6 +4,8 @@ import numpy as np
 
 import data_utils
 
+from scipy.stats.stats import pearsonr
+
 Arc = namedtuple('Arc', ('head', 'weight', 'tail'))
 
 
@@ -149,6 +151,38 @@ def undirected_attachment_score(tree1, tree2):
     tree2 = [(a, b) if a < b else (b,a) for (a,b) in tree2]
 
     return head_attachment_score(tree1, tree2)
+
+
+def pearson_correlation(matrix1, matrix2):
+
+    # TODO Not sure if necessary:
+    matrix1 = matrix1.reshape(-1)
+    matrix2 = matrix2.reshape(-1)
+
+    # Filter out nans
+    matrix1_nonan = matrix1[~(np.isnan(matrix1) or np.isnan(matrix2))]
+    matrix2_nonan = matrix1[~(np.isnan(matrix1) or np.isnan(matrix2))]
+
+    return pearsonr(matrix1_nonan, matrix2_nonan)
+
+
+def pearson_scores(matrix1, conllu_rep, matrix2=None, matrix2_bidirectional=None):
+    if matrix2 is None:
+        matrix2 = - arcs_to_distance_matrix(conllu_to_arcs(conllu_rep.to_tree()), False)
+    if matrix2_bidirectional is None:
+        matrix2_bidirectional = - arcs_to_distance_matrix(conllu_to_arcs(conllu_rep.to_tree()), False)
+
+    # matrix1_irreflexive = matrix1.copy()
+    # np.fill_diagonal(matrix1_irreflexive, np.nan)
+
+    c1, p1 = pearson_correlation(matrix1, matrix2)
+    c2, p2 = pearson_correlation(matrix1, matrix2_bidirectional)
+
+    return [c1,p1,c2,p2]
+
+    # pearson_correlation(matrix1_irreflexive, matrix2)
+
+
 
 
 def filtered_scores(tree1, conllu_rep):
