@@ -85,8 +85,11 @@ def main():
             args.factors = args.factors[:2]
     if args.out is not None:
         if os.path.exists(args.out):
-            if input('Output directory {} already exists. Risk overwriting files? N/y'.format(args.out)) != 'y':
-                quit()
+            # if input('Output directory {} already exists. Risk overwriting files? N/y'.format(args.out)) != 'y':
+            #    quit()
+            pass
+        else:
+            os.mkdir(args.out)
 
     if args.raw_out is None:
         args.raw_out = 'data/auxiliary/{}_{}{}{}{}.pkl'.format(os.path.basename(args.data)[:-4],
@@ -146,6 +149,10 @@ def main():
     n_layers = data_for_all_items[0].shape[0] # for convenience
     # The list data_for_all_items now contains, for each item, weights (n_layers, n_tokens, n_tokens)
 
+    ## Take cumsum if needed (placed outside the foregoing, to avoid having to save/load separate file for this
+    if args.combine == "cumsum":
+        for i in range(len(data_for_all_items)):
+            data_for_all_items[i] = np.cumsum(data_for_all_items[i], axis=0)
 
     ## Take averages over groups of tokens
     if not args.ignore_groups and not len(items.groups) == 0:
