@@ -172,15 +172,25 @@ def pearson_scores(matrix1, conllu_rep, matrix2=None, matrix2_bidirectional=None
     if matrix2 is None:
         matrix2 = - arcs_to_distance_matrix(conllu_to_arcs(conllu_rep.to_tree()), False)
     if matrix2_bidirectional is None:
-        matrix2_bidirectional = - arcs_to_distance_matrix(conllu_to_arcs(conllu_rep.to_tree()), False)
+        matrix2_bidirectional = - arcs_to_distance_matrix(conllu_to_arcs(conllu_rep.to_tree()), True)
+
+    # conllu_rep.to_tree().print_tree()
+    # print(matrix2)
 
     # matrix1_irreflexive = matrix1.copy()
     # np.fill_diagonal(matrix1_irreflexive, np.nan)
 
-    c1, p1 = pearson_correlation(matrix1, matrix2)
-    c2, p2 = pearson_correlation(matrix1, matrix2_bidirectional)
+    matrix2_diag = matrix2.copy()
+    np.fill_diagonal(matrix2_diag, np.nan)
+    matrix2_bidirectional_diag = matrix2_bidirectional.copy()
+    np.fill_diagonal(matrix2_bidirectional_diag, np.nan)
 
-    return [c1,p1,c2,p2]
+    c1, p1 = pearson_correlation(matrix1, matrix2)
+    c1b, p1b = pearson_correlation(matrix1, matrix2_diag)
+    c2, p2 = pearson_correlation(matrix1, matrix2_bidirectional)
+    c2b, p2b = pearson_correlation(matrix1, matrix2_bidirectional_diag)
+
+    return [c1,p1,c1b,p1b,c2,p2,c2b,p2b]
 
     # pearson_correlation(matrix1_irreflexive, matrix2)
 
