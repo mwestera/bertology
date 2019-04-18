@@ -323,7 +323,7 @@ def write_file_for_main_POS():
 
 
 
-def write_file_for_coreference():
+def write_file_for_coreference(n):
 
     path = 'data/raw/ontonotes_dev_info.tsv'
     out_file_path = os.path.basename(path)[:-4] + '_NN-PRP.csv'
@@ -349,9 +349,10 @@ def write_file_for_coreference():
                         discourse.append(sentence)
                         sentence = []
                 else:
-                    sentence.append((row[1],row[2],row[3]))
+                    sentence.append((row[0],row[1],row[2],row[3]))
 
-    items = []
+    items_coref = []
+    items_nocoref = []
 
     # tags:
     consequent_tags = ['PRP', 'PRP$']
@@ -362,49 +363,71 @@ def write_file_for_coreference():
             antecedents = []    # store as (idx, span)
             consequents = []
             for idx, token in enumerate(sentence):
-                if token[2] in antecedent_tags[:1]: # lowest-level span only
-                    for span in token[1]:
-                        antecedents.append((idx, span))
-                if token[2] in consequent_tags[:1]: # lowest-level span only
-                    for span in token[1]:
-                        if span in [ante[1] for ante in antecedents]:
-                            consequents.append((idx, span))
+                if token[3] in antecedent_tags:
+                    # for span in token[2][:1]:# lowest-level span only
+                    if len(token[2]) > 0:
+                        antecedents.append((idx, token[2][0]))
+                if token[3] in consequent_tags:
+                    # for span in token[2][:1]:# lowest-level span only
+                    #     if span in [ante[1] for ante in antecedents]:
+                    if len(token[2]) > 0:
+                        consequents.append((idx, token[2][0]))
             for consequent in consequents:
                 for antecedent in antecedents:
-                    if consequent[1] == antecedent[1]:
-                        ## Check if material intervenes
-                        intervener = False
-                        for j in range(antecedent[0]+1, consequent[0]):
-                            if consequent[1] not in sentence[j][1]:
-                                # print(consequent[1], sentence[j], sentence[j][1])
-                                intervener = True
-                                break
-                        if intervener:
+                    if antecedent[0] < consequent[0]:
+                        if consequent[1] == antecedent[1]:
+                            ## Check if material intervenes
+                            intervener = False
+                            for j in range(antecedent[0]+1, consequent[0]):
+                                if consequent[1] not in sentence[j][2]:
+                                    # print(consequent[1], sentence[j], sentence[j][1])
+                                    intervener = True
+                                    break
+                            if intervener:
+                                row = []
+                                for idx, token in enumerate(sentence):
+                                    if idx == antecedent[0]:
+                                        row.append('|0 '+ token[1] + ' |')
+                                    elif idx == consequent[0]:
+                                        row.append('|1 ' + token[1] + ' |')
+                                    # elif token[2] in antecedent_tags and consequent[1] not in token[1]:
+                                    #     row.append('|2 ' + token[0] + ' |') # competing nouns get nr 2
+                                    # elif token[2] in consequent_tags and consequent[1] not in token[1]:
+                                    #     row.append('|3 ' + token[0] + ' |') # competing pronouns get nr 3
+                                    else:
+                                        row.append(token[1])
+                                items_coref.append([sentence[0][0], True, consequent[0] - antecedent[0], ' '.join(row).replace('| |', '|')])
+                        else:
                             row = []
                             for idx, token in enumerate(sentence):
                                 if idx == antecedent[0]:
-                                    row.append('|0 '+ token[0] + ' |')
+                                    row.append('|0 ' + token[1] + ' |')
                                 elif idx == consequent[0]:
-                                    row.append('|1 ' + token[0] + ' |')
-                                elif token[2] in antecedent_tags and consequent[1] not in token[1]:
-                                    row.append('|2 ' + token[0] + ' |') # competing nouns get nr 2
-                                elif token[2] in consequent_tags and consequent[1] not in token[1]:
-                                    row.append('|3 ' + token[0] + ' |') # competing pronouns get nr 3
+                                    row.append('|1 ' + token[1] + ' |')
+                                # elif token[2] in antecedent_tags and consequent[1] not in token[1]:
+                                #     row.append('|2 ' + token[0] + ' |') # competing nouns get nr 2
+                                # elif token[2] in consequent_tags and consequent[1] not in token[1]:
+                                #     row.append('|3 ' + token[0] + ' |') # competing pronouns get nr 3
                                 else:
-                                    row.append(token[0])
-                            items.append(row)
-                            # print(discourses[d_idx][s_idx])
-                            # print(items[-1])
-                            # print('-----')
+                                    row.append(token[1])
+                            items_nocoref.append([sentence[0][0], False, consequent[0] - antecedent[0], ' '.join(row).replace('| |', '|')])
+
+    print("Mean distance/variance:")
+    print("coref:", len(items_coref), np.mean([item[2] for item in items_coref]), np.var([item[2] for item in items_coref]))
+    print("nocoref:", len(items_nocoref), np.mean([item[2] for item in items_nocoref]), np.var([item[2] for item in items_nocoref]))
+
+    items = [pair[i] for pair in zip(items_coref, items_nocoref) for i in [0,1]]
+
+    items = items[:n]
 
     print("Writing", len(items), "items to file", out_file_path)
 
     with open('data/'+out_file_path, 'w') as outfile:
         writer = csv.writer(outfile)
-        writer.writerow(['#|0 noun,|1 pronoun,|2 other_noun,|3 other_pronoun'])
+        writer.writerow(['# id, coref, distance, |0 noun,|1 pronoun,|2 other_noun,|3 other_pronoun'])
 
         for item in items:
-            writer.writerow([' '.join(item).replace('| |', '|')])
+            writer.writerow(item)
 
 
 
@@ -868,7 +891,7 @@ if __name__ == "__main__":
     # write_file_for_open_vs_closed_POS()
     # write_file_for_main_POS()
 
-    # write_file_for_coreference()
+    write_file_for_coreference(1000)
 
     pass
     # colorless_sentences_from_categories(500)
