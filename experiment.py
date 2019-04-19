@@ -183,17 +183,17 @@ def main():
     data_and_balance_for_all_items = [array1 + array2 for array1, array2 in zip(data_for_all_items, balance_for_all_items)]
     # Concatenate onto original data rows (with each row repeated n_layers times)
     # original_items_times_nlayers = [a for l in [[i.to_list()] * n_layers for (_, i) in items.iterrows()] for a in l]
-    data_for_dataframe = [a + b for a, b in zip([i.to_list() for (_, i) in items.iterrows()], data_and_balance_for_all_items)]
+    data_for_dataframe = data_and_balance_for_all_items # [a + b for a, b in zip([i.to_list() for (_, i) in items.iterrows()], data_and_balance_for_all_items)]
     # Multi-column to represent the (flattened) numpy arrays in a structured way
-    multi_columns = pd.MultiIndex.from_tuples([(c, '', '', '') for c in items.columns] + [('weights', l, g1, g2) for l in range(n_layers) for g1 in items.groups for g2 in items.groups] + [('balance', l, g, '') for l in range(n_layers) for g in items.groups], names=['result', 'layer', 'in', 'out'])
-
+    multi_columns = pd.MultiIndex.from_tuples([('weights', l, g1, g2) for l in range(n_layers) for g1 in items.groups for g2 in items.groups] + [('balance', l, g, '') for l in range(n_layers) for g in items.groups], names=['result', 'layer', 'in', 'out'])
+    # [('', '', '', c) for c in items.columns] +
     df = pd.DataFrame(data_for_dataframe, index=items.index, columns=multi_columns)
     # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT), and the balance computed from them
 
-    quit()
-
     if args.track is not None:
-        line_plot(df, args)
+        for factor in args.factors:
+            line_plot(items, df, args, factor)
+
 
     ## Compute means over attention weights across all conditions (easy because they're flattened)
     # df_means = df.groupby(items.factors).mean()
@@ -304,7 +304,7 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
     return weights_to_plot_per_layer
 
 
-def line_plot(df, args):
+def line_plot(items, df, args, factor):
 
     plt.figure(figsize=(10, 8))
 
@@ -312,21 +312,19 @@ def line_plot(df, args):
 
         if len(to_track) == 1:
             score = "balance"
-            data = pd.concat([df[['coref']], df.loc[:, ('balance', slice(None), to_track[0])]], axis=1)
+            data = df.loc[:, ('balance', slice(None), to_track[0])]
         else:
             score = "weights"
-            data = pd.concat([df.loc[:, ('coref', '', '', '')], df.loc[:, ('weights', slice(None), to_track[0], to_track[1])]], axis=1)
+            data = df.loc[:, ('weights', slice(None), to_track[0], to_track[1])]
 
-        print(data)
+        for level in items.levels[factor]:
+            data_for_level = data.loc[items[factor] == level]
+            data_for_level = data_for_level.stack(level=1).reset_index(level=[1])
+            data_for_level.columns = data_for_level.columns.droplevel([1,2])
 
-        data = data.stack().stack().reset_index(level=[1, 2, 3])
-
-        print(data.columns)
-        print(data)
-
-        ax = sns.lineplot(x="layer", y=score, hue=None, style=None, data=data, label=to_track)
-        # ax = sns.lineplot(x="layer", y=score, hue=args.factors[0] if len(args.factors) > 0 else None, style=args.factors[1] if len(args.factors) > 1 else None, data=data, label=to_track)
-        ax.set_title("Tracking across layers ({})".format(args.method + ((", " + args.combine) if args.combine is not "no" else "")))
+            ax = sns.lineplot(x="layer", y=score, hue=None, style=None, data=data_for_level, label='>'.join(to_track) + ' - ' + level)
+            # ax = sns.lineplot(x="layer", y=score, hue=args.factors[0] if len(args.factors) > 0 else None, style=args.factors[1] if len(args.factors) > 1 else None, data=data, label=to_track)
+            ax.set_title("Tracking across layers ({})".format(args.method + ((", " + args.combine) if args.combine is not "no" else "")))
 
     plt.legend()
 
