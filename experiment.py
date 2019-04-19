@@ -92,7 +92,7 @@ def main():
             os.mkdir(args.out)
 
     if args.raw_out is None:
-        args.raw_out = 'data/auxiliary/{}_{}{}{}{}.pkl'.format(os.path.basename(args.data)[:-4],
+        args.raw_out = 'output/auxiliary/{}_{}{}{}{}.pkl'.format(os.path.basename(args.data)[:-4],
                                                          args.method,
                                                          '_'+args.combine if args.combine != 'no' else '',
                                                          '_norm' if args.method == 'attention' and args.normalize_heads else '',
@@ -123,8 +123,8 @@ def main():
         out_idx = 0
         if not os.path.exists("output"):
             os.mkdir('output')
-        if not os.path.exists("data/auxiliary/"):
-            os.mkdir('data/auxiliary')
+        if not os.path.exists("output/auxiliary/"):
+            os.mkdir('output/auxiliary')
         while any(x.startswith(dirname) for x in os.listdir('output')):
             out_idx += 1
             dirname = 'temp{}'.format(out_idx)
