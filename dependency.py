@@ -57,7 +57,7 @@ parser.add_argument('--bert', type=str, default='bert-base-cased',
 parser.add_argument('--factors', type=str, default=None,
                     help='Which factors to plot, comma separated like "--factors reflexivity,gender"; default: first 2 factors in the data')
 parser.add_argument('--balance', action="store_true",
-                    help='To compute and plot balances, i.e., how much a token influences minus how much it is influenced.')
+                    help='To compute and plot balances, i.e., how much a token influences minus how much it is influenced. WARNING: BUGGED AND NOT USED')
 parser.add_argument('--cuda', action="store_true",
                     help='To use cuda.')
 parser.add_argument('--no_overwrite', action="store_true",
