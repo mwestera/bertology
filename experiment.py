@@ -62,6 +62,8 @@ parser.add_argument('--balance', action="store_true",
                     help='To compute and plot balances, i.e., how much a token influences minus how much it is influenced.')
 parser.add_argument('--cuda', action="store_true",
                     help='To use cuda.')
+parser.add_argument('--no_overwrite', action="store_true",
+                    help='To not overwrite existing files.')
 
 # TODO: perhaps it's useful to allow plotting means over layers; sliding window-style? or chaining but with different starting points?
 # TODO: Is attention-chain bugged? Plots are uninterpretable; without normalization super high values only at layer 10-11... with normalization... big gray mess.
@@ -97,10 +99,15 @@ def main():
                                                          '_'+args.combine if args.combine != 'no' else '',
                                                          '_norm' if args.method == 'attention' and args.normalize_heads else '',
                                                          ('_'+str(args.n_items)) if args.n_items is not None else '')
-    need_BERT = True
+
+    ## Do we need to apply BERT (anew)?
+    apply_BERT = True
     if os.path.exists(args.raw_out):
-        if input('Raw output file exists. Overwrite? (N/y)') != "y":
-            need_BERT = False
+        if args.no_overwrite:
+            apply_BERT = False
+        elif input('Raw output file exists. Overwrite? (N/y)') != "y":
+            apply_BERT = False
+
 
     ## Set up tokenizer, data
     tokenizer = BertTokenizer.from_pretrained(args.bert, do_lower_case=("uncased" in args.bert))
@@ -137,7 +144,7 @@ def main():
 
 
     ## Apply BERT or, if available, load results saved from previous run
-    if need_BERT:
+    if apply_BERT:
         data_for_all_items = interface_BERT.apply_bert(items, tokenizer, args)
         with open(args.raw_out, 'wb') as file:
             pickle.dump(data_for_all_items, file)
