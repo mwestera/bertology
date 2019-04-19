@@ -96,7 +96,7 @@ def main():
     if args.raw_out is None:
         args.raw_out = 'output/auxiliary/{}_{}{}{}{}.pkl'.format(os.path.basename(args.data)[:-4],
                                                          args.method,
-                                                         '_'+args.combine if args.combine != 'no' else '',
+                                                         "_chain" if args.combine == "chain" else "", # cumsum can use same as no
                                                          '_norm' if args.method == 'attention' and args.normalize_heads else '',
                                                          ('_'+str(args.n_items)) if args.n_items is not None else '')
 
@@ -221,6 +221,7 @@ def main():
 
         line_plot(items, stacked_df, args)
 
+    quit()
 
     ## Compute means over attention weights across all conditions (easy because they're flattened)
     # df_means = df.groupby(items.factors).mean()
