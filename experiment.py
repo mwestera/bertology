@@ -154,11 +154,6 @@ def main():
         for i in range(len(data_for_all_items)):
             data_for_all_items[i] = np.cumsum(data_for_all_items[i], axis=0)
 
-    ## Take averages over groups of tokens
-    if not args.ignore_groups and not len(items.groups) == 0:
-        data_for_all_items = data_utils.merge_grouped_tokens(items, data_for_all_items, method=args.group_merger)
-        # list with, for each item, weights (n_layers, n_groups, n_groups)
-
 
     ## Compute balances (though whether they will be plotted depends on args.balance)
     # (Re)compute balance: how much token influences minus how much is influenced
@@ -170,6 +165,13 @@ def main():
             balance_for_item.append(balance)
         balance_for_all_items.append(np.stack(balance_for_item))
     # At this point we have two lists of numpy arrays: for each item, the weights & balance across layers.
+
+
+    ## Take averages over groups of tokens
+    if not args.ignore_groups and not len(items.groups) == 0:
+        data_for_all_items = data_utils.merge_grouped_tokens(items, data_for_all_items, method=args.group_merger)
+        balance_for_all_items = data_utils.merge_grouped_tokens(items, balance_for_all_items, method=args.group_merger)
+        # list with, for each item, weights (n_layers, n_groups, n_groups)
 
     ## TODO The following applies only if there are groups of tokens.
     ## TODO Otherwise, perhaps have option of plotting individual sentences + balance, but no comparison?
@@ -203,10 +205,11 @@ def main():
                 score = 'weights'
                 data = df.loc[:, ('weights', slice(None), to_track[0], to_track[1])]
 
-            data = data.stack(level=1).reset_index(level=[1])
+            data = data.stack(level=1, dropna=False).reset_index(level=[1])
 
             data.columns = data.columns.droplevel([1, 2])
             data.rename(columns={score: '>'.join(to_track)}, inplace=True)
+
             stacked_df = pd.concat([stacked_df, data[(['layer'] if i==0 else []) + ['>'.join(to_track)]]], axis=1)
 
         line_plot(items, stacked_df, args)
