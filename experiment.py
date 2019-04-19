@@ -64,6 +64,8 @@ parser.add_argument('--cuda', action="store_true",
                     help='To use cuda.')
 parser.add_argument('--no_overwrite', action="store_true",
                     help='To not overwrite existing files.')
+parser.add_argument('--prefix', type=str, default='',
+                    help='Prefix for saved (non-auxiliary) output files like plots.')
 
 # TODO: perhaps it's useful to allow plotting means over layers; sliding window-style? or chaining but with different starting points?
 # TODO: Is attention-chain bugged? Plots are uninterpretable; without normalization super high values only at layer 10-11... with normalization... big gray mess.
@@ -92,6 +94,9 @@ def main():
             pass
         else:
             os.mkdir(args.out)
+
+    if args.prefix != '':
+        args.prefix += '_'
 
     if args.raw_out is None:
         args.raw_out = 'output/auxiliary/{}_{}{}{}{}.pkl'.format(os.path.basename(args.data)[:-4],
@@ -353,7 +358,8 @@ def line_plot(items, df, args):
     # plt.legend()
 
     # TODO Also an overall mean plot on the side
-    out_filepath = "{}/track_{}{}{}_{}.png".format(args.out,
+    out_filepath = "{}/{}track_{}{}{}_{}.png".format(args.out,
+                                                args.prefix,
                                                   args.method,
                                                  "-"+args.combine if args.combine != "no" else "",
                                                  "_normalized" if (args.method == "attention" and args.normalize_heads) else "",
