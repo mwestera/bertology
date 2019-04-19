@@ -22,7 +22,7 @@ import interface_BERT
 
 import data_utils
 
-from scipy.stats import ttest_ind
+from scipy.stats import ttest_ind, ttest_rel
 
 parser = argparse.ArgumentParser(description='e.g., experiment.py data/example.csv')
 parser.add_argument('data', type=str,
@@ -173,7 +173,8 @@ def main():
     for data_for_item in data_for_all_items:
         balance_for_item = []
         for data_for_layer in data_for_item:
-            balance = np.nansum(data_for_layer - data_for_layer.transpose(), axis=1)
+            # I also tried setting the diagonal to np.nan; doesn't make a difference.
+            balance = np.nansum(data_for_layer, axis=1) # - data_for_layer.transpose(), axis=1)
             balance_for_item.append(balance)
         balance_for_all_items.append(np.stack(balance_for_item))
     # At this point we have two lists of numpy arrays: for each item, the weights & balance across layers.
@@ -226,6 +227,62 @@ def main():
 
         line_plot(items, stacked_df, args)
 
+    # TODO: Generalize
+    stats = []
+    if args.prefix == "OPEN-CLOSED_":
+        t_tested = stacked_df.dropna().groupby('layer').apply(lambda df: ttest_ind(df['open'], df['closed'], equal_var=False))
+        t_tested.a = "open"
+        t_tested.b = "closed"
+        stats.append(t_tested)
+    elif args.prefix == "COREF_":
+        t_tested = stacked_df.dropna().groupby('layer').apply(lambda df: ttest_ind(df.where(df['coref'] == 'True').dropna()['noun>pronoun'], df.where(df['coref'] == 'False').dropna()['noun>pronoun'], equal_var=False))
+        t_tested.a = "coref"
+        t_tested.b = "nocoref"
+        stats.append(t_tested)
+    elif args.prefix == "POS_":
+        for i, pos1 in enumerate(items.groups):
+            for j, pos2 in enumerate(items.groups):
+                if i < j:
+                    t_tested = stacked_df.dropna().groupby('layer').apply(lambda df: ttest_ind(df[pos1], df[pos2], equal_var=False))
+                    t_tested.a = pos1
+                    t_tested.b = pos2
+                    stats.append(t_tested)
+
+    out_statspath = "{}/{}stats_{}{}{}.tsv".format(args.out,
+                                                  args.prefix,
+                                                  args.method,
+                                                  "-" + args.combine if args.combine != "no" else "",
+                                                  "_normalized" if (args.method == "attention" and args.normalize_heads) else "",
+                                                  )
+
+    with open(out_statspath, 'w') as file:
+        for t_tested in stats:
+            file.write('\n\nt-test ' + t_tested.a + ' vs. ' + t_tested.b + '\n')
+            for l, row in enumerate(t_tested.values):
+                file.write('\t'.join([str(l), str(row[0].round(2)), str(row[1].round(5))])+'\n')
+
+    stats = []
+    with open(out_statspath, 'a') as file:
+        file.write('\n\n\n============================================\n\n\n And now conflating all layers:\n')
+        if args.prefix == "OPEN-CLOSED_":
+            t_tested = ttest_ind(stacked_df['open'].dropna(), stacked_df['closed'].dropna(), equal_var=False)
+            file.write('\n\nt-test ' + 'open' + ' vs. ' + 'closed' + '\n')
+            file.write('\t'.join([str(t_tested[0].round(2)), str(t_tested[1])])+'\n')
+            stats.append(t_tested)
+        elif args.prefix == "COREF_":
+            t_tested = ttest_ind(stacked_df.where(stacked_df['coref'] == 'True').dropna()['noun>pronoun'], stacked_df.where(stacked_df['coref'] == 'False').dropna()['noun>pronoun'], equal_var=False)
+            file.write('\n\nt-test ' + 'coref' + ' vs. ' + 'nocoref' + '\n')
+            file.write('\t'.join([str(t_tested[0].round(2)), str(t_tested[1])]) + '\n')
+            stats.append(t_tested)
+        elif args.prefix == "POS_": # Compare only in decreasing order of means?!
+            for i, pos1 in enumerate(items.groups):
+                for j, pos2 in enumerate(items.groups):
+                    if i < j:
+                        t_tested = ttest_ind(stacked_df[pos1].dropna(), stacked_df[pos2].dropna(), equal_var=False)
+                        file.write('\nt-test ' + pos1 + ' vs. ' + pos2 + '\n')
+                        file.write('\t'.join([str(t_tested[0].round(2)), str(t_tested[1])]) + '\n')
+                        stats.append(t_tested)
+
     quit()
 
     ## Compute means over attention weights across all conditions (easy because they're flattened)
@@ -239,6 +296,7 @@ def main():
     #
     # ttest_ind(cat1['values'], cat2['values'])
     # >> > (1.4927289925706944, 0.16970867501294376)
+
 
     df_means = df.groupby(args.factors).mean()
 
@@ -358,12 +416,13 @@ def line_plot(items, df, args):
     # plt.legend()
 
     # TODO Also an overall mean plot on the side
-    out_filepath = "{}/{}track_{}{}{}_{}.png".format(args.out,
+    out_filepath = "{}/{}track_{}{}{}.png".format(args.out,
                                                 args.prefix,
                                                   args.method,
                                                  "-"+args.combine if args.combine != "no" else "",
                                                  "_normalized" if (args.method == "attention" and args.normalize_heads) else "",
-                                                 ','.join(to_track))
+                                                )
+                                                 # ';'.join([','.join(to_track) for to_track in args.track]))
     print("Saving figure:", out_filepath)
     pylab.savefig(out_filepath)
 
