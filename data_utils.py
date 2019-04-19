@@ -868,14 +868,17 @@ def merge_grouped_tokens(items, data_for_all_items, method="mean"):
                     grouped_weights_horiz.append(m[each_item[group]].sum(axis=0))
             grouped_weights_horiz = np.stack(grouped_weights_horiz)
 
-            # Group the result also vertically
-            grouped_weights = []
-            for group in items.groups:
-                if method == "mean":
-                    grouped_weights.append(grouped_weights_horiz[:, each_item[group]].mean(axis=1))
-                if method == "sum":
-                    grouped_weights.append(grouped_weights_horiz[:, each_item[group]].sum(axis=1))
-            grouped_weights = np.stack(grouped_weights).transpose()  # transpose to restore original order
+            if len(data_for_all_items[0][0].shape) > 1:
+                # Group the result also vertically
+                grouped_weights = []
+                for group in items.groups:
+                    if method == "mean":
+                        grouped_weights.append(grouped_weights_horiz[:, each_item[group]].mean(axis=1))
+                    if method == "sum":
+                        grouped_weights.append(grouped_weights_horiz[:, each_item[group]].sum(axis=1))
+                grouped_weights = np.stack(grouped_weights).transpose()  # transpose to restore original order
+            else:
+                grouped_weights = grouped_weights_horiz
 
             # store
             data_per_layer.append(grouped_weights)
