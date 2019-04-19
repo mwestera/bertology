@@ -55,7 +55,7 @@ parser.add_argument('--bert', type=str, default='bert-base-cased',
 parser.add_argument('--factors', type=str, default=None,
                     help='Which factors to plot, comma separated like "--factors reflexivity,gender"; default: first 2 factors in the data')
 parser.add_argument('--track', type=str, default=None,
-                    help='Which tokens/token groups to track; single tokens to track balance; pairs (,) to track their weight. Items separated by ;, e.g., term1,term2;term3. Asterisk (*) to track all groups.')
+                    help='Which tokens/token groups to track; single tokens to track balance; pairs (,) to track their weight. Items separated by ;, e.g., term1,term2;term3. Dots (...) to track all groups.')
 parser.add_argument('--no_global_colormap', action="store_true",
                     help='Whether to standardize plot coloring across plots ("global"); otherwise only per plot (i.e., per layer)')
 parser.add_argument('--balance', action="store_true",
@@ -112,7 +112,7 @@ def main():
     args.factors = args.factors or items.factors[:2]    # by default use the first two factors from the data
 
     # Fill in args.track default depending on data
-    if args.track == '*':
+    if args.track == '...':
         args.track = [[g] for g in items.groups]
     elif args.track is not None:
         args.track = [[a.strip() for a in b.split(',')] for b in args.track.split(";")]
