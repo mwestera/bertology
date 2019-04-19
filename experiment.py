@@ -191,8 +191,25 @@ def main():
     # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT), and the balance computed from them
 
     if args.track is not None:
-        for factor in args.factors:
-            line_plot(items, df, args, factor)
+
+        stacked_df = pd.DataFrame([a for b in [[item[items.factors]] * n_layers for _,item in items.iterrows()] for a in b])
+
+        for i,to_track in enumerate(args.track):
+
+            if len(to_track) == 1:
+                score = 'balance'
+                data = df.loc[:, ('balance', slice(None), to_track[0])]
+            else:
+                score = 'weights'
+                data = df.loc[:, ('weights', slice(None), to_track[0], to_track[1])]
+
+            data = data.stack(level=1).reset_index(level=[1])
+
+            data.columns = data.columns.droplevel([1, 2])
+            data.rename(columns={score: '>'.join(to_track)}, inplace=True)
+            stacked_df = pd.concat([stacked_df, data[(['layer'] if i==0 else []) + ['>'.join(to_track)]]], axis=1)
+
+        line_plot(items, stacked_df, args)
 
 
     ## Compute means over attention weights across all conditions (easy because they're flattened)
@@ -304,29 +321,25 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
     return weights_to_plot_per_layer
 
 
-def line_plot(items, df, args, factor):
+def line_plot(items, df, args):
 
     plt.figure(figsize=(10, 8))
 
     for to_track in args.track:
+        ax = sns.lineplot(x="layer", y='>'.join(to_track),
+                      hue=None if len(args.track) > 1 else args.factors[0] if len(args.factors) > 0 else None,
+                      style=args.factors[0] if len(args.factors) > 0 and len(args.track) > 1 else args.factors[1] if len(args.factors) > 1 else None,
+                      data=df, label='>'.join(to_track))
+    # ax = sns.lineplot(x="layer", y=score, hue=args.factors[0] if len(args.factors) > 0 else None, style=args.factors[1] if len(args.factors) > 1 else None, data=data, label=to_track)
+    ax.set_title("Tracking {}{} across layers".format(args.method, (" (" + args.combine + ")") if args.combine is not "no" else ""))
+    ax.set_ylabel("{}{}".format(args.method, (" (" + args.combine + ")") if args.combine is not "no" else ""))
 
-        if len(to_track) == 1:
-            score = "balance"
-            data = df.loc[:, ('balance', slice(None), to_track[0])]
-        else:
-            score = "weights"
-            data = df.loc[:, ('weights', slice(None), to_track[0], to_track[1])]
+    ax.legend()
+    handles, labels = ax.get_legend_handles_labels()
+    lgd = dict(zip(labels, handles))
+    ax.legend(lgd.values(), lgd.keys())
 
-        for level in items.levels[factor]:
-            data_for_level = data.loc[items[factor] == level]
-            data_for_level = data_for_level.stack(level=1).reset_index(level=[1])
-            data_for_level.columns = data_for_level.columns.droplevel([1,2])
-
-            ax = sns.lineplot(x="layer", y=score, hue=None, style=None, data=data_for_level, label='>'.join(to_track) + ' - ' + level)
-            # ax = sns.lineplot(x="layer", y=score, hue=args.factors[0] if len(args.factors) > 0 else None, style=args.factors[1] if len(args.factors) > 1 else None, data=data, label=to_track)
-            ax.set_title("Tracking across layers ({})".format(args.method + ((", " + args.combine) if args.combine is not "no" else "")))
-
-    plt.legend()
+    # plt.legend()
 
     # TODO Also an overall mean plot on the side
     out_filepath = "{}/track_{}{}{}_{}.png".format(args.out,
