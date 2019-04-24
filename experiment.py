@@ -76,6 +76,8 @@ parser.add_argument('--prefix', type=str, default='',
 
 # TODO: I got an error when running on example.csv with --n_items 1 or even 2.
 
+# TODO: Compose output file basename more centrally; add PREFIX to the folder name.
+
 def main():
     """
     To run this code with default settings and example data, do
