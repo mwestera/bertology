@@ -760,7 +760,7 @@ def parse_data(data_path, tokenizer, max_items=None, words_as_groups=False, depe
             words = row[-1].split(' ') # WARNING This presumes tokenized lists from UD...
             row[-1] = ' '.join(['|{} {}'.format(i,w) for i,w in enumerate(words)])
 
-        for digit, each_part in regex.findall(group_regex, row[-1]):   # Cheap fix to avoid unintended groups for sentence starting with number
+        for digit, each_part in regex.findall(group_regex, row[-1]):
             if digit != '':
                 group_id = int(digit)
                 each_part = each_part.strip()
