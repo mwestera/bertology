@@ -201,6 +201,7 @@ def pearson_baseline(path):
         means = [np.nanmean(score) for score in zip(*scores)]
         print('   ' + '\n   '.join(['{} ({})'.format(a.round(2), b.round(2)) for a,b in zip(means[::2],means[1::2])]))
 
+
 def dependency_baseline(path):
 
     sentences = []
@@ -412,13 +413,16 @@ def write_file_for_coreference(n):
                                     row.append(token[1])
                             items_nocoref.append([sentence[0][0], False, consequent[0] - antecedent[0], ' '.join(row).replace('| |', '|')])
 
-    print("Mean distance/variance:")
-    print("coref:", len(items_coref), np.mean([item[2] for item in items_coref]), np.var([item[2] for item in items_coref]))
-    print("nocoref:", len(items_nocoref), np.mean([item[2] for item in items_nocoref]), np.var([item[2] for item in items_nocoref]))
-
+    # TODO Should I not randomize this?
+    items_coref = items_coref[:n/2]
+    items_nocoref = items_nocoref[:n-len(items_coref)]
     items = [pair[i] for pair in zip(items_coref, items_nocoref) for i in [0,1]]
 
     items = items[:n]
+
+    print("Mean distance/variance:")
+    print("coref:", len(items_coref), np.mean([item[2] for item in items_coref]), np.var([item[2] for item in items_coref]))
+    print("nocoref:", len(items_nocoref), np.mean([item[2] for item in items_nocoref]), np.var([item[2] for item in items_nocoref]))
 
     print("Writing", len(items), "items to file", out_file_path)
 
@@ -598,6 +602,7 @@ def colorless_sentences_from_categories(n):
             row = [item[0], sent_with_groups]
             writer.writerow(row)
     print('wrote {} items to {}'.format(len(colorless), 'data/category-sentences-colorless.csv'))
+
 
 # def generate_sentences_from_categories_and_conllu(n, n_templates):
 #
@@ -894,13 +899,13 @@ if __name__ == "__main__":
     # write_file_for_open_vs_closed_POS()
     # write_file_for_main_POS()
 
-    write_file_for_coreference(1000)
+    # write_file_for_coreference(500)
 
     pass
     # colorless_sentences_from_categories(500)
     # generate_sentences_from_categories_and_conllu(100, 20)
 
     # dependency_baseline("data/en_gum-ud-dev500-dep.conllu")
-    # pearson_baseline("data/en_gum-ud-dev500-dep.conllu")
+    pearson_baseline("data/en_gum-ud-dev500-dep.conllu")
     # dependency_baseline("data/en_ewt-ud-train500-dep.conllu")
     # write_file_plain_sentences(500, with_dependencies=True)
