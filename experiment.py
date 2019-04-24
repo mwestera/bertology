@@ -64,6 +64,8 @@ parser.add_argument('--cuda', action="store_true",
                     help='To use cuda.')
 parser.add_argument('--no_overwrite', action="store_true",
                     help='To not overwrite existing files.')
+parser.add_argument('--heatmap', action="store_true",
+                    help='To output pretty heat maps.')
 parser.add_argument('--prefix', type=str, default='',
                     help='Prefix for saved (non-auxiliary) output files like plots.')
 
@@ -167,7 +169,7 @@ def main():
             data_for_all_items[i] = np.cumsum(data_for_all_items[i], axis=0)
 
 
-    ## Compute balances (though whether they will be plotted depends on args.balance)   # TODO rename 'balance' something else...
+    ## Compute balances (though whether they will be plotted depends on args.balance)   # TODO rename 'balance' something else, or allow switching between sum and balance...
     # (Re)compute balance: how much token influences minus how much is influenced
     balance_for_all_items = []
     for data_for_item in data_for_all_items:
@@ -186,11 +188,11 @@ def main():
         balance_for_all_items = data_utils.merge_grouped_tokens(items, balance_for_all_items, method=args.group_merger)
         # list with, for each item, weights (n_layers, n_groups, n_groups)
 
-    ## TODO The following applies only if there are groups of tokens.
-    ## TODO Otherwise, perhaps have option of plotting individual sentences + balance, but no comparison?
+    ## TODO If no groups, perhaps have option of plotting individual sentences + balance, but no comparison?
 
 
     ## Store the weights and balance in dataframe      # TODO All of this feels terribly hacky...
+
     # First flatten the numpy array per item
     data_for_all_items = [data.reshape(-1).tolist() for data in data_for_all_items]
     balance_for_all_items = [data.reshape(-1).tolist() for data in balance_for_all_items]
@@ -202,136 +204,60 @@ def main():
     # Multi-column to represent the (flattened) numpy arrays in a structured way
     multi_columns = pd.MultiIndex.from_tuples([('weights', l, g1, g2) for l in range(n_layers) for g1 in items.groups for g2 in items.groups] + [('balance', l, g, '') for l in range(n_layers) for g in items.groups], names=['result', 'layer', 'in', 'out'])
     # [('', '', '', c) for c in items.columns] +
-    df = pd.DataFrame(data_for_dataframe, index=items.index, columns=multi_columns)
+    df_all_values = pd.DataFrame(data_for_dataframe, index=items.index, columns=multi_columns)
     # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT), and the balance computed from them
 
 
+    ## Track the behavior of particular (groups of) tokens across conditions and layers
 
-    ## Track the behavior of (groups of) tokens
-    tracking_df = create_dataframe_for_tracking(items, df, n_layers, args)
+    df_for_tracking = create_dataframe_for_tracking(items, df_all_values, n_layers, args)
     # this df contains n_layers rows per item, with as columns the original factors and the scores for all items to track.
 
     # create and save a single plot for all factors and token groups
-    line_plot(tracking_df, args)    # TODO maybe allow for multiple plots, e.g., args.plot_per_factor?)
+    plot_tracked_tokens(df_for_tracking, args)    # TODO maybe allow for multiple plots, e.g., args.plot_per_factor?)
 
     # compute and write some statistics to a file
-    write_stats(items, tracking_df, args)
-
-    quit()
-
-    ## Compute means over attention weights across all conditions (easy because they're flattened)
-    # df_means = df.groupby(items.factors).mean()
-    # print(df.groupby(items.factors).describe()) # TODO group columns?
-
-    ## Restrict attention to the factors of interest:
-
-    # cat1 = df[my_data['Category'] == 'cat1']
-    # cat2 = df[my_data['Category'] == 'cat2']
-    #
-    # ttest_ind(cat1['values'], cat2['values'])
-    # >> > (1.4927289925706944, 0.16970867501294376)
+    stats_tracked_tokens(items, df_for_tracking, args)
 
 
-    df_means = df.groupby(args.factors).mean()
+    ## Optionally output heat maps for all tokens/token groups across conditions and layers:
 
-    print(df_means)
+    if args.heatmap:
 
-    ## Print a quick text summary of main results, significance tests, etc.
-    # TODO implement this here :)
+        df_means = (df_all_values.groupby(args.factors) if args.factors else df_all_values).mean()
 
+        # Compute a list that contains, for each layer, a list of lists of matrices to be plotted.
+        weights_to_plot_per_layer = create_dataframes_for_heatmap(items, df_means, n_layers, args)
 
-    ## Time to create some plots!
+        # Compute and set global min/max to have same colormap extremes within or even across layers
+        calibrate_for_colormap(weights_to_plot_per_layer, not args.no_global_colormap)
 
-    # Compute a list that contains, for each layer, a list of lists of matrices to be plotted.
-    weights_to_plot_per_layer = create_dataframes_for_plotting(items, df_means, n_layers, args)
+        # Create a plot for each layer (collect file paths)
+        out_filepaths = []
+        for weights_to_plot in weights_to_plot_per_layer:
+            out_filepaths.append(heatmap(weights_to_plot, args))
 
-    # Compute and set global min/max to have same colormap extremes within or even across layers
-    calibrate_for_colormap(weights_to_plot_per_layer, not args.no_global_colormap)
-
-    # Create a plot for each layer (collect file paths)
-    out_filepaths = []
-    for weights_to_plot in weights_to_plot_per_layer:
-        out_filepaths.append(plot(weights_to_plot, args))
-
-    # Optionally, an animated gif :)
-    if args.gif:
-        out_filepath = "{}/{}{}{}{}.gif".format(args.out, args.method,
-                                                        "-" + args.combine if args.combine != "no" else "",
-                                                        "_normalized" if (
-                                                                args.method == "attention" and args.normalize_heads) else "",
-                                                        '_' + '-x-'.join(args.factors) if len(args.factors) > 0 else '')
-        images = []
-        for filename in out_filepaths:
-            images.append(imageio.imread(filename))
-        imageio.mimsave(out_filepath, images, format='GIF', duration=.5)
-        print("Saving movie:", out_filepath)
+        # Optionally, an animated gif :)
+        if args.gif:
+            out_filepath = "{}/{}{}{}{}.gif".format(args.out, args.method,
+                                                            "-" + args.combine if args.combine != "no" else "",
+                                                            "_normalized" if (
+                                                                    args.method == "attention" and args.normalize_heads) else "",
+                                                            '_' + '-x-'.join(args.factors) if len(args.factors) > 0 else '')
+            images = []
+            for filename in out_filepaths:
+                images.append(imageio.imread(filename))
+            imageio.mimsave(out_filepath, images, format='GIF', duration=.5)
+            print("Saving award-winning movie:", out_filepath)
 
 
-def create_dataframes_for_plotting(items, df_means, n_layers, args):
-    """
-    :param items: as read from data/example.csv
-    :param df_means: means as resulting from .groupby() the relevant factors.
-    :param n_layers: TODO can be inferred from df_means... omit here?
-    :param args: command line arguments; contain some useful things
-    :return:
-    """
-    ## Prepare for plotting
-    # Determine overall layout of the plots, adding <DIFF> in case difference plot is to be included   # TODO I'm probably mixing up vertical and horizontal here (though plots are labels so interpretation is ok)
-    levels_horiz = items.levels[args.factors[0]] if len(args.factors) >= 1 else [None]
-    levels_vert = items.levels[args.factors[1]] if len(args.factors) >= 2 else [None]
-    if len(levels_horiz) == 2 and not args.no_diff_plots:  # if two levels, also compute difference       # TODO These <DIFF>s are ugly... though at least it works.
-        levels_horiz.append('<DIFF>')
-    if len(levels_vert) == 2 and not args.no_diff_plots:  # if two levels, also compute difference
-        levels_vert.append('<DIFF>')
-
-    # This list will contain all weights matrices to-be-plotted (computed altogether, prior to plotting, in order to compute global max/min for colormap...)
-    weights_to_plot_per_layer = []
-    for l in range(n_layers):
-
-        # For each layer, there will be multiple weights matrices due to different levels per factor
-        data_to_plot = [[[] for _ in levels_vert] for _ in levels_horiz]
-
-        # Loop through rows and columns of the multiplot-to-be:
-        for h, level_horiz in enumerate(levels_horiz):
-            for v, level_vert in enumerate(levels_vert):
-                # Things are easy if it's a difference plot of plots we've already computed before:
-                if level_horiz != "<DIFF>" and level_vert == "<DIFF>":
-                    data = data_to_plot[h][0] - data_to_plot[h][1]
-                    data.difference = True
-                elif level_horiz == "<DIFF>" and level_vert != "<DIFF>":
-                    data = data_to_plot[0][v] - data_to_plot[1][v]
-                    data.difference = True
-                elif level_horiz == "<DIFF>" and level_vert == "<DIFF>":
-                    data = data_to_plot[0][0] - data_to_plot[1][1]
-                    data.difference = True
-                # More work if it's an actual weights plot:
-                else:
-                    data = df_means.loc[(level_horiz, level_vert),(slice(None),l)] if level_vert is not None else (df_means.loc[level_horiz,(slice(None),l)] if level_horiz is not None else df_means[(slice(None),l)])
-                    data.difference = False
-
-                # Some convenient metadata (used mostly when creating plots)
-                # It's a lot safer that each dataframe carries its own details with it in this way.
-                data.level_horiz = level_horiz
-                data.level_vert = level_vert
-                data.max_for_colormap = data['weights'].max().max()
-                data.min_for_colormap = data['weights'].min().min()
-                data.balance_max_for_colormap = data['balance'].max().max()
-                data.balance_min_for_colormap = data['balance'].min().min()
-                data.layer = l
-
-                # Add dataframe to designated position
-                data_to_plot[h][v] = data
-
-        # Save the weights to plot for this particular layer
-        weights_to_plot_per_layer.append(data_to_plot)
-
-    # The list weights_to_plot_per_layer now contains, for each layer, a list of lists of weights matrices.
-    return weights_to_plot_per_layer
-
+##################################################
+### A bunch of methods for the 'tracking' particular tokens/token groups.
+##################################################
 
 def create_dataframe_for_tracking(items, df, n_layers, args):
     # First copy the 'factors' columns from the original data, each row repeated n_layers times to accommodate scores per layer.
-    tracking_df = pd.DataFrame([a for b in [[item[items.factors]] * n_layers for _,item in items.iterrows()] for a in b])
+    tracking_df = pd.DataFrame([a for b in [[item[items.factors]] * n_layers for _, item in items.iterrows()] for a in b])
 
     for i,to_track in enumerate(args.track):
 
@@ -358,8 +284,7 @@ def create_dataframe_for_tracking(items, df, n_layers, args):
     return tracking_df
 
 
-
-def line_plot(df, args):
+def plot_tracked_tokens(df, args):
 
     plt.figure(figsize=(5, 3))
 
@@ -394,10 +319,12 @@ def line_plot(df, args):
     return out_filepath
 
 
-def write_stats(items, tracking_df, args):
+def stats_tracked_tokens(items, tracking_df, args):
     """
     Applies statistical test per factor level (if any) and per token group:
     TODO What about interactions of factors into account? Do a multivariate regression instead?
+    TODO T-test? Can I assume normal distributions? What about Spearman correlation across layers instead?
+    TODO What about model-fitting based on hypotheses about computation?
     :param items:
     :param tracking_df:
     :param args:
@@ -462,7 +389,73 @@ def write_stats(items, tracking_df, args):
     print("Stats written to", out_statspath)
 
 
-def plot(data, args):
+##################################################
+### A bunch of methods for the heatmap
+##################################################
+
+def create_dataframes_for_heatmap(items, df_means, n_layers, args):
+    """
+    :param items: as read from data/example.csv
+    :param df_means: means as resulting from .groupby() the relevant factors.
+    :param n_layers: TODO can be inferred from df_means... omit here?
+    :param args: command line arguments; contain some useful things
+    :return:
+    """
+    ## Prepare for plotting
+    # Determine overall layout of the plots, adding <DIFF> in case difference plot is to be included   # TODO I'm probably mixing up vertical and horizontal here (though plots are labels so interpretation is ok)
+    levels_horiz = items.levels[args.factors[0]] if len(args.factors) >= 1 else [None]
+    levels_vert = items.levels[args.factors[1]] if len(args.factors) >= 2 else [None]
+    if len(levels_horiz) == 2 and not args.no_diff_plots:  # if two levels, also compute difference       # TODO These <DIFF>s are ugly... though at least it works.
+        levels_horiz.append('<DIFF>')
+    if len(levels_vert) == 2 and not args.no_diff_plots:  # if two levels, also compute difference
+        levels_vert.append('<DIFF>')
+
+    # This list will contain all weights matrices to-be-plotted (computed altogether, prior to plotting, in order to compute global max/min for colormap...)
+    weights_to_plot_per_layer = []
+    for l in range(n_layers):
+
+        # For each layer, there will be multiple weights matrices due to different levels per factor
+        data_to_plot = [[[] for _ in levels_vert] for _ in levels_horiz]
+
+        # Loop through rows and columns of the multiplot-to-be:
+        for h, level_horiz in enumerate(levels_horiz):
+            for v, level_vert in enumerate(levels_vert):
+                # Things are easy if it's a difference plot of plots we've already computed before:
+                if level_horiz != "<DIFF>" and level_vert == "<DIFF>":
+                    data = data_to_plot[h][0] - data_to_plot[h][1]
+                    data.difference = True
+                elif level_horiz == "<DIFF>" and level_vert != "<DIFF>":
+                    data = data_to_plot[0][v] - data_to_plot[1][v]
+                    data.difference = True
+                elif level_horiz == "<DIFF>" and level_vert == "<DIFF>":
+                    data = data_to_plot[0][0] - data_to_plot[1][1]
+                    data.difference = True
+                # More work if it's an actual weights plot:
+                else:
+                    data = df_means.loc[(level_horiz, level_vert),(slice(None),l)] if level_vert is not None else (df_means.loc[level_horiz,(slice(None),l)] if level_horiz is not None else df_means[(slice(None),l)])
+                    data.difference = False
+
+                # Some convenient metadata (used mostly when creating plots)
+                # It's a lot safer that each dataframe carries its own details with it in this way.
+                data.level_horiz = level_horiz
+                data.level_vert = level_vert
+                data.max_for_colormap = data['weights'].max().max()
+                data.min_for_colormap = data['weights'].min().min()
+                data.balance_max_for_colormap = data['balance'].max().max()
+                data.balance_min_for_colormap = data['balance'].min().min()
+                data.layer = l
+
+                # Add dataframe to designated position
+                data_to_plot[h][v] = data
+
+        # Save the weights to plot for this particular layer
+        weights_to_plot_per_layer.append(data_to_plot)
+
+    # The list weights_to_plot_per_layer now contains, for each layer, a list of lists of weights matrices.
+    return weights_to_plot_per_layer
+
+
+def heatmap(data, args):
     """
     Output a single image file, typically containing several plots, depending on which factors to cross
     and whether to include a difference plot.
@@ -481,7 +474,7 @@ def plot(data, args):
 
         for r, weights in enumerate(col):
 
-            tokens = weights['balance'].index.get_level_values(1)
+            tokens = weights['balance'].index.get_level_values(0)
 
             axis = gs0[c, r] if weights.level_vert is not None else gs0[c] if weights.level_horiz is not None else gs0[0]
 
