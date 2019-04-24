@@ -55,7 +55,7 @@ parser.add_argument('--bert', type=str, default='bert-base-cased',
 parser.add_argument('--factors', type=str, default=None,
                     help='Which factors to plot, comma separated like "--factors reflexivity,gender"; default: first 2 factors in the data')
 parser.add_argument('--track', type=str, default=None,
-                    help='Which tokens/token groups to track; single tokens to track balance; pairs (,) to track their weight. Items separated by ;, e.g., term1,term2;term3. Dots (...) to track all groups.')
+                    help='Which tokens/token groups to track; single tokens to track balance; pairs (,) to track their weight. Items separated by ;, e.g., term1,term2;term3. Default tracks all groups.')
 parser.add_argument('--no_global_colormap', action="store_true",
                     help='Whether to standardize plot coloring across plots ("global"); otherwise only per plot (i.e., per layer)')
 parser.add_argument('--balance', action="store_true",
@@ -124,7 +124,7 @@ def main():
     args.factors = args.factors or items.factors[:2]    # by default use the first two factors from the data
 
     # Fill in args.track default depending on data
-    if args.track == '...':
+    if args.track is None:
         args.track = [[g] for g in items.groups]
     elif args.track is not None:
         args.track = [[a.strip() for a in b.split(',')] for b in args.track.split(";")]
@@ -167,7 +167,7 @@ def main():
             data_for_all_items[i] = np.cumsum(data_for_all_items[i], axis=0)
 
 
-    ## Compute balances (though whether they will be plotted depends on args.balance)
+    ## Compute balances (though whether they will be plotted depends on args.balance)   # TODO rename 'balance' something else...
     # (Re)compute balance: how much token influences minus how much is influenced
     balance_for_all_items = []
     for data_for_item in data_for_all_items:
@@ -189,8 +189,8 @@ def main():
     ## TODO The following applies only if there are groups of tokens.
     ## TODO Otherwise, perhaps have option of plotting individual sentences + balance, but no comparison?
 
-    ## Store the weights in dataframe together with original data
-    # TODO All of this feels terribly hacky...
+
+    ## Store the weights and balance in dataframe      # TODO All of this feels terribly hacky...
     # First flatten the numpy array per item
     data_for_all_items = [data.reshape(-1).tolist() for data in data_for_all_items]
     balance_for_all_items = [data.reshape(-1).tolist() for data in balance_for_all_items]
@@ -205,27 +205,28 @@ def main():
     df = pd.DataFrame(data_for_dataframe, index=items.index, columns=multi_columns)
     # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT), and the balance computed from them
 
-    if args.track is not None:
 
-        stacked_df = pd.DataFrame([a for b in [[item[items.factors]] * n_layers for _,item in items.iterrows()] for a in b])
+    ## First copy the 'factors' columns from the original data, each row repeated n_layers times to accommodate scores per layer.
+    stacked_df = pd.DataFrame([a for b in [[item[items.factors]] * n_layers for _,item in items.iterrows()] for a in b])
 
-        for i,to_track in enumerate(args.track):
+    for i,to_track in enumerate(args.track):
 
-            if len(to_track) == 1:
-                score = 'balance'
-                data = df.loc[:, ('balance', slice(None), to_track[0])]
-            else:
-                score = 'weights'
-                data = df.loc[:, ('weights', slice(None), to_track[0], to_track[1])]
+        if len(to_track) == 1:
+            score = 'balance'
+            data = df.loc[:, ('balance', slice(None), to_track[0])]
+        else:
+            score = 'weights'
+            data = df.loc[:, ('weights', slice(None), to_track[0], to_track[1])]
 
-            data = data.stack(level=1, dropna=False).reset_index(level=[1])
+        data = data.stack(level=1, dropna=False).reset_index(level=[1])
 
-            data.columns = data.columns.droplevel([1, 2])
-            data.rename(columns={score: '>'.join(to_track)}, inplace=True)
+        data.columns = data.columns.droplevel([1, 2])
+        data.rename(columns={score: '>'.join(to_track)}, inplace=True)
 
-            stacked_df = pd.concat([stacked_df, data[(['layer'] if i==0 else []) + ['>'.join(to_track)]]], axis=1)
+        stacked_df = pd.concat([stacked_df, data[(['layer'] if i==0 else []) + ['>'.join(to_track)]]], axis=1)
 
-        line_plot(items, stacked_df, args)
+    line_plot(items, stacked_df, args)
+
 
     # TODO: Generalize
     stats = []
