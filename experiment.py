@@ -206,83 +206,16 @@ def main():
     # Dataframe with three sets of columns: columns from original dataframe, weights (as extracted from BERT), and the balance computed from them
 
 
-    ## First copy the 'factors' columns from the original data, each row repeated n_layers times to accommodate scores per layer.
-    stacked_df = pd.DataFrame([a for b in [[item[items.factors]] * n_layers for _,item in items.iterrows()] for a in b])
 
-    for i,to_track in enumerate(args.track):
+    ## Track the behavior of (groups of) tokens
+    tracking_df = create_dataframe_for_tracking(items, df, n_layers, args)
+    # this df contains n_layers rows per item, with as columns the original factors and the scores for all items to track.
 
-        if len(to_track) == 1:
-            score = 'balance'
-            data = df.loc[:, ('balance', slice(None), to_track[0])]
-        else:
-            score = 'weights'
-            data = df.loc[:, ('weights', slice(None), to_track[0], to_track[1])]
+    # create and save a single plot for all factors and token groups
+    line_plot(tracking_df, args)    # TODO maybe allow for multiple plots, e.g., args.plot_per_factor?)
 
-        data = data.stack(level=1, dropna=False).reset_index(level=[1])
-
-        data.columns = data.columns.droplevel([1, 2])
-        data.rename(columns={score: '>'.join(to_track)}, inplace=True)
-
-        stacked_df = pd.concat([stacked_df, data[(['layer'] if i==0 else []) + ['>'.join(to_track)]]], axis=1)
-
-    line_plot(items, stacked_df, args)
-
-
-    # TODO: Generalize
-    stats = []
-    if args.prefix == "OPEN-CLOSED_":
-        t_tested = stacked_df.dropna().groupby('layer').apply(lambda df: ttest_ind(df['open'], df['closed'], equal_var=False))
-        t_tested.a = "open"
-        t_tested.b = "closed"
-        stats.append(t_tested)
-    elif args.prefix == "COREF_":
-        t_tested = stacked_df.dropna().groupby('layer').apply(lambda df: ttest_ind(df.where(df['coref'] == 'True').dropna()['noun>pronoun'], df.where(df['coref'] == 'False').dropna()['noun>pronoun'], equal_var=False))
-        t_tested.a = "coref"
-        t_tested.b = "nocoref"
-        stats.append(t_tested)
-    elif args.prefix == "POS_":
-        for i, pos1 in enumerate(items.groups):
-            for j, pos2 in enumerate(items.groups):
-                if i < j:
-                    t_tested = stacked_df.dropna().groupby('layer').apply(lambda df: ttest_ind(df[pos1], df[pos2], equal_var=False))
-                    t_tested.a = pos1
-                    t_tested.b = pos2
-                    stats.append(t_tested)
-
-    out_statspath = "{}/{}stats_{}{}{}.tsv".format(args.out,
-                                                  args.prefix,
-                                                  args.method,
-                                                  "-" + args.combine if args.combine != "no" else "",
-                                                  "_normalized" if (args.method == "attention" and args.normalize_heads) else "",
-                                                  )
-
-    with open(out_statspath, 'w') as file:
-        for t_tested in stats:
-            file.write('\n\nt-test ' + t_tested.a + ' vs. ' + t_tested.b + '\n')
-            for l, row in enumerate(t_tested.values):
-                file.write('\t'.join([str(l), str(row[0].round(2)), str(row[1].round(5))])+'\n')
-
-    stats = []
-    with open(out_statspath, 'a') as file:
-        file.write('\n\n\n============================================\n\n\n And now conflating all layers:\n')
-        if args.prefix == "OPEN-CLOSED_":
-            t_tested = ttest_ind(stacked_df['open'].dropna(), stacked_df['closed'].dropna(), equal_var=False)
-            file.write('\n\nt-test ' + 'open' + ' vs. ' + 'closed' + '\n')
-            file.write('\t'.join([str(t_tested[0].round(2)), str(t_tested[1])])+'\n')
-            stats.append(t_tested)
-        elif args.prefix == "COREF_":
-            t_tested = ttest_ind(stacked_df.where(stacked_df['coref'] == 'True').dropna()['noun>pronoun'], stacked_df.where(stacked_df['coref'] == 'False').dropna()['noun>pronoun'], equal_var=False)
-            file.write('\n\nt-test ' + 'coref' + ' vs. ' + 'nocoref' + '\n')
-            file.write('\t'.join([str(t_tested[0].round(2)), str(t_tested[1])]) + '\n')
-            stats.append(t_tested)
-        elif args.prefix == "POS_": # Compare only in decreasing order of means?!
-            for i, pos1 in enumerate(items.groups):
-                for j, pos2 in enumerate(items.groups):
-                    if i < j:
-                        t_tested = ttest_ind(stacked_df[pos1].dropna(), stacked_df[pos2].dropna(), equal_var=False)
-                        file.write('\nt-test ' + pos1 + ' vs. ' + pos2 + '\n')
-                        file.write('\t'.join([str(t_tested[0].round(2)), str(t_tested[1])]) + '\n')
-                        stats.append(t_tested)
+    # compute and write some statistics to a file
+    write_stats(items, tracking_df, args)
 
     quit()
 
@@ -396,7 +329,37 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
     return weights_to_plot_per_layer
 
 
-def line_plot(items, df, args):
+def create_dataframe_for_tracking(items, df, n_layers, args):
+    # First copy the 'factors' columns from the original data, each row repeated n_layers times to accommodate scores per layer.
+    tracking_df = pd.DataFrame([a for b in [[item[items.factors]] * n_layers for _,item in items.iterrows()] for a in b])
+
+    for i,to_track in enumerate(args.track):
+
+        # Tokens (or token groups) to track can be pairs (weight between them) or single tokens (balance)
+        if len(to_track) == 1:
+            score = 'balance'
+            data = df.loc[:, ('balance', slice(None), to_track[0])]
+        else:
+            score = 'weights'
+            data = df.loc[:, ('weights', slice(None), to_track[0], to_track[1])]
+
+        # Move layers from column index to row index
+        data = data.stack(level=1, dropna=False).reset_index(level=[1])
+
+        # Remove unused levels in columns multiindex
+        data.columns = data.columns.droplevel([1, 2])
+
+        # Rename 'weight' or 'balance' to the tokens to track
+        data.rename(columns={score: '>'.join(to_track)}, inplace=True)
+
+        # concatenate with columns already in tracking_df (initially: factors from original items):
+        tracking_df = pd.concat([tracking_df, data[(['layer'] if i==0 else []) + ['>'.join(to_track)]]], axis=1)
+
+    return tracking_df
+
+
+
+def line_plot(df, args):
 
     plt.figure(figsize=(5, 3))
 
@@ -409,14 +372,15 @@ def line_plot(items, df, args):
     ax.set_title("Tracking {}{} across layers".format(args.method, (" (" + args.combine + ")") if args.combine is not "no" else ""))
     ax.set_ylabel("{}{}".format(args.method, (" (" + args.combine + ")") if args.combine is not "no" else ""))
 
+    # TODO Fix the legend.
     ax.legend()
     handles, labels = ax.get_legend_handles_labels()
     lgd = dict(zip(labels, handles))
     ax.legend(lgd.values(), lgd.keys())
-
     # plt.legend()
 
     # TODO Also an overall mean plot on the side
+
     out_filepath = "{}/{}track_{}{}{}.png".format(args.out,
                                                 args.prefix,
                                                   args.method,
@@ -428,6 +392,74 @@ def line_plot(items, df, args):
     pylab.savefig(out_filepath)
 
     return out_filepath
+
+
+def write_stats(items, tracking_df, args):
+    """
+    Applies statistical test per factor level (if any) and per token group:
+    TODO What about interactions of factors into account? Do a multivariate regression instead?
+    :param items:
+    :param tracking_df:
+    :param args:
+    :return:
+    """
+
+    ttest_results = []
+    for factor in args.factors if args.factors else [None]:
+        for l1, level1 in enumerate(items.levels[factor] if args.factors else [None]):
+            for l2, level2 in enumerate(items.levels[factor] if args.factors else [None]):
+                if l1 <= l2:
+                    for g1, group1 in enumerate(args.track) if args.track else [None]:
+                        for g2, group2 in enumerate(args.track) if args.track else [None]:
+                            if g1 <= g2 and not (l1 == l2 and g1 == g2):
+                                if factor is not None and group1 is not None:
+                                    t_tested = tracking_df.dropna().groupby('layer').apply(
+                                        lambda df: ttest_ind(df.where(df[factor] == level1).dropna()['>'.join(group1)],
+                                                             df.where(df[factor] == level2).dropna()['>'.join(group2)],
+                                                             equal_var=False))
+                                    t_tested.loc['overall'] = ttest_ind(
+                                        tracking_df.where(tracking_df[factor] == level1).dropna()['>'.join(group1)],
+                                        tracking_df.where(tracking_df[factor] == level2).dropna()['>'.join(group2)],
+                                        equal_var=False)
+                                elif group1 is not None:
+                                    t_tested = tracking_df.dropna().groupby('layer').apply(
+                                        lambda df: ttest_ind(df['>'.join(group1)],
+                                                             df['>'.join(group2)],
+                                                             equal_var=False))
+                                    t_tested.loc['overall'] = ttest_ind(tracking_df['>'.join(group1)].dropna(),
+                                                                        tracking_df['>'.join(group2)].dropna(),
+                                                                        equal_var=False)
+                                elif factor is not None:
+                                    t_tested = tracking_df.dropna().groupby('layer').apply(
+                                        lambda df: ttest_ind(df.where(df[factor] == level1).dropna(),
+                                                             df.where(df[factor] == level2).dropna(),
+                                                             equal_var=False))
+                                    t_tested.loc['overall'] = ttest_ind(
+                                        tracking_df.where(tracking_df[factor] == level1).dropna(),
+                                        tracking_df.where(tracking_df[factor] == level2).dropna(),
+                                        equal_var=False)
+
+                                # Add some convenient metadata:
+                                t_tested.a = ' '.join(([level1] if level1 is not None else []) + (
+                                ['>'.join(group1)] if group1 is not None else []))
+                                t_tested.b = ' '.join(([level2] if level2 is not None else []) + (
+                                ['>'.join(group2)] if group2 is not None else []))
+                                ttest_results.append(t_tested)
+
+    out_statspath = "{}/{}stats_{}{}{}.tsv".format(args.out,
+                                                  args.prefix,
+                                                  args.method,
+                                                  "-" + args.combine if args.combine != "no" else "",
+                                                  "_normalized" if (args.method == "attention" and args.normalize_heads) else "",
+                                                  )
+
+    with open(out_statspath, 'w') as file:
+        for t_tested in ttest_results:
+            file.write('\n\nt-test ' + t_tested.a + ' vs. ' + t_tested.b + '\n')
+            for l, row in t_tested.iteritems():
+                file.write('\t'.join([str(l), str(row[0].round(2)), str(row[1].round(5))])+'\n')
+
+    print("Stats written to", out_statspath)
 
 
 def plot(data, args):
@@ -528,8 +560,6 @@ def plot(data, args):
     # pylab.show()
 
     return out_filepath
-
-# plt.subplots(1, 2, gridspec_kw={'width_ratios': [3, 1]})      # different size subplots
 
 
 def calibrate_for_colormap(weights_to_plot_per_layer, global_colormap):
