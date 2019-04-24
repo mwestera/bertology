@@ -397,7 +397,7 @@ def create_dataframes_for_plotting(items, df_means, n_layers, args):
 
 def line_plot(items, df, args):
 
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(5, 3))
 
     for to_track in args.track:
         ax = sns.lineplot(x="layer", y='>'.join(to_track),
