@@ -397,7 +397,7 @@ def write_file_for_coreference(n):
                                     #     row.append('|3 ' + token[0] + ' |') # competing pronouns get nr 3
                                     else:
                                         row.append(token[1])
-                                items_coref.append([sentence[0][0], True, consequent[0] - antecedent[0], ' '.join(row).replace('| |', '|')])
+                                items_coref.append([sentence[0][0], 'coref', consequent[0] - antecedent[0], ' '.join(row).replace('| |', '|')])
                         else:
                             row = []
                             for idx, token in enumerate(sentence):
@@ -411,7 +411,7 @@ def write_file_for_coreference(n):
                                 #     row.append('|3 ' + token[0] + ' |') # competing pronouns get nr 3
                                 else:
                                     row.append(token[1])
-                            items_nocoref.append([sentence[0][0], False, consequent[0] - antecedent[0], ' '.join(row).replace('| |', '|')])
+                            items_nocoref.append([sentence[0][0], 'nocoref', consequent[0] - antecedent[0], ' '.join(row).replace('| |', '|')])
 
     # TODO Should I not randomize this?
     items_coref = items_coref[:n/2]
