@@ -1,23 +1,65 @@
 Perhaps first quick check of levels of categorization, to see if it holds promise. Then dive into dependencies.
 
 
-CONDITIONS TO TRY
-- attention vs. gradient.
-- chain vs cumsum vs no.
 - mean vs sum of token groups
     https://nlp.stanford.edu/pubs/hewitt2019structural.pdf  use mean.
-- info flow from heads to tails or vice versa? currently: tails to heads.
-- normalization on vs. off? :s Nah, better not.
-- evaluate trees just wrt. the main dependencies (e.g., verb arguments only).
-
-And that's just for dependencies... I also want to check levels of categorization (takes less time...), and coreference?
 
 
 TODO:
 - also traina simple linear transformation on the weights matrix to get a tree?
 
 
-BASELINE LEFT: 0.3549140191095338 RIGHT: 0.3070679434214699 RANDOM: 0.07333368175732503 (gold: 1.0)
+EWT:
+
+LEFT
+    open
+      head_attachment_score:0.24335803236646603  undirected_attachment_score:0.3114817920140477  num_rels:7.364
+    closed
+      head_attachment_score:0.5606060606060606  undirected_attachment_score:0.7651515151515151  num_rels:0.116
+    core
+      head_attachment_score:0.18701901346912947  undirected_attachment_score:0.30577953884218384  num_rels:2.48
+    non-core
+      head_attachment_score:0.08435749082888047  undirected_attachment_score:0.13070614671432113  num_rels:1.864
+    all
+      head_attachment_score:0.3145808774308146  undirected_attachment_score:0.40867879236800525  num_rels:17.464
+  RIGHT
+    open
+      head_attachment_score:0.06812375964758165
+    closed
+      head_attachment_score:0.20454545454545456
+    core
+      head_attachment_score:0.11876052537305438
+    non-core
+      head_attachment_score:0.04634865588544063
+    all
+      head_attachment_score:0.09409791493719064
+
+
+GUM:
+
+LEFT
+    open
+      head_attachment_score:0.24073778473648522  undirected_attachment_score:0.31981179492512374  num_rels:7.782
+    closed
+      head_attachment_score:0.5531914893617021  undirected_attachment_score:0.5531914893617021  num_rels:0.146
+    core
+      head_attachment_score:0.22158838046688512  undirected_attachment_score:0.3272135574705668  num_rels:2.254
+    non-core
+      head_attachment_score:0.0644578137598442  undirected_attachment_score:0.07799721429163052  num_rels:2.174
+    all
+      head_attachment_score:0.321202606169635  undirected_attachment_score:0.39933569802695845  num_rels:18.294
+  RIGHT
+    open
+      head_attachment_score:0.07907401018863854
+    closed
+      head_attachment_score:0.0
+    core
+      head_attachment_score:0.10562517700368167
+    non-core
+      head_attachment_score:0.013539400531786316
+    all
+      head_attachment_score:0.07813309185732342
+
 
 
 dependency.py data/en_ewt-ud-train500-dep.csv --method attention --combine no
@@ -102,3 +144,35 @@ layer
 11     0.117146
 overall mean score    0.181234
 dtype: float64
+
+
+data/en_ewt-ud-train500-dep.csv --method gradient --combine cumsum --cuda
+
+[500 rows x 126203 columns]
+means per layer:
+           score
+layer
+0      0.213652
+1      0.257254
+2      0.269151
+3      0.270425
+4      0.277420
+5      0.270632
+6      0.292905
+7      0.286653
+8      0.294335
+9      0.299210
+10     0.271173
+11     0.263147
+overall mean score    0.272163
+dtype: float64
+
+
+
+
+
+
+Mean distance/variance:
+coref: 1368 10.654239766081872 81.63264284309702
+nocoref: 1314 13.230593607305936 124.28244302662581
+Writing 1000 items to file ontonotes_dev_info_NN-PRP.csv
