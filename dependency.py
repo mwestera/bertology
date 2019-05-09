@@ -63,15 +63,7 @@ parser.add_argument('--cuda', action="store_true",
 parser.add_argument('--no_overwrite', action="store_true",
                     help='To not overwrite existing files.')
 
-# TODO Move all intermediate auxiliary files to output/aux/ directory.
-# TODO Make sure to try merging token pieces with summing...
-
 # TODO: perhaps it's useful to allow plotting means over layers; sliding window-style? or chaining but with different starting points?
-# TODO: Is attention-chain bugged? Plots are uninterpretable; without normalization super high values only at layer 10-11... with normalization... big gray mess.
-# TODO: Should I take sum influence per group of tokens, or mean? E.g., with averaging, "a boy" will be dragged down by uninformative "a"...
-# TODO: Check why attention-chain doesn't yield good pictures; does normalization even make sense? What about normalizing the whole matrix just for the sake of comparability across layers?
-
-# TODO: I got an error when running on example.csv with --n_items 1 or even 2.
 
 def main():
     """
@@ -127,9 +119,6 @@ def main():
                                                                            '_' + 'transpose' if args.transpose else '',
                                                                            )
 
-    print(args.trees_out)
-    print(args.pearson_out)
-
     ## Do we need to apply BERT (anew)?
     apply_BERT = True
     if os.path.exists(args.raw_out):
@@ -159,12 +148,10 @@ def main():
     tokenizer = BertTokenizer.from_pretrained(args.bert, do_lower_case=("uncased" in args.bert))
     items, dependency_trees = data_utils.parse_data(args.data, tokenizer, max_items=args.n_items, words_as_groups=True, dependencies=True)
 
-    # print(len(items), 'items')
-    # with pd.option_context('display.max_rows', 10, 'display.max_columns', None):
-    #     print(items)
 
     ## Store for convenience
     args.factors = args.factors or items.factors[:2]    # by default use the first two factors from the data
+
 
     ## Now that args.factors is known, finally choose output directory
     if args.out is None:
@@ -197,6 +184,7 @@ def main():
             print('BERTs raw outputs loaded from', args.raw_out)
             data_for_all_items = pickle.load(file)
     n_layers = data_for_all_items[0].shape[0] # for convenience
+
 
     # The list data_for_all_items now contains, for each item, weights (n_layers, n_tokens, n_tokens)
 
@@ -421,6 +409,7 @@ def plot_pearson_scores(scores_df, args):
     pylab.savefig(out_filepath)
 
     return out_filepath
+
 
 if __name__ == "__main__":
     main()

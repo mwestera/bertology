@@ -70,10 +70,6 @@ parser.add_argument('--prefix', type=str, default='',
                     help='Prefix for saved (non-auxiliary) output files like plots.')
 
 # TODO: perhaps it's useful to allow plotting means over layers; sliding window-style? or chaining but with different starting points?
-# TODO: Is attention-chain bugged? Plots are uninterpretable; without normalization super high values only at layer 10-11... with normalization... big gray mess.
-# TODO: Should I take sum influence per group of tokens, or mean? E.g., with averaging, "a boy" will be dragged down by uninformative "a"...
-# TODO: Check why attention-chain doesn't yield good pictures; does normalization even make sense? What about normalizing the whole matrix just for the sake of comparability across layers?
-
 # TODO: I got an error when running on example.csv with --n_items 1 or even 2.
 
 # TODO: Compose output file basename more centrally; add PREFIX to the folder name.
