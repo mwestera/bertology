@@ -69,6 +69,8 @@ parser.add_argument('--heatmap', action="store_true",
 parser.add_argument('--prefix', type=str, default='',
                     help='Prefix for saved (non-auxiliary) output files like plots.')
 
+# TODO: Allow a more 'localist' analysis mode? See if there are any single neurons disproportionately reactive to a distinction, by looking at gradients.
+
 # TODO: perhaps it's useful to allow plotting means over layers; sliding window-style? or chaining but with different starting points?
 # TODO: I got an error when running on example.csv with --n_items 1 or even 2.
 
