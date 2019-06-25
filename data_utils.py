@@ -604,6 +604,25 @@ def colorless_sentences_from_categories(n):
     print('wrote {} items to {}'.format(len(colorless), 'data/category-sentences-colorless.csv'))
 
 
+
+def read_all_categories():
+    path = 'data/raw/sub-basic-super_triples_v0.tsv'
+    categories = []
+    with open(path) as file:
+        for i, line in enumerate(file):
+            if i != 0:
+                line = line.split()
+                lists = ' '.join(line[4:-1]).replace('"[','[').replace(']"', ']').split(']')
+                lists = [l + ']' for l in lists if l != ""]
+                lists = [eval(l) for l in lists]
+                lists = [[s.replace('_', ' ') for s in l] for l in lists]
+                line = line[:3] + lists + [line[-1]]
+                categories.append(line)
+
+    ## Got tons of triples now to work with
+
+    # TODO: Build colorless sentences; simple CFG; maybe using https://github.com/gabrielilharco/sentence-generator
+
 # def generate_sentences_from_categories_and_conllu(n, n_templates):
 #
 #     ## Read dictioary with replacements
@@ -900,6 +919,9 @@ if __name__ == "__main__":
     # write_file_for_main_POS()
 
     # write_file_for_coreference(500)
+
+    read_all_categories()
+    quit()
 
     pass
     # colorless_sentences_from_categories(500)
