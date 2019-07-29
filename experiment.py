@@ -37,6 +37,8 @@ parser.add_argument('--method', type=str, default='gradient', choices=["gradient
                     help='attention or gradient (default)')
 parser.add_argument('--combine', type=str, default='no', choices=["chain", "cumsum", "no"],
                     help='how to combine layers: chain, cumsum, or no (default)')
+parser.add_argument('--estimator', type=str, default="mean", choices=["none", "mean"],
+                    help='for lineplots')
 parser.add_argument('--normalize_heads', action="store_true",
                     help='To apply normalization per attention head (only used for "attention" method).')
 parser.add_argument('--ignore_groups', action="store_true",
@@ -99,6 +101,8 @@ def main():
 
     if args.prefix != '':
         args.prefix += '_'
+
+    args.estimator = None if args.estimator.lower() == "none" else args.estimator
 
     if args.raw_out is None:
         args.raw_out = 'output/auxiliary/{}_{}{}{}{}.pkl'.format(os.path.basename(args.data)[:-4],
@@ -286,13 +290,17 @@ def create_dataframe_for_tracking(items, df, n_layers, args):
 
 def plot_tracked_tokens(df, args):
 
-    plt.figure(figsize=(5, 3))
+
+    plt.figure(figsize=(20, 12))
+
+    df['item'] = df.index
+    kwargs = {'units': 'item', 'alpha': .3} if args.estimator is None else {}
 
     for to_track in args.track:
         ax = sns.lineplot(x="layer", y='>'.join(to_track),
                       hue=None if len(args.track) > 1 else args.factors[0] if len(args.factors) > 0 else None,
                       style=args.factors[0] if len(args.factors) > 0 and len(args.track) > 1 else args.factors[1] if len(args.factors) > 1 else None,
-                      data=df, label='>'.join(to_track))
+                      data=df, label='>'.join(to_track), estimator=args.estimator, **kwargs)
     # ax = sns.lineplot(x="layer", y=score, hue=args.factors[0] if len(args.factors) > 0 else None, style=args.factors[1] if len(args.factors) > 1 else None, data=data, label=to_track)
     ax.set_title("Tracking {}{} across layers".format(args.method, (" (" + args.combine + ")") if args.combine is not "no" else ""))
     ax.set_ylabel("{}{}".format(args.method, (" (" + args.combine + ")") if args.combine is not "no" else ""))
