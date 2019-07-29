@@ -26,6 +26,8 @@ import data_utils
 
 from scipy.stats import ttest_ind, ttest_rel
 
+sns.set(font_scale=3, style="ticks", rc={"lines.linewidth": 3})
+
 parser = argparse.ArgumentParser(description='e.g., experiment.py data/example.csv')
 parser.add_argument('data', type=str,
                     help='Path to data file (typically .csv).')
@@ -296,7 +298,7 @@ def plot_tracked_tokens(df, args):
     plt.figure(figsize=(20, 12))
 
     df['item'] = df.index
-    kwargs = {'units': 'item', 'alpha': .3} if args.estimator is None else {}
+    kwargs = {'units': 'item', 'alpha': .15} if args.estimator is None else {}
 
     for to_track in args.track:
         ax = sns.lineplot(x="layer", y='>'.join(to_track),
@@ -304,23 +306,28 @@ def plot_tracked_tokens(df, args):
                       style=args.factors[0] if len(args.factors) > 0 and len(args.track) > 1 else args.factors[1] if len(args.factors) > 1 else None,
                       data=df, label='>'.join(to_track), estimator=args.estimator, **kwargs)
     # ax = sns.lineplot(x="layer", y=score, hue=args.factors[0] if len(args.factors) > 0 else None, style=args.factors[1] if len(args.factors) > 1 else None, data=data, label=to_track)
-    ax.set_title("Tracking {}{} across layers".format(args.method, (" (" + args.combine + ")") if args.combine is not "no" else ""))
-    ax.set_ylabel("{}{}".format(args.method, (" (" + args.combine + ")") if args.combine is not "no" else ""))
+    ax.set_title("Tracking {}{} across layers".format(args.method, (" (" + args.combine + ")") if args.combine != "no" else ""))
+    ax.set_ylabel("{}{}".format(args.method, (" (" + args.combine + ")") if args.combine != "no" else ""))
+    ax.set_xlabel(ax.get_xlabel().capitalize())
+    ax.set_ylabel(ax.get_ylabel().capitalize())
 
     # TODO Fix the legend.
     ax.legend()
     handles, labels = ax.get_legend_handles_labels()
     lgd = dict(zip(labels, handles))
-    ax.legend(lgd.values(), lgd.keys())
-    # plt.legend()
+    leg = ax.legend(lgd.values(), lgd.keys(), bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+    for lh in leg.legendHandles:
+        lh.set_alpha(1)
+    plt.tight_layout()
 
     # TODO Also an overall mean plot on the side
 
-    out_filepath = "{}/{}track_{}{}{}.png".format(args.out,
+    out_filepath = "{}/{}track_{}{}{}{}.png".format(args.out,
                                                 args.prefix,
                                                   args.method,
                                                  "-"+args.combine if args.combine != "no" else "",
                                                  "_normalized" if (args.method == "attention" and args.normalize_heads) else "",
+                                                "" if args.estimator is None else "_"+args.estimator,
                                                 )
                                                  # ';'.join([','.join(to_track) for to_track in args.track]))
     print("Saving figure:", out_filepath)
