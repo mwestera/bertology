@@ -833,6 +833,10 @@ def parse_data(data_path, tokenizer, max_items=None, words_as_groups=False, depe
 
     items = pd.DataFrame(items, columns=columns)
 
+    # Appropriate types
+    if 'distance' in items:
+        items['distance'] = items['distance'].astype(int)
+
     # Add a bunch of useful metadata to the DataFrame
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')
