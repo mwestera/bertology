@@ -11,6 +11,8 @@ import seaborn as sns
 import matplotlib.pylab as pylab
 import imageio
 
+import statsmodels.api as sm
+
 import os
 import warnings
 
@@ -339,6 +341,51 @@ def stats_tracked_tokens(items, tracking_df, args):
     :return:
     """
 
+    out_statspath = "{}/{}stats_{}{}{}.tsv".format(args.out,
+                                                  args.prefix,
+                                                  args.method,
+                                                  "-" + args.combine if args.combine != "no" else "",
+                                                  "_normalized" if (args.method == "attention" and args.normalize_heads) else "",
+                                                  )
+
+    with open(out_statspath, 'w+') as file:
+
+        if len(args.factors) == 0:
+
+            pass
+
+            ## If no factors are given, let X be the tracked token? Nah, this doesn't make sense: OLS for a categorical X.
+            # print(tracking_df[:10])
+            #
+            # tracking_df['weight'] = np.nan
+            # tracking_df['tracked'] = ""
+            # for to_track in args.track:
+            #     tracking_df['weight'] = tracking_df['weight'].fillna(tracking_df[to_track])
+            #     tracking_df['']
+            #
+            #
+            # tracking_df[].fillna()
+            #
+            # X = tracking_df[['>'.join(to_track) for to_track in args.track]]
+            # X = sm.add_constant(X)
+
+        else:
+            for to_track in args.track:
+                X = tracking_df[args.factors]
+                X = sm.add_constant(X)
+                if 'coref' in X:
+                    X['distance'] = tracking_df['distance']
+                    X['coref'] = (X['coref'] == 'coref').astype(int)
+                    X['coref*distance'] = X['coref'] * X['distance']
+
+                y = tracking_df['>'.join(to_track)]
+
+                model = sm.OLS(y, X).fit()
+                predictions = model.predict()
+                with open(out_statspath, 'a') as file:
+                    file.write('\n\n'+str(model.summary())+'\n\n')
+
+
     ttest_results = []
     for factor in args.factors if args.factors else [None]:
         for l1, level1 in enumerate(items.levels[factor] if args.factors else [None]):
@@ -381,14 +428,7 @@ def stats_tracked_tokens(items, tracking_df, args):
                                 ['>'.join(group2)] if group2 is not None else []))
                                 ttest_results.append(t_tested)
 
-    out_statspath = "{}/{}stats_{}{}{}.tsv".format(args.out,
-                                                  args.prefix,
-                                                  args.method,
-                                                  "-" + args.combine if args.combine != "no" else "",
-                                                  "_normalized" if (args.method == "attention" and args.normalize_heads) else "",
-                                                  )
-
-    with open(out_statspath, 'w') as file:
+    with open(out_statspath, 'a+') as file:
         for t_tested in ttest_results:
             file.write('\n\nt-test ' + t_tested.a + ' vs. ' + t_tested.b + '\n')
             for l, row in t_tested.iteritems():
