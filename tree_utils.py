@@ -4,7 +4,7 @@ import numpy as np
 
 import data_utils
 
-from scipy.stats.stats import pearsonr
+from scipy.stats.stats import pearsonr, spearmanr
 
 Arc = namedtuple('Arc', ('head', 'weight', 'tail'))
 
@@ -153,7 +153,7 @@ def undirected_attachment_score(tree1, tree2):
     return head_attachment_score(tree1, tree2)
 
 
-def pearson_correlation(matrix1, matrix2):
+def correlation(matrix1, matrix2, method="pearson"):
 
     # TODO Not sure if necessary:
     matrix1 = matrix1.reshape(-1)
@@ -165,8 +165,10 @@ def pearson_correlation(matrix1, matrix2):
     matrix1_nonan = matrix1_nonan[~np.isnan(matrix2_nonan)]
     matrix2_nonan = matrix2_nonan[~np.isnan(matrix2_nonan)]
 
-    return pearsonr(matrix1_nonan, matrix2_nonan)
-
+    if method == "pearson":
+        return pearsonr(matrix1_nonan, matrix2_nonan)
+    else:
+        return spearmanr(matrix1_nonan, matrix2_nonan)
 
 def pearson_scores(matrix1, conllu_rep, matrix2=None, matrix2_bidirectional=None):
     if matrix2 is None:
@@ -185,10 +187,10 @@ def pearson_scores(matrix1, conllu_rep, matrix2=None, matrix2_bidirectional=None
     matrix2_bidirectional_diag = matrix2_bidirectional.copy()
     np.fill_diagonal(matrix2_bidirectional_diag, np.nan)
 
-    c1, p1 = pearson_correlation(matrix1, matrix2)
-    c1b, p1b = pearson_correlation(matrix1, matrix2_diag)
-    c2, p2 = pearson_correlation(matrix1, matrix2_bidirectional)
-    c2b, p2b = pearson_correlation(matrix1, matrix2_bidirectional_diag)
+    c1, p1 = correlation(matrix1, matrix2)
+    c1b, p1b = correlation(matrix1, matrix2_diag)
+    c2, p2 = correlation(matrix1, matrix2_bidirectional)
+    c2b, p2b = correlation(matrix1, matrix2_bidirectional_diag)
 
     return [c1,p1,c1b,p1b,c2,p2,c2b,p2b]
 
