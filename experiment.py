@@ -26,7 +26,7 @@ import data_utils
 
 from scipy.stats import ttest_ind, ttest_rel
 
-sns.set(font_scale=3, style="ticks", rc={"lines.linewidth": 3})
+sns.set(font_scale=4, style="ticks", rc={"lines.linewidth": 3})
 
 parser = argparse.ArgumentParser(description='e.g., experiment.py data/example.csv')
 parser.add_argument('data', type=str,
@@ -294,8 +294,7 @@ def create_dataframe_for_tracking(items, df, n_layers, args):
 
 def plot_tracked_tokens(df, args):
 
-
-    plt.figure(figsize=(20, 12))
+    plt.figure(figsize=(20, 10))
 
     df['item'] = df.index
     kwargs = {'units': 'item', 'alpha': .15} if args.estimator is None else {}
@@ -310,6 +309,7 @@ def plot_tracked_tokens(df, args):
     ax.set_ylabel("{}{}".format(args.method, (" (" + args.combine + ")") if args.combine != "no" else ""))
     ax.set_xlabel(ax.get_xlabel().capitalize())
     ax.set_ylabel(ax.get_ylabel().capitalize())
+    plt.xticks(np.arange(0, 12, step=1), np.arange(1, 13, step=1))
 
     # TODO Fix the legend.
     ax.legend()
@@ -348,11 +348,12 @@ def stats_tracked_tokens(items, tracking_df, args):
     :return:
     """
 
-    out_statspath = "{}/{}stats_{}{}{}.tsv".format(args.out,
+    out_statspath = "{}/{}stats_{}{}{}{}.tsv".format(args.out,
                                                   args.prefix,
                                                   args.method,
                                                   "-" + args.combine if args.combine != "no" else "",
                                                   "_normalized" if (args.method == "attention" and args.normalize_heads) else "",
+                                                  "" if args.estimator is None else "_" + args.estimator,
                                                   )
 
     with open(out_statspath, 'w+') as file:
@@ -379,13 +380,23 @@ def stats_tracked_tokens(items, tracking_df, args):
         else:
             for to_track in args.track:
                 X = tracking_df[args.factors]
-                X = sm.add_constant(X)
+
                 if 'coref' in X:
                     X['distance'] = tracking_df['distance']
                     X['coref'] = (X['coref'] == 'coref').astype(int)
                     X['coref*distance'] = X['coref'] * X['distance']
 
                 y = tracking_df['>'.join(to_track)]
+
+                # print(X[:50].to_string())
+                # standardize = lambda x: (x - x.mean()) / x.std()
+                # for col in X.columns:
+                #     print(col)
+                #     X[col] = standardize(X[col])
+                # print(X[:50].to_string())
+                # y = standardize(y)
+
+                X = sm.add_constant(X)
 
                 model = sm.OLS(y, X).fit()
                 predictions = model.predict()
