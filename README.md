@@ -79,7 +79,8 @@ For instance, `example.csv` contains the following:
 This specifies that the factors are called 'reflexivity' and 'gender', respectively, and that the token groups should be called 'np1', 'np2' and 'pronoun'.
 If no legend is provided, automatic names 'f1', 'f2' for factors, 'g1', g2' and 'g3' for groups would be used.
 
-#### Explore ####
+
+## Explore ##
 
 Once again, I'd suggest you do `python experiment.py -h`, since the argument parser is fairly instructive.
 There are various options I haven't mentioned here.
@@ -88,3 +89,8 @@ For plots comparing coreferring to non-coreferring pronouns, I did something lik
 `python experiment.py data/ontonotes_dev_info_NN-PRP.csv --cuda --method gradient --combine no --n_items 500 --factors coref --track noun,pronoun --prefix COREF'
 
 And there are more options still, like the fancy --heatmap --gif combo (if it still works; haven't used it in a while...).
+
+
+## What about `dependency.py`? ##
+
+That's a slightly less clean file representing my thus far unconclusive attempt at correlating BERT's weights/gradients with dependency trees.
