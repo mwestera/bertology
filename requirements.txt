@@ -7,3 +7,5 @@ matplotlib
 seaborn
 pandas
 conllu
+statsmodels
+scipy
