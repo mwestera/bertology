@@ -86,11 +86,11 @@ Once again, I'd suggest you do `python experiment.py -h`, since the argument par
 There are various options I haven't mentioned here.
 For plots comparing coreferring to non-coreferring pronouns, I did something like (choose smaller --n_items, like 5, for quicker testing):
 
-`python experiment.py data/ontonotes_dev_info_NN-PRP.csv --cuda --method gradient --combine no --n_items 500 --factors coref --track noun,pronoun --prefix COREF'
+`python experiment.py data/ontonotes_dev_info_NN-PRP.csv --cuda --method gradient --combine no --n_items 500 --factors coref --track noun,pronoun --prefix COREF`
 
 And there are more options still, like the fancy --heatmap --gif combo (if it still works; haven't used it in a while...).
 
 
-## What about `dependency.py`? ##
+#### What about `dependency.py`? ####
 
 That's a slightly less clean file representing my thus far unconclusive attempt at correlating BERT's weights/gradients with dependency trees.
