@@ -29,51 +29,61 @@ from scipy.stats import ttest_ind, ttest_rel
 sns.set(font_scale=4, style="ticks", rc={"lines.linewidth": 3})
 
 parser = argparse.ArgumentParser(description='e.g., experiment.py data/example.csv')
+
+## Which dataset to apply BERT to
 parser.add_argument('data', type=str,
-                    help='Path to data file (typically .csv).')
+                    help='Path to data file (typically .csv; see for instance the exampe in data/example.csv).')
 parser.add_argument('--n_items', type=int, default=None,
-                    help='Max number of items from dataset to consider.')
-parser.add_argument('--out', type=str, default=None,
-                    help='Output directory for plots (default: creates a new /temp## folder)')
-parser.add_argument('--raw_out', type=str, default=None,
-                    help='Output directory for raw BERT outputs, pickled for efficient reuse.')
+                    help='Max number of items from dataset to consider (useful for test runs, because code can be slow for larger datasets).')
+parser.add_argument('--ignore_groups', action="store_true",
+                    help='To ignore groupings of tokens in the input data, and compute/plot per token. NOTE: POTENTIALLY BUGGY. May require all sentences to have the exact same number of token (pieces)...')
+parser.add_argument('--factors', type=str, default=None,
+                    help='Which factors to plot, comma separated like "--factors reflexivity,gender"; default: first 2 factors in the dataset.')
+parser.add_argument('--track', type=str, default=None,
+                    help='Which tokens/token groups to track; single tokens to track overall contribution; pairs (,) to track contribution between them. Items separated by ;, e.g., term1,term2;term3. Default tracks all groups.')
+
+## Meta
+parser.add_argument('--no_overwrite', action="store_true",
+                    help='To force not overwriting existing files (mainly useful for running multiple experiments that rely on the same auxiliary file, e.g., weights from BERT.')
+parser.add_argument('--prefix', type=str, default='',
+                    help='Prefix to be added to (non-auxiliary) output filenames like plots.')
+
+## What exactly to measure:
 parser.add_argument('--method', type=str, default='gradient', choices=["gradient", "attention"],
                     help='attention or gradient (default)')
 parser.add_argument('--combine', type=str, default='no', choices=["chain", "cumsum", "no"],
-                    help='how to combine layers: chain, cumsum, or no (default)')
-parser.add_argument('--estimator', type=str, default="mean", choices=["none", "mean"],
-                    help='for lineplots')
+                    help='How to combine weights/gradients across multiple layers: chain (all the way to layer 0), cumsum (cumulative sum), or no combination, i.e., compute from layer to layer separately (default).')
 parser.add_argument('--normalize_heads', action="store_true",
-                    help='To apply normalization per attention head (only used for "attention" method).')
-parser.add_argument('--ignore_groups', action="store_true",
-                    help='To ignore groupings of tokens in the input data, and compute/plot per token. NOTE: POTENTIALLY BUGGY.')
+                    help='(Only if --method is attention.) To apply normalization per attention head.')
 parser.add_argument('--group_merger', type=str, default='mean', choices=["mean", "sum"],
-                    help='how to combine the weights of tokens (and token pieces) within a token group: sum or mean (default)')
-## Disabled, as axis labels etc. would be incorrect:
-# parser.add_argument('--transpose', action="store_true",
-#                     help='To transpose the plots; by default they read like "rows influenced by cols" (otherwise: rows influencing cols).')
-parser.add_argument('--no_diff_plots', action="store_true",
-                    help='To NOT plot the differences between levels of a given factor.')
-parser.add_argument('--gif', action="store_true",
-                    help='To create animated gif of plots across layers.')
+                    help='How to combine the BERT weights of tokens (and token pieces) within a token group: sum or mean (default)')
+parser.add_argument('--balance', action="store_true",
+                    help='To compute and plot balances, i.e., how much a token influences minus how much it is influenced. Otherwise only the former, which is more interpretable I think.')
+
+## Bert-related
 parser.add_argument('--bert', type=str, default='bert-base-cased',
                     help='Which BERT model to use (default bert-base-cased; not sure which are available)')
-parser.add_argument('--factors', type=str, default=None,
-                    help='Which factors to plot, comma separated like "--factors reflexivity,gender"; default: first 2 factors in the data')
-parser.add_argument('--track', type=str, default=None,
-                    help='Which tokens/token groups to track; single tokens to track balance; pairs (,) to track their weight. Items separated by ;, e.g., term1,term2;term3. Default tracks all groups.')
-parser.add_argument('--no_global_colormap', action="store_true",
-                    help='Whether to standardize plot coloring across plots ("global"); otherwise only per plot (i.e., per layer)')
-parser.add_argument('--balance', action="store_true",
-                    help='To compute and plot balances, i.e., how much a token influences minus how much it is influenced.')
 parser.add_argument('--cuda', action="store_true",
-                    help='To use cuda.')
-parser.add_argument('--no_overwrite', action="store_true",
-                    help='To not overwrite existing files.')
+                    help='To use gpu cuda.')
+parser.add_argument('--raw_out', type=str, default=None,
+                    help='Output directory for raw BERT outputs, which will be pickled for efficient reuse (default: output/auxiliary).')
+
+## Plot-related
+parser.add_argument('--out', type=str, default=None,
+                    help='Output directory for plots (default: creates a new /temp## folder)')
+parser.add_argument('--estimator', type=str, default="mean", choices=["none", "mean"],
+                    help='For the lineplots, whether to use an estimator (plots mean + standard errors) or plot all individual stimuli.')
+
+## To output a heatmap plot (not terribly useful)
 parser.add_argument('--heatmap', action="store_true",
-                    help='To output pretty heat maps.')
-parser.add_argument('--prefix', type=str, default='',
-                    help='Prefix for saved (non-auxiliary) output files like plots.')
+                    help='To output pretty but not too useful heat maps of how the attention flows.')
+parser.add_argument('--no_diff_plots', action="store_true",
+                    help='(Only if outputting --heatmap) To NOT plot the differences between levels of a given factor.')
+parser.add_argument('--gif', action="store_true",
+                    help='(Only if outputting --heatmap) To create animated gif of plots across layers.')
+parser.add_argument('--no_global_colormap', action="store_true",
+                    help='(Only if outputting --heatmap) Whether to standardize plot coloring across plots ("global"); otherwise only per plot (i.e., per layer)')
+
 
 # TODO: Allow a more 'localist' analysis mode? See if there are any single neurons disproportionately reactive to a distinction, by looking at gradients.
 
